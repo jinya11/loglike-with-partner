@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Lobby.unity
+    guid: 57d6085fcc349014e991e4c32a33e00b
+  - enabled: 1
+    path: Assets/Scenes/Stage_Ruins.unity
+    guid: 8ca68975bb37d404893df642042d3020
+  - enabled: 1
+    path: Assets/Scenes/Stage_Snow.unity
+    guid: a2542424e036e254ba565d83ace747f1
+  - enabled: 1
+    path: Assets/Scenes/Stage_River.unity
+    guid: f9b6f89686478dd45b30c8ec1b67ae20
+  - enabled: 1
+    path: Assets/Scenes/Stage_Volcano.unity
+    guid: 7ce93c518ff1a6b4eb21075509d88dc4
+  - enabled: 1
+    path: Assets/Scenes/Bonus_Candy.unity
+    guid: 4ca065651018bfe45a309f5633ea0e28
+  m_configObjects:
+    com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

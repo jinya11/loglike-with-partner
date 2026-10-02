@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35a7030605cafd74aa775259ae9f1623, type: 3}
+  m_Name: Layout_Stage_Volcano
+  m_EditorClassIdentifier: Assembly-CSharp::StageLayout
+  centerSafeRadius: 6
+  seed: 0
+  maxAttempts: 30
+  entries:
+  - prefab: {fileID: 5776118663268443237, guid: beb235f1be9ab94469087076b6f43bd8, type: 3}
+    minCount: 6
+    maxCount: 10
+    minRadius: 0.2
+    maxRadius: 0.9
+    spacing: 9
+    scaleRange: {x: 0.7, y: 1.5}
+    randomRotation: 1
+  - prefab: {fileID: 829903352349428336, guid: 5a95e07d43cb52c47a3661e34b17a00e, type: 3}
+    minCount: 8
+    maxCount: 12
+    minRadius: 0.15
+    maxRadius: 0.95
+    spacing: 4
+    scaleRange: {x: 0.8, y: 1.4}
+    randomRotation: 1
+  - prefab: {fileID: 4861658794906220851, guid: bbbde7f1582f90e44a3fe562c8bc46db, type: 3}
+    minCount: 4
+    maxCount: 6
+    minRadius: 0.25
+    maxRadius: 0.9
+    spacing: 6
+    scaleRange: {x: 1, y: 1}
+    randomRotation: 1

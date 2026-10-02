@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35a7030605cafd74aa775259ae9f1623, type: 3}
+  m_Name: Layout_Stage_River
+  m_EditorClassIdentifier: Assembly-CSharp::StageLayout
+  centerSafeRadius: 0
+  seed: 0
+  maxAttempts: 30
+  entries:
+  - prefab: {fileID: 2867266851327391771, guid: 649915c4a2f27aa40a4fb4a8ec135336, type: 3}
+    minCount: 1
+    maxCount: 1
+    minRadius: 0
+    maxRadius: 0.01
+    spacing: 0
+    scaleRange: {x: 1, y: 1}
+    randomRotation: 1
+  - prefab: {fileID: 3884720898816601226, guid: a7267daced9670c429c96203eaa0db2d, type: 3}
+    minCount: 3
+    maxCount: 5
+    minRadius: 0.3
+    maxRadius: 0.85
+    spacing: 9
+    scaleRange: {x: 0.8, y: 1.4}
+    randomRotation: 1
+  - prefab: {fileID: 8209459044324492256, guid: 4e367e07bc5ae654386c0131d1ea1c76, type: 3}
+    minCount: 10
+    maxCount: 16
+    minRadius: 0.15
+    maxRadius: 0.95
+    spacing: 3
+    scaleRange: {x: 1, y: 1}
+    randomRotation: 1
+  - prefab: {fileID: 4578839829874866316, guid: 6e9aae40296bf0f43853ccb2ececbbb3, type: 3}
+    minCount: 4
+    maxCount: 7
+    minRadius: 0.2
+    maxRadius: 0.95
+    spacing: 5
+    scaleRange: {x: 1, y: 1}
+    randomRotation: 1

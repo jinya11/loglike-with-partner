@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35a7030605cafd74aa775259ae9f1623, type: 3}
+  m_Name: Layout_Bonus_Candy
+  m_EditorClassIdentifier: Assembly-CSharp::StageLayout
+  centerSafeRadius: 6
+  seed: 0
+  maxAttempts: 30
+  entries:
+  - prefab: {fileID: 5596123045043566076, guid: 88837a7f35717764b83f64de5c7da673, type: 3}
+    minCount: 4
+    maxCount: 6
+    minRadius: 0.3
+    maxRadius: 0.85
+    spacing: 9
+    scaleRange: {x: 1, y: 1}
+    randomRotation: 1
+  - prefab: {fileID: 913896111076432605, guid: b59fa209c54570a428413df4460b0579, type: 3}
+    minCount: 10
+    maxCount: 16
+    minRadius: 0.15
+    maxRadius: 0.95
+    spacing: 3
+    scaleRange: {x: 0.8, y: 1.5}
+    randomRotation: 1
+  - prefab: {fileID: 4595285677089385032, guid: 6dc127c4213c96441b9c98430acacd8f, type: 3}
+    minCount: 8
+    maxCount: 12
+    minRadius: 0.15
+    maxRadius: 0.95
+    spacing: 4
+    scaleRange: {x: 1, y: 1}
+    randomRotation: 1

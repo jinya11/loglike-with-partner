@@ -1,0 +1,227 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4aa94bdcf0f1ada46b74a7f45030ed19, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: Assembly-CSharp::GameConfig
+  lobbyScene: Lobby
+  weapons:
+  - name: "\uB9C8\uB825 \uC9C0\uD321\uC774"
+    desc: "\uADE0\uD615\uD615 \uB2E8\uBC1C"
+    model: {fileID: 5764026220834081537, guid: 16260cc0a29c0c740b797e0f35f077b1, type: 3}
+    damageMul: 1
+    intervalMul: 1
+    speedMul: 1
+    rangeMul: 1
+    spreadAngle: 12
+    bonusProjectiles: 0
+  - name: "\uC0B0\uD0C4 \uAC74\uD2C0\uB9BF"
+    desc: "\uADFC\uAC70\uB9AC 3\uBC1C \uD655\uC0B0, \uB0AE\uC740 \uD53C\uD574"
+    model: {fileID: 1720063497898375934, guid: daed868d7cb631d45b1a6e99d5a9c08e, type: 3}
+    damageMul: 0.6
+    intervalMul: 1.2
+    speedMul: 1
+    rangeMul: 0.6
+    spreadAngle: 18
+    bonusProjectiles: 2
+  - name: "\uC800\uACA9 \uC11D\uAD81"
+    desc: "\uB290\uB9AC\uC9C0\uB9CC \uAC15\uD558\uACE0 \uBA3C \uC0AC\uAC70\uB9AC"
+    model: {fileID: 6866883850587946339, guid: c2f5f32c73164b8439f8053a55ab3f82, type: 3}
+    damageMul: 2.4
+    intervalMul: 1.8
+    speedMul: 1.6
+    rangeMul: 1.6
+    spreadAngle: 12
+    bonusProjectiles: 0
+  companions:
+  - name: "\uAC70\uC2E0"
+    desc: "\uC2A4\uD14C\uC774\uC9C0\uB97C \uB0B4\uB824\uB2E4\uBCF4\uBA70 \uB099\uB8B0\uB85C
+      \uC9C0\uC6D0"
+    prefab: {fileID: 5726932171281090179, guid: 31a579d2d46aba44daeafa32c823a775, type: 3}
+    previewScale: 0.07
+    abilityText: "\u2022 \uC77C\uC815 \uC8FC\uAE30\uB9C8\uB2E4 \uD50C\uB808\uC774\uC5B4
+      \uADFC\uCC98\uC758 \uC801\uC5D0\uAC8C \uC608\uACE0 \uD6C4 \uB099\uB8B0\uB97C
+      \uB5A8\uC5B4\uB728\uB9BC\n\u2022 \uB099\uB8B0\uB294 \uBC94\uC704 \uD53C\uD574
+      (\uD2B9\uC218 \uAC15\uD654\uB85C \uD53C\uD574, \uC8FC\uAE30, \uD69F\uC218 \uC99D\uAC00)\n\u2022
+      \uAC15\uD55C \uC801\uC744 \uD655\uC2E4\uD558\uAC8C \uCC98\uB9AC\uD558\uB294
+      \uB370 \uD2B9\uD654"
+    ultimateName: "\uCD94\uD6C4 \uACF5\uAC1C"
+    ultimateDesc: "\uACE0\uC720 \uD544\uC0B4\uAE30 \uCEF7\uC52C \uC608\uC815"
+    ultimateCutscene: {fileID: 0}
+  - name: "\uD48D\uC2E0"
+    desc: "\uB3CC\uD48D\uC73C\uB85C \uC801\uC744 \uD55C\uCABD\uC73C\uB85C \uBC00\uC5B4\uB0C4"
+    prefab: {fileID: 4605123941540681199, guid: f58d8bd8c75b41245b1b5cd16b1b6666, type: 3}
+    previewScale: 0.07
+    abilityText: "\u2022 \uC801\uC774 \uAC00\uC7A5 \uB9CE\uC774 \uBAB0\uB9B0 \uCABD\uC73C\uB85C
+      \uB3CC\uD48D\uC744 \uC77C\uC73C\uCF1C \uC801\uB4E4\uC744 \uD55C\uCABD\uC73C\uB85C
+      \uBA40\uB9AC \uBC00\uC5B4\uB0C4\n\u2022 \uC57D\uD55C \uD53C\uD574 (\uAC70\uC2E0
+      \uB099\uB8B0\uC758 30%)\n\u2022 \uD3EC\uC704\uB2F9\uD588\uC744 \uB54C \uAE38\uC744
+      \uC5EC\uB294 \uB370 \uD2B9\uD654"
+    ultimateName: "\uCD94\uD6C4 \uACF5\uAC1C"
+    ultimateDesc: "\uACE0\uC720 \uD544\uC0B4\uAE30 \uCEF7\uC52C \uC608\uC815"
+    ultimateCutscene: {fileID: 0}
+  modifiers:
+  - name: "\uBD84\uB178\uC758 \uC11D\uD310"
+    desc: "\uBAAC\uC2A4\uD130 \uD53C\uD574 +50%"
+    type: 0
+    value: 0.5
+  - name: "\uAC15\uCCA0\uC758 \uC11D\uD310"
+    desc: "\uBAAC\uC2A4\uD130 \uCCB4\uB825 +50%"
+    type: 1
+    value: 0.5
+  - name: "\uC9C8\uC8FC\uC758 \uC11D\uD310"
+    desc: "\uBAAC\uC2A4\uD130 \uC18D\uB3C4 +25%"
+    type: 2
+    value: 0.25
+  - name: "\uAD70\uC138\uC758 \uC11D\uD310"
+    desc: "\uC2A4\uD3F0 \uC218 +2"
+    type: 3
+    value: 2
+  - name: "\uACE0\uAC08\uC758 \uC11D\uD310"
+    desc: "\uCCB4\uB825 \uD68C\uBCF5 \uBD88\uAC00"
+    type: 4
+    value: 0
+  - name: "\uC7AC\uC559\uC758 \uC11D\uD310"
+    desc: "\uB9F5\uC5D0 \uC704\uD5D8 \uC7A5\uD310 \uD328\uD134 \uCD94\uAC00"
+    type: 5
+    value: 0
+  hazardInterval: 2.5
+  hazardRadius: 2.5
+  hazardDamage: 20
+  hazardDelay: 1
+  stageCount: 5
+  stageScenes:
+  - Stage_Ruins
+  - Stage_Snow
+  - Stage_River
+  - Stage_Volcano
+  bonusScenes:
+  - Bonus_Candy
+  bonusChance: 0.3
+  baseKillTarget: 30
+  killTargetPerStage: 15
+  spawnInterval: 0.9
+  spawnIntervalPerStage: -0.1
+  minSpawnInterval: 0.25
+  spawnBatch: 3
+  maxAlive: 150
+  spawnDistance: 16
+  enemyHp: 10
+  enemyHpPerStage: 6
+  enemySpeed: 2.6
+  enemySpeedPerStage: 0.2
+  enemyDamage: 8
+  enemyPrefab: {fileID: 4260866993821003227, guid: 7f047b6003134ee41ae157197dbc4ae4, type: 3}
+  projectilePrefab: {fileID: 2617696397195031713, guid: 65c7dfb6c4ff87b4f839fc40ac22bd42, type: 3}
+  gemPrefab: {fileID: 1702165479639927558, guid: b1407456185e2a94c8aae57c869904f0, type: 3}
+  fxPrefab: {fileID: 497492082856970045, guid: 19fb6f705f7522245b6f81257285a624, type: 3}
+  portalPrefab: {fileID: 3231902938794445117, guid: 01b1c3f7e61c94446af4ab4a204961c5, type: 3}
+  baseStats:
+    maxHp: 100
+    moveSpeed: 6
+    damage: 5
+    attackInterval: 0.6
+    projectileSpeed: 18
+    pickupRadius: 3
+    cooldownMul: 1
+    areaMul: 1
+    projectileCount: 1
+    attackRange: 14
+    spreadAngle: 12
+    hpRegen: 0.5
+    canJump: 0
+    companionDamage: 15
+    companionInterval: 6
+    companionRadius: 3
+    companionStrikes: 1
+  xpBase: 5
+  xpGrowth: 1.25
+  specialEvery: 3
+  upgrades:
+  - name: "\uB0A0\uCE74\uB85C\uC6C0"
+    desc: "\uACF5\uACA9\uB825 +2"
+    stat: 0
+    value: 2
+    special: 0
+    weight: 1
+  - name: "\uC2E0\uC18D"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.8"
+    stat: 1
+    value: 0.8
+    special: 0
+    weight: 1
+  - name: "\uC5F0\uC0AC"
+    desc: "\uACF5\uACA9 \uAC04\uACA9 -12%"
+    stat: 2
+    value: 0.12
+    special: 0
+    weight: 1
+  - name: "\uAC15\uC778\uD568"
+    desc: "\uCD5C\uB300 \uCCB4\uB825 +20"
+    stat: 3
+    value: 20
+    special: 0
+    weight: 1
+  - name: "\uC790\uB825"
+    desc: "\uD68D\uB4DD \uBC94\uC704 +1.5"
+    stat: 4
+    value: 1.5
+    special: 0
+    weight: 1
+  - name: "\uC9D1\uC911"
+    desc: "\uC2A4\uD0AC \uCFE8\uD0C0\uC784 -10%"
+    stat: 5
+    value: 0.1
+    special: 0
+    weight: 1
+  - name: "\uD68C\uBCF5"
+    desc: "\uCCB4\uB825 40 \uD68C\uBCF5"
+    stat: 6
+    value: 40
+    special: 0
+    weight: 1
+  - name: "\uB2E4\uC911 \uC0AC\uACA9"
+    desc: "\uD22C\uC0AC\uCCB4 +1"
+    stat: 7
+    value: 1
+    special: 1
+    weight: 1
+  - name: "\uAD11\uC5ED\uD654"
+    desc: "\uBC94\uC704 +25%"
+    stat: 8
+    value: 0.25
+    special: 1
+    weight: 1
+  - name: "\uAC70\uC2E0\uC758 \uBD84\uB178"
+    desc: "\uB3D9\uBC18\uC790 \uB099\uB8B0 \uD53C\uD574 +15"
+    stat: 9
+    value: 15
+    special: 1
+    weight: 1
+  - name: "\uAC70\uC2E0\uC758 \uC8FC\uC2DC"
+    desc: "\uB3D9\uBC18\uC790 \uC9C0\uC6D0 \uC8FC\uAE30 -20%"
+    stat: 10
+    value: 0.2
+    special: 1
+    weight: 1
+  - name: "\uAC70\uC2E0\uC758 \uC5F0\uACA9"
+    desc: "\uB3D9\uBC18\uC790 \uB099\uB8B0 +1\uD68C"
+    stat: 11
+    value: 1
+    special: 1
+    weight: 1
+  - name: "\uB3C4\uC57D"
+    desc: "\uC810\uD504 \uD574\uAE08 (Space)\n\uACF5\uC911\uC5D0\uC11C\uB294 \uC811\uCD09
+      \uD53C\uD574\uC640 \uC7A5\uD310\uC744 \uD53C\uD568"
+    stat: 12
+    value: 1
+    special: 0
+    weight: 0.05
