@@ -223,22 +223,6 @@ public static partial class PrototypeBuilder
     // =====================================================================
     static void BuildLobbyData(GameConfig cfg)
     {
-        var staff = BuildWeapon("Weapon_Staff", new Color(0.5f, 0.85f, 1f),
-            (PrimitiveType.Cylinder, new Vector3(0, 0, 0.2f), new Vector3(0.08f, 0.55f, 0.08f)), (PrimitiveType.Sphere, new Vector3(0, 0.6f, 0.2f), Vector3.one * 0.25f));
-        var gauntlet = BuildWeapon("Weapon_Gauntlet", new Color(1f, 0.6f, 0.2f),
-            (PrimitiveType.Cube, Vector3.zero, new Vector3(0.35f, 0.35f, 0.45f)), (PrimitiveType.Cube, new Vector3(0, 0.08f, 0.3f), new Vector3(0.25f, 0.12f, 0.3f)));
-        var crossbow = BuildWeapon("Weapon_Crossbow", new Color(0.75f, 0.75f, 0.8f),
-            (PrimitiveType.Cube, new Vector3(0, 0, 0.3f), new Vector3(0.1f, 0.1f, 0.8f)), (PrimitiveType.Cube, new Vector3(0, 0, 0.55f), new Vector3(0.8f, 0.06f, 0.08f)));
-        if (cfg.weapons == null || cfg.weapons.Length == 0)
-            cfg.weapons = new[]
-            {
-                new WeaponDef { name = "마력 지팡이", desc = "균형형 단발" },
-                new WeaponDef { name = "산탄 건틀릿", desc = "근거리 3발 확산, 낮은 피해", damageMul = 0.6f, intervalMul = 1.2f, rangeMul = 0.6f, spreadAngle = 18f, bonusProjectiles = 2 },
-                new WeaponDef { name = "저격 석궁", desc = "느리지만 강하고 먼 사거리", damageMul = 2.4f, intervalMul = 1.8f, speedMul = 1.6f, rangeMul = 1.6f },
-            };
-        var models = new[] { staff, gauntlet, crossbow };
-        for (int i = 0; i < cfg.weapons.Length && i < models.Length; i++) cfg.weapons[i].model = models[i];
-
         var giant = BuildCompanion();
         if (cfg.companions == null || cfg.companions.Length == 0)
             cfg.companions = new[] { new CompanionDef { name = "거신", desc = "스테이지를 내려다보며 낙뢰로 지원" } };
@@ -256,7 +240,7 @@ public static partial class PrototypeBuilder
             };
     }
 
-    /// <summary>로비: 중앙 출발 포털, 북쪽 난이도의 석판(제단 위), 서쪽 무기 받침대, 동쪽 동반자 제단. ProBuilder 지형.</summary>
+    /// <summary>로비: 중앙 출발 포털, 북쪽 난이도의 석판(제단 위), 동쪽 동반자 제단. ProBuilder 지형.</summary>
     static void BuildLobby(string path, GameConfig cfg)
     {
         var scene = BuildBase();
@@ -312,21 +296,6 @@ public static partial class PrototypeBuilder
         var tablet = new GameObject("DifficultyTablet").transform;
         tablet.SetParent(root, false); tablet.localPosition = new Vector3(0, 0, tz - 4.8f);
         Interactable(tablet.gameObject, LobbyInteractable.Kind.Modifier, 0, tabletRune.GetComponent<Renderer>(), new Color(1f, 0.3f, 0.2f), new Color(0.35f, 0.8f, 1f));
-        // 서쪽: 무기 받침대 + 무기 진열벽
-        PB(ShapeGenerator.GenerateCube(PivotLocation.Center, new Vector3(1f, 3.5f, 11f)), "WeaponWall", root, new Vector3(-14.5f, 1.75f, 0.5f), stone, true);
-        Color[] banners = { new Color(0.3f, 0.6f, 0.9f), new Color(0.9f, 0.5f, 0.2f), new Color(0.7f, 0.7f, 0.75f) };
-        for (int i = 0; i < cfg.weapons.Length; i++)
-        {
-            var t = new GameObject("Weapon_" + cfg.weapons[i].name).transform;
-            t.SetParent(root, false);
-            t.localPosition = new Vector3(-11.5f, 0, 4f - i * 3.5f);
-            PB(ShapeGenerator.GenerateCylinder(PivotLocation.Center, 12, 0.6f, 1f, 0), "Pedestal", t, new Vector3(0, 0.5f, 0), stone, true);
-            var top = Prim(PrimitiveType.Cylinder, "Top", t, new Vector3(0, 1.02f, 0), new Vector3(1.3f, 0.03f, 1.3f), rune);
-            Prim(PrimitiveType.Cube, "Banner", root, new Vector3(-13.95f, 2f, t.localPosition.z), new Vector3(0.05f, 2.4f, 1.2f), Mat("Banner" + i, banners[i % banners.Length]));
-            if (cfg.weapons[i].model) { var m = (GameObject)PrefabUtility.InstantiatePrefab(cfg.weapons[i].model, t); m.transform.localPosition = new Vector3(0, 1.6f, 0); m.transform.localScale = Vector3.one * 1.5f; }
-            Interactable(t.gameObject, LobbyInteractable.Kind.Weapon, i, top.GetComponent<Renderer>(), new Color(0.3f, 0.8f, 1f));
-        }
-
         // 동쪽: 동반자 제단 + 아치
         var cm = Mat("Companion", new Color(0.18f, 0.16f, 0.25f));
         for (int i = 0; i < cfg.companions.Length; i++)
@@ -380,10 +349,8 @@ public static partial class PrototypeBuilder
         var body = new GameObject("Body") { layer = playerLayer }.transform; body.SetParent(player.transform, false);
         Prim(PrimitiveType.Capsule, "Capsule", body, new Vector3(0, 1f, 0), new Vector3(0.9f, 1f, 0.9f), Mat("Player", new Color(0.25f, 0.55f, 1f)));
         Prim(PrimitiveType.Cube, "Visor", body, new Vector3(0, 1.5f, 0.4f), new Vector3(0.6f, 0.2f, 0.2f), Mat("Visor", Color.white));
-        var hand = new GameObject("Hand").transform; hand.SetParent(body, false); hand.localPosition = new Vector3(0.55f, 1f, 0.25f);
         var pc = player.AddComponent<PlayerController>();
         Set(pc, "body", body);
-        Set(pc, "hand", hand);
         return scene;
     }
 
@@ -411,14 +378,6 @@ public static partial class PrototypeBuilder
         comp.transform.rotation = Quaternion.Euler(0, 180f, 0);
         comp.transform.localScale = Vector3.one * 2.2f;
         return Save(comp, "Companion_Giant");
-    }
-
-    static GameObject BuildWeapon(string name, Color col, params (PrimitiveType t, Vector3 pos, Vector3 scale)[] parts)
-    {
-        var go = new GameObject(name);
-        var m = Mat(name, col);
-        foreach (var p in parts) Prim(p.t, p.t.ToString(), go.transform, p.pos, p.scale, m);
-        return Save(go, name);
     }
 
     static GameObject Preset(string name, System.Action<Transform> build)

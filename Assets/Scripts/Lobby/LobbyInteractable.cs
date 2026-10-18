@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 
-/// <summary>로비 상호작용 오브젝트 (석판/무기 받침대/동반자 제단/출발 포털). F 키로 작동.</summary>
+/// <summary>로비 상호작용 오브젝트 (난이도 석판/동반자 제단/출발 포털). F 키로 작동.</summary>
 public class LobbyInteractable : Interactable
 {
-    public enum Kind { Modifier, Weapon, Companion, Start }
+    // 값 고정: 씬에 저장된 정수 값이 바뀌지 않도록 (1번은 제거된 무기 받침대)
+    public enum Kind { Modifier = 0, Companion = 2, Start = 3 }
 
     static readonly int ColorId = Shader.PropertyToID("_BaseColor");
     static MaterialPropertyBlock mpb;
@@ -26,7 +27,6 @@ public class LobbyInteractable : Interactable
             switch (kind)
             {
                 case Kind.Modifier: return gm.ModifierMask != 0;
-                case Kind.Weapon: return gm.WeaponIndex == index;
                 case Kind.Companion: return gm.CompanionIndex == index;
                 default: return false;
             }
@@ -42,7 +42,6 @@ public class LobbyInteractable : Interactable
             switch (kind)
             {
                 case Kind.Modifier: return "[F] 난이도 조절하기";
-                case Kind.Weapon: var w = c.weapons[index]; return $"[F] 무기 장착: {w.name}  ({w.desc})";
                 case Kind.Companion: var p = c.companions[index]; return $"[F] 동반자 선택: {p.name}  ({p.desc})";
                 default: return "[F] 출발";
             }
@@ -55,8 +54,9 @@ public class LobbyInteractable : Interactable
         switch (kind)
         {
             case Kind.Modifier: LobbyDirector.I.OpenDifficulty(); return;
-            case Kind.Weapon: gm.WeaponIndex = index; gm.ResetRun(); PlayerController.I.RefreshWeapon(); break;
-            case Kind.Companion: gm.CompanionIndex = index; break;
+            case Kind.Companion:
+                if (!SaveData.IsUnlocked(gm.Config.companions[index])) return; // 잠긴 감시자는 동반자 선택 장소에서 해금
+                gm.CompanionIndex = index; break;
             case Kind.Start: gm.StartRun(); return;
         }
         RefreshAll();

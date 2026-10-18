@@ -8644,37 +8644,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f7e117020218a544cb17e165fae1cd7d, type: 3}
---- !u!1 &1047914349
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1047914350}
-  m_Layer: 0
-  m_Name: Hand
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1047914350
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1047914349}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.55, y: 1, z: 0.25}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1763074218}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1070710273
 GameObject:
   m_ObjectHideFlags: 0
@@ -14259,6 +14228,7 @@ MonoBehaviour:
   displayName: "\uC124\uC6D0"
   ambientRegen: 0
   killTargetMul: 1
+  resource: 2
 --- !u!114 &1594791390
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14319,7 +14289,6 @@ Transform:
   m_Children:
   - {fileID: 492648246}
   - {fileID: 216430357}
-  - {fileID: 1047914350}
   m_Father: {fileID: 2019662799}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1787481745
@@ -14432,16 +14401,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   body: {fileID: 1763074218}
-  hand: {fileID: 1047914350}
   interactRange: 2.6
   jumpSpeed: 10
   gravity: 30
+  dashSpeed: 28
+  dashTime: 0.18
   qCooldown: 6
   qRadius: 4.5
   qDamageMul: 3
   eCooldown: 3
-  dashSpeed: 28
-  dashTime: 0.18
+  shieldCooldown: 10
+  shieldTime: 2.5
+  presenceSpeedMul: 2
+  reticleColor: {r: 0.7, g: 0.85, b: 1, a: 1}
 --- !u!143 &2019662798
 CharacterController:
   m_ObjectHideFlags: 0
@@ -14515,7 +14487,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
   offset: {x: 0, y: 11, z: -17}
+  sideFov: 60
+  topDistance: 30
+  topPitch: 72
+  topFov: 50
+  overviewDistance: 95
+  overviewPitch: 82
   smooth: 8
+  switchKey: 36
+  modeNames:
+  - "\uC0AC\uC774\uB4DC\uBDF0 (\uC2A4\uD14C\uC774\uC9C0)"
+  - "\uD0D1\uBDF0 (\uB3D9\uBC18\uC790)"
+  - "1\uC778\uCE6D (\uC0DD\uBA85\uCCB4)"
 --- !u!81 &2026482795
 AudioListener:
   m_ObjectHideFlags: 0

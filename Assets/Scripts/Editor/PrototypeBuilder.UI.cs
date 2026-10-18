@@ -86,7 +86,7 @@ public static partial class PrototypeBuilder
     {
         var canvas = NewCanvas("HUD_Lobby");
         var t = canvas.transform;
-        var info = Txt("InfoText", t, "무기: {0}\n동반자: {1}\n각성한 석판: {2}/{3}\n북쪽 거대 석판에서 난이도 설정\n\nWASD 이동  E 대시  F 상호작용", 22, TextAlignmentOptions.TopLeft, Color.white, TL, TL, new Vector2(20, -20), new Vector2(900, 240), TL);
+        var info = Txt("InfoText", t, "동반자: {0}\n각성한 석판: {1}/{2}\n북쪽 거대 석판에서 난이도 설정\n\nWASD 이동  E 대시  F 상호작용", 22, TextAlignmentOptions.TopLeft, Color.white, TL, TL, new Vector2(20, -20), new Vector2(900, 240), TL);
         var prompt = Txt("PromptText", t, "[F] 상호작용", 30, TextAlignmentOptions.Center, Color.white, BC, BC, new Vector2(0, 90), new Vector2(1500, 56));
 
         // 난이도의 석판: 로비가 보이지 않는 불투명 전체 화면

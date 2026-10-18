@@ -15,13 +15,12 @@ public class GameManager : Singleton<GameManager>
     public int StageIndex { get; private set; }
     public GameState State { get; private set; }
     public bool ChoiceIsSpecial { get; private set; }
+    public UpgradeCategory ChoiceCategory { get; private set; }
     public readonly List<UpgradeDef> Choices = new List<UpgradeDef>(3);
     public event System.Action ChoicesChanged;
 
-    public int WeaponIndex { get; set; }
     public int CompanionIndex { get; set; }
     public int ModifierMask { get; private set; } // 활성 난이도 석판 비트마스크
-    public WeaponDef Weapon => Config.weapons != null && Config.weapons.Length > 0 ? Config.weapons[WeaponIndex] : null;
     public CompanionDef Companion => Config.companions != null && Config.companions.Length > 0 ? Config.companions[CompanionIndex] : null;
 
     int pendingLevelUps;
@@ -48,7 +47,11 @@ public class GameManager : Singleton<GameManager>
         base.OnDestroy();
     }
 
-    void OnSceneLoaded(Scene s, LoadSceneMode m) => Time.timeScale = 1f;
+    void OnSceneLoaded(Scene s, LoadSceneMode m) { Time.timeScale = 1f; transitioning = false; }
+
+    /// <summary>씬 전환 중 (LoadScene 호출 ~ 로드 완료). 이전 씬의 남은 프레임이 패배 처리를 다시 일으키지 않도록.</summary>
+    bool transitioning;
+    public bool Transitioning => transitioning;
 
     public bool IsModifierOn(int i) => (ModifierMask & (1 << i)) != 0;
     public void ToggleModifier(int i) => ModifierMask ^= 1 << i;
@@ -76,20 +79,24 @@ public class GameManager : Singleton<GameManager>
     public void ResetRun()
     {
         Stats = Config.baseStats.Clone();
-        var w = Weapon;
-        if (w != null)
-        {
-            Stats.damage *= w.damageMul;
-            Stats.attackInterval *= w.intervalMul;
-            Stats.projectileSpeed *= w.speedMul;
-            Stats.attackRange *= w.rangeMul;
-            Stats.spreadAngle = w.spreadAngle;
-            Stats.projectileCount += w.bonusProjectiles;
-        }
+        ApplyBaseUpgrades();
         StageIndex = 0;
         InBonus = false;
         pendingLevelUps = 0;
         State = GameState.Playing;
+    }
+
+    /// <summary>거점 성장 레벨만큼 영구 강화 적용.</summary>
+    void ApplyBaseUpgrades()
+    {
+        if (Config.baseUpgrades == null) return;
+        foreach (var b in Config.baseUpgrades)
+        {
+            int lv = SaveData.Level(b.id);
+            if (lv > 0) Stats.Apply(new UpgradeDef { stat = b.stat, value = b.valuePerLevel * lv });
+        }
+        Stats.hp = Stats.maxHp;
+        Stats.wardHp = Stats.wardMaxHp;
     }
 
     public int XpToNext => Mathf.RoundToInt(Config.xpBase * Mathf.Pow(Config.xpGrowth, Stats.level - 1));
@@ -109,6 +116,7 @@ public class GameManager : Singleton<GameManager>
 
     public void AddXp(int v)
     {
+        if (transitioning) return;
         Stats.xp += v;
         int need;
         while (Stats.xp >= (need = XpToNext))
@@ -123,12 +131,15 @@ public class GameManager : Singleton<GameManager>
     void OpenLevelUp()
     {
         int lv = Stats.level - pendingLevelUps + 1;
-        ChoiceIsSpecial = lv % Config.specialEvery == 0;
+        // 1번째 탄환 → 2번째 생명체 생존력 → 3번째 동반자 (순환)
+        ChoiceCategory = (lv % 3) == 1 ? UpgradeCategory.Projectile : (lv % 3) == 2 ? UpgradeCategory.Ward : UpgradeCategory.Companion;
+        ChoiceIsSpecial = ChoiceCategory == UpgradeCategory.Companion;
         buffer.Clear();
         foreach (var u in Config.upgrades)
-            if (u.special == ChoiceIsSpecial && u.weight > 0f
-                && !(u.stat == StatType.Heal && Has(ModifierType.NoHealing))
-                && !(u.stat == StatType.Jump && Stats.canJump)) buffer.Add(u);
+            if (u.category == ChoiceCategory && u.weight > 0f
+                && !((u.stat == StatType.Heal || u.stat == StatType.WardHeal) && Has(ModifierType.NoHealing))
+                && !(u.stat == StatType.Jump && Stats.canJump)
+                && !IsBodyOnly(u.stat)) buffer.Add(u);
         Choices.Clear();
         for (int i = 0; i < 3 && buffer.Count > 0; i++)
         {
@@ -147,6 +158,9 @@ public class GameManager : Singleton<GameManager>
         ChoicesChanged?.Invoke();
     }
 
+    /// <summary>전투에서 플레이어는 형태 없는 존재 → 몸 관련 강화(체력/회복/점프)는 제외.</summary>
+    static bool IsBodyOnly(StatType s) => s == StatType.MaxHp || s == StatType.Heal || s == StatType.Jump;
+
     public void Choose(int i)
     {
         if (State != GameState.LevelUp || i >= Choices.Count) return;
@@ -157,7 +171,16 @@ public class GameManager : Singleton<GameManager>
         Time.timeScale = 1f;
     }
 
-    public void GameOver() { State = GameState.GameOver; Time.timeScale = 0f; }
+    /// <summary>true면 생명체를 잃어서 패배.</summary>
+    public bool WardLost { get; private set; }
+
+    public void GameOver(bool wardLost = false)
+    {
+        if (State == GameState.GameOver || transitioning) return;
+        WardLost = wardLost;
+        State = GameState.GameOver;
+        Time.timeScale = 0f;
+    }
 
     public void NextStage()
     {
@@ -184,6 +207,7 @@ public class GameManager : Singleton<GameManager>
     void Load(string scene)
     {
         lastScene = scene;
+        transitioning = true;
         InputLocked = false;
         SceneManager.LoadScene(scene);
     }

@@ -13,34 +13,6 @@ MonoBehaviour:
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
   lobbyScene: Lobby
-  weapons:
-  - name: "\uB9C8\uB825 \uC9C0\uD321\uC774"
-    desc: "\uADE0\uD615\uD615 \uB2E8\uBC1C"
-    model: {fileID: 5764026220834081537, guid: 16260cc0a29c0c740b797e0f35f077b1, type: 3}
-    damageMul: 1
-    intervalMul: 1
-    speedMul: 1
-    rangeMul: 1
-    spreadAngle: 12
-    bonusProjectiles: 0
-  - name: "\uC0B0\uD0C4 \uAC74\uD2C0\uB9BF"
-    desc: "\uADFC\uAC70\uB9AC 3\uBC1C \uD655\uC0B0, \uB0AE\uC740 \uD53C\uD574"
-    model: {fileID: 1720063497898375934, guid: daed868d7cb631d45b1a6e99d5a9c08e, type: 3}
-    damageMul: 0.6
-    intervalMul: 1.2
-    speedMul: 1
-    rangeMul: 0.6
-    spreadAngle: 18
-    bonusProjectiles: 2
-  - name: "\uC800\uACA9 \uC11D\uAD81"
-    desc: "\uB290\uB9AC\uC9C0\uB9CC \uAC15\uD558\uACE0 \uBA3C \uC0AC\uAC70\uB9AC"
-    model: {fileID: 6866883850587946339, guid: c2f5f32c73164b8439f8053a55ab3f82, type: 3}
-    damageMul: 2.4
-    intervalMul: 1.8
-    speedMul: 1.6
-    rangeMul: 1.6
-    spreadAngle: 12
-    bonusProjectiles: 0
   companions:
   - name: "\uAC70\uC2E0"
     desc: "\uC2A4\uD14C\uC774\uC9C0\uB97C \uB0B4\uB824\uB2E4\uBCF4\uBA70 \uB099\uB8B0\uB85C
@@ -53,6 +25,8 @@ MonoBehaviour:
       (\uD2B9\uC218 \uAC15\uD654\uB85C \uD53C\uD574, \uC8FC\uAE30, \uD69F\uC218 \uC99D\uAC00)\n\u2022
       \uAC15\uD55C \uC801\uC744 \uD655\uC2E4\uD558\uAC8C \uCC98\uB9AC\uD558\uB294
       \uB370 \uD2B9\uD654"
+    unlockCost: []
+    bombardCooldown: 45
     ultimateName: "\uCD94\uD6C4 \uACF5\uAC1C"
     ultimateDesc: "\uACE0\uC720 \uD544\uC0B4\uAE30 \uCEF7\uC52C \uC608\uC815"
     ultimateCutscene: {fileID: 0}
@@ -65,6 +39,12 @@ MonoBehaviour:
       \uBA40\uB9AC \uBC00\uC5B4\uB0C4\n\u2022 \uC57D\uD55C \uD53C\uD574 (\uAC70\uC2E0
       \uB099\uB8B0\uC758 30%)\n\u2022 \uD3EC\uC704\uB2F9\uD588\uC744 \uB54C \uAE38\uC744
       \uC5EC\uB294 \uB370 \uD2B9\uD654"
+    unlockCost:
+    - type: 3
+      amount: 5
+    - type: 2
+      amount: 5
+    bombardCooldown: 45
     ultimateName: "\uCD94\uD6C4 \uACF5\uAC1C"
     ultimateDesc: "\uACE0\uC720 \uD544\uC0B4\uAE30 \uCEF7\uC52C \uC608\uC815"
     ultimateCutscene: {fileID: 0}
@@ -97,6 +77,75 @@ MonoBehaviour:
   hazardRadius: 2.5
   hazardDamage: 20
   hazardDelay: 1
+  resources:
+  - type: 1
+    name: "\uACE0\uB300 \uC11D\uC7AC"
+    color: {r: 0.8, g: 0.75, b: 0.6, a: 1}
+  - type: 2
+    name: "\uC11C\uB9AC \uACB0\uC815"
+    color: {r: 0.6, g: 0.9, b: 1, a: 1}
+  - type: 3
+    name: "\uAC15\uC758 \uC870\uC57D\uB3CC"
+    color: {r: 0.3, g: 0.8, b: 0.75, a: 1}
+  - type: 4
+    name: "\uC6A9\uC554\uC11D"
+    color: {r: 1, g: 0.4, b: 0.1, a: 1}
+  - type: 5
+    name: "\uC124\uD0D5 \uACB0\uC815"
+    color: {r: 1, g: 0.6, b: 0.85, a: 1}
+  resourceDropChance: 0.06
+  resourcePickupPrefab: {fileID: 2489645673102143564, guid: 7d6c8663524539d42ba856a6a91f71e9, type: 3}
+  baseUpgrades:
+  - id: ward_hp
+    name: "\uC0DD\uBA85\uC758 \uC0D8"
+    desc: "\uC0DD\uBA85\uCCB4 \uCD5C\uB300 \uCCB4\uB825 +10"
+    stat: 13
+    valuePerLevel: 10
+    maxLevel: 5
+    cost:
+      type: 1
+      amount: 3
+    costGrowth: 2
+  - id: ward_regen
+    name: "\uC11C\uB9AC \uBC29\uBCBD"
+    desc: "\uC0DD\uBA85\uCCB4 \uCD08\uB2F9 \uD68C\uBCF5 +0.15"
+    stat: 19
+    valuePerLevel: 0.15
+    maxLevel: 5
+    cost:
+      type: 2
+      amount: 3
+    costGrowth: 2
+  - id: pickup
+    name: "\uAC15\uC758 \uCD95\uBCF5"
+    desc: "\uD68D\uB4DD \uBC94\uC704 +0.5"
+    stat: 4
+    valuePerLevel: 0.5
+    maxLevel: 5
+    cost:
+      type: 3
+      amount: 3
+    costGrowth: 2
+  - id: damage
+    name: "\uC6A9\uC554 \uB2E8\uB828"
+    desc: "\uACF5\uACA9\uB825 +1"
+    stat: 0
+    valuePerLevel: 1
+    maxLevel: 5
+    cost:
+      type: 4
+      amount: 3
+    costGrowth: 2
+  - id: companion
+    name: "\uB2EC\uCF64\uD55C \uACF5\uBB3C"
+    desc: "\uAC10\uC2DC\uC790 \uD53C\uD574 +3"
+    stat: 9
+    valuePerLevel: 3
+    maxLevel: 5
+    cost:
+      type: 5
+      amount: 2
+    costGrowth: 2
   stageCount: 5
   stageScenes:
   - Stage_Ruins
@@ -119,11 +168,74 @@ MonoBehaviour:
   enemySpeed: 2.6
   enemySpeedPerStage: 0.2
   enemyDamage: 8
+  enemyAggroRadius: 3.5
   enemyPrefab: {fileID: 4260866993821003227, guid: 7f047b6003134ee41ae157197dbc4ae4, type: 3}
   projectilePrefab: {fileID: 2617696397195031713, guid: 65c7dfb6c4ff87b4f839fc40ac22bd42, type: 3}
   gemPrefab: {fileID: 1702165479639927558, guid: b1407456185e2a94c8aae57c869904f0, type: 3}
   fxPrefab: {fileID: 497492082856970045, guid: 19fb6f705f7522245b6f81257285a624, type: 3}
   portalPrefab: {fileID: 3231902938794445117, guid: 01b1c3f7e61c94446af4ab4a204961c5, type: 3}
+  wardPrefab: {fileID: 7066806032799519117, guid: 32e42d736cfdf7644afc9a12a9a4f1b6, type: 3}
+  enemyTypes:
+  - name: "\uC878\uAC1C"
+    prefab: {fileID: 4260866993821003227, guid: 7f047b6003134ee41ae157197dbc4ae4, type: 3}
+    weight: 3
+    minStage: 0
+    hpMul: 1
+    speedMul: 1
+    damageMul: 1
+    ability: 0
+    abilityValue: 0
+    abilityDuration: 2
+    abilityCooldown: 4
+    abilityRange: 6
+  - name: "\uB3CC\uC9C4\uAFBC"
+    prefab: {fileID: 5140851095158108129, guid: c069ca869fb1fb34a95f86d38417bc71, type: 3}
+    weight: 1.2
+    minStage: 0
+    hpMul: 1.4
+    speedMul: 0.9
+    damageMul: 1.2
+    ability: 1
+    abilityValue: 14
+    abilityDuration: 0.6
+    abilityCooldown: 5
+    abilityRange: 7
+  - name: "\uC810\uC561\uAD34"
+    prefab: {fileID: 2509171830763278053, guid: 7a8e82763cd544c4db0a976857caccc7, type: 3}
+    weight: 1
+    minStage: 0
+    hpMul: 1.8
+    speedMul: 0.7
+    damageMul: 0.8
+    ability: 2
+    abilityValue: 0.45
+    abilityDuration: 3
+    abilityCooldown: 4
+    abilityRange: 6
+  - name: "\uBE44\uBA85\uADC0"
+    prefab: {fileID: 4561065245590275423, guid: cae97db86ed0a3b41ac395d5a5590bab, type: 3}
+    weight: 0.8
+    minStage: 0
+    hpMul: 0.8
+    speedMul: 1.1
+    damageMul: 0.6
+    ability: 3
+    abilityValue: 0
+    abilityDuration: 1
+    abilityCooldown: 6
+    abilityRange: 2.5
+  - name: "\uD761\uD608\uCDA9"
+    prefab: {fileID: 3355641146690476889, guid: 165acf720f82f5444ba68a4f67a327c6, type: 3}
+    weight: 1
+    minStage: 0
+    hpMul: 0.6
+    speedMul: 1.4
+    damageMul: 0.5
+    ability: 4
+    abilityValue: 3
+    abilityDuration: 4
+    abilityCooldown: 4
+    abilityRange: 6
   baseStats:
     maxHp: 100
     moveSpeed: 6
@@ -138,6 +250,12 @@ MonoBehaviour:
     spreadAngle: 12
     hpRegen: 0.5
     canJump: 0
+    wardMaxHp: 60
+    wardRegen: 0.4
+    wardSpeed: 3.2
+    wardPulseDamage: 3
+    wardPulseRadius: 2.2
+    wardPulseInterval: 6
     companionDamage: 15
     companionInterval: 6
     companionRadius: 3
@@ -150,72 +268,84 @@ MonoBehaviour:
     desc: "\uACF5\uACA9\uB825 +2"
     stat: 0
     value: 2
+    category: 0
     special: 0
     weight: 1
   - name: "\uC2E0\uC18D"
     desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.8"
     stat: 1
     value: 0.8
+    category: 0
     special: 0
     weight: 1
   - name: "\uC5F0\uC0AC"
     desc: "\uACF5\uACA9 \uAC04\uACA9 -12%"
     stat: 2
     value: 0.12
+    category: 0
     special: 0
     weight: 1
   - name: "\uAC15\uC778\uD568"
     desc: "\uCD5C\uB300 \uCCB4\uB825 +20"
     stat: 3
     value: 20
+    category: 0
     special: 0
     weight: 1
   - name: "\uC790\uB825"
     desc: "\uD68D\uB4DD \uBC94\uC704 +1.5"
     stat: 4
     value: 1.5
+    category: 0
     special: 0
     weight: 1
   - name: "\uC9D1\uC911"
     desc: "\uC2A4\uD0AC \uCFE8\uD0C0\uC784 -10%"
     stat: 5
     value: 0.1
+    category: 0
     special: 0
     weight: 1
   - name: "\uD68C\uBCF5"
     desc: "\uCCB4\uB825 40 \uD68C\uBCF5"
     stat: 6
     value: 40
+    category: 0
     special: 0
     weight: 1
   - name: "\uB2E4\uC911 \uC0AC\uACA9"
     desc: "\uD22C\uC0AC\uCCB4 +1"
     stat: 7
     value: 1
+    category: 0
     special: 1
     weight: 1
   - name: "\uAD11\uC5ED\uD654"
     desc: "\uBC94\uC704 +25%"
     stat: 8
     value: 0.25
+    category: 2
     special: 1
     weight: 1
   - name: "\uAC70\uC2E0\uC758 \uBD84\uB178"
     desc: "\uB3D9\uBC18\uC790 \uB099\uB8B0 \uD53C\uD574 +15"
     stat: 9
     value: 15
+    category: 2
     special: 1
     weight: 1
   - name: "\uAC70\uC2E0\uC758 \uC8FC\uC2DC"
     desc: "\uB3D9\uBC18\uC790 \uC9C0\uC6D0 \uC8FC\uAE30 -20%"
     stat: 10
     value: 0.2
+    category: 2
     special: 1
     weight: 1
   - name: "\uAC70\uC2E0\uC758 \uC5F0\uACA9"
     desc: "\uB3D9\uBC18\uC790 \uB099\uB8B0 +1\uD68C"
     stat: 11
     value: 1
+    category: 2
     special: 1
     weight: 1
   - name: "\uB3C4\uC57D"
@@ -223,5 +353,63 @@ MonoBehaviour:
       \uD53C\uD574\uC640 \uC7A5\uD310\uC744 \uD53C\uD568"
     stat: 12
     value: 1
+    category: 0
     special: 0
     weight: 0.05
+  - name: "\uBCF4\uD638\uC758 \uAECD\uC9C8"
+    desc: "\uC0DD\uBA85\uCCB4 \uCD5C\uB300 \uCCB4\uB825 +25"
+    stat: 13
+    value: 25
+    category: 1
+    special: 0
+    weight: 1
+  - name: "\uC0DD\uBA85\uC758 \uC774\uC2AC"
+    desc: "\uC0DD\uBA85\uCCB4 \uCCB4\uB825 30 \uD68C\uBCF5"
+    stat: 14
+    value: 30
+    category: 1
+    special: 0
+    weight: 1
+  - name: "\uC791\uC740 \uBC18\uD56D"
+    desc: "\uC0DD\uBA85\uCCB4 \uC800\uD56D \uD30C\uB3D9 \uD53C\uD574 +4, \uBC94\uC704
+      \uC99D\uAC00"
+    stat: 15
+    value: 4
+    category: 1
+    special: 1
+    weight: 1
+  - name: "\uC791\uC740 \uC6A9\uAE30"
+    desc: "\uC0DD\uBA85\uCCB4 \uC800\uD56D \uD30C\uB3D9 \uC8FC\uAE30 -25%"
+    stat: 16
+    value: 0.25
+    category: 1
+    special: 1
+    weight: 1
+  - name: "\uC7A5\uAC70\uB9AC \uD0C4\uB3C4"
+    desc: "\uACF5\uACA9 \uC0AC\uAC70\uB9AC +3"
+    stat: 17
+    value: 3
+    category: 0
+    special: 0
+    weight: 1
+  - name: "\uAC00\uC18D \uD0C4\uD658"
+    desc: "\uD0C4\uC18D +5"
+    stat: 18
+    value: 5
+    category: 0
+    special: 0
+    weight: 1
+  - name: "\uC0C8\uC2F9\uC758 \uC228\uACB0"
+    desc: "\uC0DD\uBA85\uCCB4 \uCD08\uB2F9 \uD68C\uBCF5 +0.6"
+    stat: 19
+    value: 0.6
+    category: 1
+    special: 0
+    weight: 1
+  - name: "\uC7AC\uBE60\uB978 \uBC1C"
+    desc: "\uC0DD\uBA85\uCCB4 \uC774\uB3D9 \uC18D\uB3C4 +0.5"
+    stat: 20
+    value: 0.5
+    category: 1
+    special: 0
+    weight: 1

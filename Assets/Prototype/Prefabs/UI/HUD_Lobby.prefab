@@ -3934,9 +3934,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uBB34\uAE30: {0}\n\uB3D9\uBC18\uC790: {1}\n\uAC01\uC131\uD55C \uB8EC:
-    {2}/{3}\n\uBD81\uCABD \uAC70\uB300 \uC11D\uD310\uC5D0\uC11C \uB09C\uC774\uB3C4
-    \uC124\uC815\n\nWASD \uC774\uB3D9  E \uB300\uC2DC "
+  m_text: "\uB3D9\uBC18\uC790: {0}\n\uAC01\uC131\uD55C \uB8EC: {1}/{2}\n\uBD81\uCABD
+    \uAC70\uB300 \uC11D\uD310\uC5D0\uC11C \uB09C\uC774\uB3C4 \uC124\uC815\n\nWASD
+    \uC774\uB3D9  E \uB300\uC2DC "
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 60a41ac61d7104f4494b1d6d8ff28829, type: 2}
   m_sharedMaterial: {fileID: -4231025782980161312, guid: 60a41ac61d7104f4494b1d6d8ff28829, type: 2}
@@ -5034,6 +5034,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecf08ddab4ceced4db93b75bf71e5c77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LobbyDirector
+  clampToArena: 0
   radius: 18
   infoText: {fileID: 7139725668121077589}
   promptText: {fileID: 6989925650656277207}

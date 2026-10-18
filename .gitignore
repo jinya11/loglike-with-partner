@@ -41,3 +41,6 @@ Thumbs.db
 
 # 로컬 MCP 설정 (기기별 경로 포함)
 .mcp.json
+
+# 로컬 백업 압축본
+*.zip

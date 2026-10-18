@@ -22,7 +22,7 @@ public class LobbyDirector : Singleton<LobbyDirector>
 
     string infoFmt, countFmt;
     Interactable shownFocus;
-    int shownMask = -1, shownWeapon = -1, shownCompanion = -1, openedFrame = -1;
+    int shownMask = -1, shownCompanion = -1, openedFrame = -1;
 
     protected override void Awake()
     {
@@ -80,14 +80,14 @@ public class LobbyDirector : Singleton<LobbyDirector>
             shownFocus = focus;
             promptText.text = focus != null ? focus.Prompt : "";
         }
-        if (gm.ModifierMask == shownMask && gm.WeaponIndex == shownWeapon && gm.CompanionIndex == shownCompanion) return;
-        shownMask = gm.ModifierMask; shownWeapon = gm.WeaponIndex; shownCompanion = gm.CompanionIndex;
+        if (gm.ModifierMask == shownMask && gm.CompanionIndex == shownCompanion) return;
+        shownMask = gm.ModifierMask; shownCompanion = gm.CompanionIndex;
 
         var mods = gm.Config.modifiers;
         int active = 0;
         for (int i = 0; i < mods.Length; i++) if (gm.IsModifierOn(i)) active++;
-        // 프리팹 문구를 서식으로 사용: {0}=무기, {1}=동반자, {2}=각성 수, {3}=전체 석판 수
-        infoText.text = string.Format(infoFmt, gm.Weapon?.name, gm.Companion?.name, active, mods.Length);
+        // 프리팹 문구를 서식으로 사용: {0}=동반자, {1}=각성 수, {2}=전체 석판 수
+        infoText.text = UiText.Format(infoFmt, gm.Companion?.name, active, mods.Length);
         activeCountText.SetText(countFmt, active, mods.Length);
     }
 }
