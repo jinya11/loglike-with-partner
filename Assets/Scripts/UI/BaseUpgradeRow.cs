@@ -28,7 +28,7 @@ public class BaseUpgradeRow : MonoBehaviour
         get
         {
             if (def != null) return def;
-            foreach (var b in GameManager.I.Config.baseUpgrades) if (b.id == upgradeId) return def = b;
+            foreach (var b in GameManager.I.Config.meta.baseUpgrades) if (b.id == upgradeId) return def = b;
             return null;
         }
     }
@@ -46,7 +46,7 @@ public class BaseUpgradeRow : MonoBehaviour
             return;
         }
         int need = d.CostAt(lv), have = SaveData.Get(d.cost.type);
-        var res = GameManager.I.Config.Resource(d.cost.type);
+        var res = GameManager.I.Config.meta.Resource(d.cost.type);
         costText.text = UiText.Format(costFmt, res != null ? res.name : d.cost.type.ToString(), need, have);
         buyButton.interactable = have >= need;
     }

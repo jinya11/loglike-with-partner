@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35a7030605cafd74aa775259ae9f1623, type: 3}
+  m_Name: Layout_Region_Forest
+  m_EditorClassIdentifier: Assembly-CSharp::StageLayout
+  centerSafeRadius: 7
+  seed: 0
+  maxAttempts: 30
+  entries:
+  - prefab: {fileID: 5097491963127952962, guid: 5438a5d5c16fd6646b4678b11444aced, type: 3}
+    minCount: 28
+    maxCount: 38
+    minRadius: 0.12
+    maxRadius: 0.97
+    spacing: 4.5
+    scaleRange: {x: 0.8, y: 1.4}
+    randomRotation: 1
+  - prefab: {fileID: 1682129223750521920, guid: 86d39016e8a146d4baa47d788784c638, type: 3}
+    minCount: 16
+    maxCount: 24
+    minRadius: 0.1
+    maxRadius: 0.97
+    spacing: 3
+    scaleRange: {x: 0.8, y: 1.3}
+    randomRotation: 1
+  - prefab: {fileID: 960426974727600864, guid: 502a9f7088a18744ba72998958096853, type: 3}
+    minCount: 3
+    maxCount: 5
+    minRadius: 0.25
+    maxRadius: 0.85
+    spacing: 14
+    scaleRange: {x: 1, y: 1}
+    randomRotation: 1

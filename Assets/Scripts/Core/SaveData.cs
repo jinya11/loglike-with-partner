@@ -87,7 +87,7 @@ public static class SaveData
 
     // ---- 감시자 해금 ----
     public static bool IsUnlocked(CompanionDef c) =>
-        c.unlockCost == null || c.unlockCost.Length == 0 || D.unlockedCompanions.Contains(c.name);
+        DevConfig.UnlockAll || c.unlockCost == null || c.unlockCost.Length == 0 || D.unlockedCompanions.Contains(c.name);
 
     public static void Unlock(CompanionDef c)
     {

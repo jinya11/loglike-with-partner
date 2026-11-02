@@ -21,7 +21,21 @@ public class GameManager : Singleton<GameManager>
 
     public int CompanionIndex { get; set; }
     public int ModifierMask { get; private set; } // 활성 난이도 석판 비트마스크
-    public CompanionDef Companion => Config.companions != null && Config.companions.Length > 0 ? Config.companions[CompanionIndex] : null;
+    public CompanionDef Companion => Config.companion.companions != null && Config.companion.companions.Length > 0 ? Config.companion.companions[CompanionIndex] : null;
+    /// <summary>이번 런의 작은 생명체 종류 (선택 UI 추가 전까지는 WardConfig.defaultCreature).</summary>
+    public int CreatureIndex { get; set; } = -1;
+    /// <summary>실제로 쓰는 생명체 번호 (고르지 않았으면 WardConfig.defaultCreature).</summary>
+    public int CreatureIndexEffective => CreatureIndex >= 0 ? CreatureIndex : Config.ward.defaultCreature;
+    public CreatureDef Creature
+    {
+        get
+        {
+            var list = Config.ward.creatures;
+            if (list == null || list.Length == 0) return null;
+            int i = CreatureIndex >= 0 ? CreatureIndex : Config.ward.defaultCreature;
+            return list[Mathf.Clamp(i, 0, list.Length - 1)];
+        }
+    }
 
     int pendingLevelUps;
     readonly List<UpgradeDef> buffer = new List<UpgradeDef>(16);
@@ -38,7 +52,39 @@ public class GameManager : Singleton<GameManager>
         if (I != this) return;
         Config = Resources.Load<GameConfig>("GameConfig");
         SceneManager.sceneLoaded += OnSceneLoaded;
+        RotateRegions();
         ResetRun();
+    }
+
+    // ---- 지역 지도 (3x3) ----
+    /// <summary>지도 칸 번호(1~9) → 지역. [0]은 사용 안 함. 1번은 고정(심연), 2~9번은 로테이션.</summary>
+    public readonly RegionDef[] Regions = new RegionDef[10];
+    /// <summary>이번 런에서 고른 지도 칸 번호 (0이면 고르지 않음 → 기존 랜덤 스테이지).</summary>
+    public int RegionSlot { get; private set; }
+    public RegionDef CurrentRegion => RegionSlot > 0 ? Regions[RegionSlot] : null;
+    /// <summary>로테이션이 바뀔 때마다 증가 (UI 갱신용).</summary>
+    public int RegionVersion { get; private set; }
+
+    /// <summary>2~9번 칸에 지역 후보를 섞어서 배치. 로비로 돌아올 때마다 호출.</summary>
+    public void RotateRegions()
+    {
+        var st = Config.stage;
+        Regions[1] = st.centerRegion != null && !string.IsNullOrEmpty(st.centerRegion.scene) ? st.centerRegion : null;
+        var pool = new List<RegionDef>();
+        if (st.regionPool != null)
+            foreach (var r in st.regionPool) if (r != null && !string.IsNullOrEmpty(r.scene)) pool.Add(r);
+        // 셔플 후 앞에서부터 (후보가 8개보다 적으면 반복)
+        for (int i = pool.Count - 1; i > 0; i--) { int j = Random.Range(0, i + 1); (pool[i], pool[j]) = (pool[j], pool[i]); }
+        for (int n = 2; n <= 9; n++) Regions[n] = pool.Count > 0 ? pool[(n - 2) % pool.Count] : null;
+        RegionVersion++;
+    }
+
+    /// <summary>지도 칸을 골라 런 시작. 런 동안 모든 일반 스테이지가 그 지역에서 진행.</summary>
+    public void StartRun(int slot)
+    {
+        ResetRun();
+        RegionSlot = slot >= 1 && slot <= 9 && Regions[slot] != null ? slot : 0;
+        LoadStage();
     }
 
     protected override void OnDestroy()
@@ -58,8 +104,8 @@ public class GameManager : Singleton<GameManager>
 
     public bool Has(ModifierType t)
     {
-        for (int i = 0; i < Config.modifiers.Length; i++)
-            if (IsModifierOn(i) && Config.modifiers[i].type == t) return true;
+        for (int i = 0; i < Config.stage.modifiers.Length; i++)
+            if (IsModifierOn(i) && Config.stage.modifiers[i].type == t) return true;
         return false;
     }
 
@@ -67,18 +113,18 @@ public class GameManager : Singleton<GameManager>
     public float ModValue(ModifierType t)
     {
         float v = 0f;
-        for (int i = 0; i < Config.modifiers.Length; i++)
-            if (IsModifierOn(i) && Config.modifiers[i].type == t) v += Config.modifiers[i].value;
+        for (int i = 0; i < Config.stage.modifiers.Length; i++)
+            if (IsModifierOn(i) && Config.stage.modifiers[i].type == t) v += Config.stage.modifiers[i].value;
         return v;
     }
 
-    public void StartRun() { ResetRun(); LoadStage(); }
+    public void StartRun() => StartRun(0);
 
-    public void GoLobby() { ResetRun(); Load(Config.lobbyScene); }
+    public void GoLobby() { ResetRun(); RegionSlot = 0; RotateRegions(); Load(Config.stage.lobbyScene); }
 
     public void ResetRun()
     {
-        Stats = Config.baseStats.Clone();
+        Stats = Config.CreateStats();
         ApplyBaseUpgrades();
         StageIndex = 0;
         InBonus = false;
@@ -89,8 +135,8 @@ public class GameManager : Singleton<GameManager>
     /// <summary>거점 성장 레벨만큼 영구 강화 적용.</summary>
     void ApplyBaseUpgrades()
     {
-        if (Config.baseUpgrades == null) return;
-        foreach (var b in Config.baseUpgrades)
+        if (Config.meta.baseUpgrades == null) return;
+        foreach (var b in Config.meta.baseUpgrades)
         {
             int lv = SaveData.Level(b.id);
             if (lv > 0) Stats.Apply(new UpgradeDef { stat = b.stat, value = b.valuePerLevel * lv });
@@ -99,8 +145,8 @@ public class GameManager : Singleton<GameManager>
         Stats.wardHp = Stats.wardMaxHp;
     }
 
-    public int XpToNext => Mathf.RoundToInt(Config.xpBase * Mathf.Pow(Config.xpGrowth, Stats.level - 1));
-    public int KillTarget => Config.baseKillTarget + StageIndex * Config.killTargetPerStage;
+    public int XpToNext => Mathf.RoundToInt(Config.player.xpBase * Mathf.Pow(Config.player.xpGrowth, Stats.level - 1));
+    public int KillTarget => Config.stage.baseKillTarget + StageIndex * Config.stage.killTargetPerStage;
     public bool InBonus { get; private set; }
     /// <summary>UI가 열려 있을 때 플레이어 입력 차단.</summary>
     public bool InputLocked
@@ -125,7 +171,11 @@ public class GameManager : Singleton<GameManager>
             Stats.level++;
             pendingLevelUps++;
         }
-        if (pendingLevelUps > 0 && State == GameState.Playing) OpenLevelUp();
+        if (pendingLevelUps > 0 && State == GameState.Playing)
+        {
+            if (PlayerController.I) Vfx.Pillar(PlayerController.I.Position, new Color(1f, 0.85f, 0.3f));
+            OpenLevelUp();
+        }
     }
 
     void OpenLevelUp()
@@ -135,7 +185,7 @@ public class GameManager : Singleton<GameManager>
         ChoiceCategory = (lv % 3) == 1 ? UpgradeCategory.Projectile : (lv % 3) == 2 ? UpgradeCategory.Ward : UpgradeCategory.Companion;
         ChoiceIsSpecial = ChoiceCategory == UpgradeCategory.Companion;
         buffer.Clear();
-        foreach (var u in Config.upgrades)
+        foreach (var u in Config.player.upgrades)
             if (u.category == ChoiceCategory && u.weight > 0f
                 && !((u.stat == StatType.Heal || u.stat == StatType.WardHeal) && Has(ModifierType.NoHealing))
                 && !(u.stat == StatType.Jump && Stats.canJump)
@@ -184,21 +234,23 @@ public class GameManager : Singleton<GameManager>
 
     public void NextStage()
     {
-        if (!InBonus && Config.bonusScenes.Length > 0 && StageIndex + 1 < Config.stageCount && Random.value < Config.bonusChance)
+        if (!InBonus && Config.stage.bonusScenes.Length > 0 && StageIndex + 1 < Config.stage.stageCount && Random.value < Config.stage.bonusChance)
         {
             InBonus = true;
-            Load(Config.bonusScenes[Random.Range(0, Config.bonusScenes.Length)]);
+            Load(Config.stage.bonusScenes[Random.Range(0, Config.stage.bonusScenes.Length)]);
             return;
         }
         InBonus = false;
         StageIndex++;
-        if (StageIndex >= Config.stageCount) { State = GameState.Victory; Time.timeScale = 0f; return; }
+        if (StageIndex >= Config.stage.stageCount) { State = GameState.Victory; Time.timeScale = 0f; return; }
         LoadStage();
     }
 
     void LoadStage()
     {
-        var s = Config.stageScenes;
+        var region = CurrentRegion;
+        if (region != null) { Load(region.scene); return; }
+        var s = Config.stage.stageScenes;
         string next = s[Random.Range(0, s.Length)];
         if (s.Length > 1 && next == lastScene) next = s[(System.Array.IndexOf(s, next) + 1) % s.Length];
         Load(next);

@@ -18,8 +18,8 @@ public static partial class PrototypeBuilder
         AddUpgrade(cfg, new UpgradeDef { name = "가속 탄환", desc = "탄속 +5", stat = StatType.ProjectileSpeed, value = 5f, weight = 1f });
         AddUpgrade(cfg, new UpgradeDef { name = "새싹의 숨결", desc = "생명체 초당 회복 +0.6", stat = StatType.WardRegen, value = 0.6f, weight = 1f });
         AddUpgrade(cfg, new UpgradeDef { name = "재빠른 발", desc = "생명체 이동 속도 +0.5", stat = StatType.WardSpeed, value = 0.5f, weight = 1f });
-        foreach (var u in cfg.upgrades) u.category = CategoryOf(u.stat);
-        EditorUtility.SetDirty(cfg);
+        foreach (var u in cfg.player.upgrades) u.category = CategoryOf(u.stat);
+        cfg.SetAllDirty();
         AssetDatabase.SaveAssets();
 
         string path = Root + "/Prefabs/UI/HUD_Stage.prefab";

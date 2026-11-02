@@ -1,0 +1,195 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: feff294bed4e2f244a6aace641403c94, type: 3}
+  m_Name: AttackAugmentTable
+  m_EditorClassIdentifier: Assembly-CSharp::AttackAugmentTable
+  augments:
+  - id: common_count
+    name: "\uB2E4\uBC1C"
+    desc: "\uD22C\uC0AC\uCCB4 +1"
+    effect: 0
+    value: 1
+    maxStacks: 4
+    weight: 1
+    creatures: []
+  - id: common_damage
+    name: "\uB0A0\uCE74\uB85C\uC6C0"
+    desc: "\uACF5\uACA9 \uD53C\uD574 +15%"
+    effect: 1
+    value: 0.15
+    maxStacks: 5
+    weight: 1
+    creatures: []
+  - id: common_speed
+    name: "\uC5F0\uC18D \uACF5\uACA9"
+    desc: "\uACF5\uACA9 \uAC04\uACA9 -10%"
+    effect: 2
+    value: 0.1
+    maxStacks: 5
+    weight: 1
+    creatures: []
+  - id: common_range
+    name: "\uBA40\uB9AC \uBCF4\uAE30"
+    desc: "\uC0AC\uAC70\uB9AC +2"
+    effect: 3
+    value: 2
+    maxStacks: 3
+    weight: 0.8
+    creatures: []
+  - id: common_velocity
+    name: "\uBE60\uB978 \uC190"
+    desc: "\uD0C4\uC18D +15%"
+    effect: 4
+    value: 0.15
+    maxStacks: 3
+    weight: 0.6
+    creatures: []
+  - id: rabbit_split
+    name: "\uB2F9\uADFC \uCABC\uAC1C\uAE30"
+    desc: "\uB2F9\uADFC\uC774 \uB5A8\uC5B4\uC9C0\uBA74 \uC791\uC740 \uB2F9\uADFC
+      2\uAC1C\uB85C \uAC08\uB77C\uC9D0"
+    effect: 8
+    value: 2
+    maxStacks: 3
+    weight: 1
+    creatures:
+    - "\uD1A0\uB07C"
+  - id: rabbit_big
+    name: "\uC655\uB2F9\uADFC"
+    desc: "\uB2F9\uADFC \uCC29\uC9C0 \uBC94\uC704 +30%"
+    effect: 5
+    value: 0.3
+    maxStacks: 3
+    weight: 1
+    creatures:
+    - "\uD1A0\uB07C"
+  - id: rabbit_patch
+    name: "\uB2F9\uADFC\uBC2D"
+    desc: "\uCC29\uC9C0 \uC9C0\uC810\uC5D0 2\uCD08\uAC04 \uAC10\uC18D \uC7A5\uD310"
+    effect: 14
+    value: 2
+    maxStacks: 2
+    weight: 0.8
+    creatures:
+    - "\uD1A0\uB07C"
+  - id: rabbit_bounce
+    name: "\uD1B5\uD1B5 \uB2F9\uADFC"
+    desc: "\uB2F9\uADFC\uC774 \uD55C \uBC88 \uB354 \uD280\uC5B4 \uC606 \uC801\uC5D0\uAC8C
+      \uB5A8\uC5B4\uC9D0"
+    effect: 6
+    value: 1
+    maxStacks: 2
+    weight: 0.7
+    creatures:
+    - "\uD1A0\uB07C"
+  - id: witch_chain
+    name: "\uC5F0\uC1C4 \uB9C8\uBC95"
+    desc: "\uB9C8\uBC95\uD0C4\uC774 \uB9DE\uC740 \uC801\uC5D0\uC11C \uAC00\uAE4C\uC6B4
+      \uC801\uC73C\uB85C 1\uBC88 \uB354 \uD295\uAE40"
+    effect: 6
+    value: 1
+    maxStacks: 4
+    weight: 1.2
+    creatures:
+    - "\uB9C8\uB140"
+  - id: witch_pierce
+    name: "\uAFF0\uB6AB\uB294 \uBCC4"
+    desc: "\uB9C8\uBC95\uD0C4\uC774 \uC801 1\uB9C8\uB9AC\uB97C \uAD00\uD1B5"
+    effect: 7
+    value: 1
+    maxStacks: 3
+    weight: 1
+    creatures:
+    - "\uB9C8\uB140"
+  - id: witch_homing
+    name: "\uAE38\uC7A1\uC774 \uB9C8\uBC95"
+    desc: "\uB9C8\uBC95\uD0C4\uC774 \uC801\uC744 \uB530\uB77C\uAC10"
+    effect: 9
+    value: 1
+    maxStacks: 1
+    weight: 0.8
+    creatures:
+    - "\uB9C8\uB140"
+  - id: witch_echo
+    name: "\uBA54\uC544\uB9AC \uC8FC\uBB38"
+    desc: "20% \uD655\uB960\uB85C \uD55C \uBC88 \uB354 \uC2DC\uC804"
+    effect: 10
+    value: 0.2
+    maxStacks: 3
+    weight: 0.8
+    creatures:
+    - "\uB9C8\uB140"
+  - id: witch_burn
+    name: "\uBD88\uC528 \uB9C8\uBC95"
+    desc: "\uB9DE\uC740 \uC801\uC5D0\uAC8C \uD654\uC0C1 (\uCD08\uB2F9 3)"
+    effect: 11
+    value: 3
+    maxStacks: 3
+    weight: 0.8
+    creatures:
+    - "\uB9C8\uB140"
+  - id: witch_circle
+    name: "\uB9C8\uBC95\uC9C4"
+    desc: "\uBA85\uC911 \uC9C0\uC810\uC5D0 1.5\uCD08\uAC04 \uD53C\uD574 \uC7A5\uD310"
+    effect: 14
+    value: 1.5
+    maxStacks: 2
+    weight: 0.6
+    creatures:
+    - "\uB9C8\uB140"
+  - id: bird_dive
+    name: "\uAE09\uAC15\uD558"
+    desc: "\uC0C8\uAC00 \uB3CC\uC9C4\uD558\uBA70 \uC801 2\uB9C8\uB9AC\uB97C \uAD00\uD1B5"
+    effect: 7
+    value: 2
+    maxStacks: 3
+    weight: 1
+    creatures:
+    - "\uC0C8 \uC18C\uB140"
+  - id: bird_feathers
+    name: "\uAE43\uD138 \uD769\uBFCC\uB9AC\uAE30"
+    desc: "\uC0C8\uAC00 \uAE43\uD138\uC744 \uBD80\uCC44\uAF34\uB85C 2\uAC1C \uB354
+      \uB0A0\uB9BC"
+    effect: 8
+    value: 2
+    maxStacks: 3
+    weight: 1
+    creatures:
+    - "\uC0C8 \uC18C\uB140"
+  - id: bird_extra
+    name: "\uBD80\uC9C0\uB7F0\uD55C \uC0C8"
+    desc: "\uC0C8\uAC00 \uD55C \uBC88 \uB354 \uACF5\uACA9"
+    effect: 16
+    value: 1
+    maxStacks: 2
+    weight: 0.8
+    creatures:
+    - "\uC0C8 \uC18C\uB140"
+  - id: bird_mark
+    name: "\uCF55 \uCC0D\uAE30"
+    desc: "\uC0C8\uC5D0\uAC8C \uB9DE\uC740 \uC801\uC774 \uBC1B\uB294 \uD53C\uD574
+      +20%"
+    effect: 15
+    value: 0.2
+    maxStacks: 2
+    weight: 0.8
+    creatures:
+    - "\uC0C8 \uC18C\uB140"
+  - id: bird_gust
+    name: "\uB0A0\uAC2F\uBC14\uB78C"
+    desc: "\uACF5\uACA9\uC5D0 \uB109\uBC31 \uCD94\uAC00"
+    effect: 13
+    value: 6
+    maxStacks: 2
+    weight: 0.6
+    creatures:
+    - "\uC0C8 \uC18C\uB140"

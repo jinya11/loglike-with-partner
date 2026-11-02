@@ -13,6 +13,8 @@ public abstract class CompanionBase : MonoBehaviour
     [Tooltip("폭격 범위 반경")]
     [SerializeField] protected float bombardRadius = 8f;
     [SerializeField] protected Color eyeIdle = new Color(0.6f, 0.5f, 1f), eyeActive = new Color(1f, 0.9f, 0.4f);
+    [Tooltip("전투 스테이지에서 감시자 모습(거대한 몸)을 숨김. 능력(낙뢰/폭격)은 그대로 작동")]
+    [SerializeField] bool hideInStage = true;
 
     static readonly int ColorId = Shader.PropertyToID("_BaseColor");
     MaterialPropertyBlock mpb;
@@ -28,6 +30,8 @@ public abstract class CompanionBase : MonoBehaviour
     {
         Current = this;
         transform.position = new Vector3(0f, height, StageDirector.I.ArenaRadius + distanceFromEdge);
+        if (hideInStage)
+            foreach (var r in GetComponentsInChildren<Renderer>(true)) r.enabled = false;
         mpb = new MaterialPropertyBlock();
         SetEyes(eyeIdle);
     }

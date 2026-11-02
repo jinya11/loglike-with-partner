@@ -43,7 +43,7 @@ public static partial class PrototypeBuilder
             Prim(PrimitiveType.Cube, "Eye", v, new Vector3(0, 0.42f, 0.41f), new Vector3(0.3f, 0.08f, 0.04f), eyeMat);
         });
 
-        AddEnemy(cfg, new EnemyDef { name = "졸개", prefab = cfg.enemyPrefab, weight = 3f });
+        AddEnemy(cfg, new EnemyDef { name = "졸개", prefab = cfg.enemy.enemyPrefab, weight = 3f });
         AddEnemy(cfg, new EnemyDef { name = "돌진꾼", prefab = charger, weight = 1.2f, hpMul = 1.4f, speedMul = 0.9f, damageMul = 1.2f,
             ability = EnemyAbility.Charge, abilityValue = 14f, abilityDuration = 0.6f, abilityCooldown = 5f, abilityRange = 7f });
         AddEnemy(cfg, new EnemyDef { name = "점액괴", prefab = slime, weight = 1f, hpMul = 1.8f, speedMul = 0.7f, damageMul = 0.8f,
@@ -54,22 +54,22 @@ public static partial class PrototypeBuilder
             ability = EnemyAbility.Bleed, abilityValue = 3f, abilityDuration = 4f });
 
         // 프리팹 참조는 항상 최신으로
-        foreach (var d in cfg.enemyTypes)
+        foreach (var d in cfg.enemy.enemyTypes)
         {
             if (d.name == "돌진꾼") d.prefab = charger;
             else if (d.name == "점액괴") d.prefab = slime;
             else if (d.name == "비명귀") d.prefab = screamer;
             else if (d.name == "흡혈충") d.prefab = leech;
         }
-        EditorUtility.SetDirty(cfg);
+        cfg.SetAllDirty();
         AssetDatabase.SaveAssets();
         Debug.Log("[PrototypeBuilder] 적 종류 업데이트 완료");
     }
 
     static void AddEnemy(GameConfig cfg, EnemyDef d)
     {
-        if (cfg.enemyTypes == null) cfg.enemyTypes = new EnemyDef[0];
-        if (System.Array.FindIndex(cfg.enemyTypes, x => x.name == d.name) < 0) ArrayUtility.Add(ref cfg.enemyTypes, d);
+        if (cfg.enemy.enemyTypes == null) cfg.enemy.enemyTypes = new EnemyDef[0];
+        if (System.Array.FindIndex(cfg.enemy.enemyTypes, x => x.name == d.name) < 0) ArrayUtility.Add(ref cfg.enemy.enemyTypes, d);
     }
 
     /// <summary>기본 적과 같은 구조(콜라이더/리지드바디/Visual)에 모양만 다르게.</summary>

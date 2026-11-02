@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73afb5f2d8856824190527166afca57c, type: 3}
+  m_Name: CompanionConfig
+  m_EditorClassIdentifier: Assembly-CSharp::CompanionConfig
+  companions:
+  - name: "\uAC70\uC2E0"
+    desc: "\uC2A4\uD14C\uC774\uC9C0\uB97C \uB0B4\uB824\uB2E4\uBCF4\uBA70 \uB099\uB8B0\uB85C
+      \uC9C0\uC6D0"
+    prefab: {fileID: 5726932171281090179, guid: 31a579d2d46aba44daeafa32c823a775, type: 3}
+    previewScale: 0.07
+    abilityText: "\u2022 \uC77C\uC815 \uC8FC\uAE30\uB9C8\uB2E4 \uD50C\uB808\uC774\uC5B4
+      \uADFC\uCC98\uC758 \uC801\uC5D0\uAC8C \uC608\uACE0 \uD6C4 \uB099\uB8B0\uB97C
+      \uB5A8\uC5B4\uB728\uB9BC\n\u2022 \uB099\uB8B0\uB294 \uBC94\uC704 \uD53C\uD574
+      (\uD2B9\uC218 \uAC15\uD654\uB85C \uD53C\uD574, \uC8FC\uAE30, \uD69F\uC218 \uC99D\uAC00)\n\u2022
+      \uAC15\uD55C \uC801\uC744 \uD655\uC2E4\uD558\uAC8C \uCC98\uB9AC\uD558\uB294
+      \uB370 \uD2B9\uD654"
+    unlockCost: []
+    bombardCooldown: 45
+    ultimateName: "\uCD94\uD6C4 \uACF5\uAC1C"
+    ultimateDesc: "\uACE0\uC720 \uD544\uC0B4\uAE30 \uCEF7\uC52C \uC608\uC815"
+    ultimateCutscene: {fileID: 0}
+  - name: "\uD48D\uC2E0"
+    desc: "\uB3CC\uD48D\uC73C\uB85C \uC801\uC744 \uD55C\uCABD\uC73C\uB85C \uBC00\uC5B4\uB0C4"
+    prefab: {fileID: 4605123941540681199, guid: f58d8bd8c75b41245b1b5cd16b1b6666, type: 3}
+    previewScale: 0.07
+    abilityText: "\u2022 \uC801\uC774 \uAC00\uC7A5 \uB9CE\uC774 \uBAB0\uB9B0 \uCABD\uC73C\uB85C
+      \uB3CC\uD48D\uC744 \uC77C\uC73C\uCF1C \uC801\uB4E4\uC744 \uD55C\uCABD\uC73C\uB85C
+      \uBA40\uB9AC \uBC00\uC5B4\uB0C4\n\u2022 \uC57D\uD55C \uD53C\uD574 (\uAC70\uC2E0
+      \uB099\uB8B0\uC758 30%)\n\u2022 \uD3EC\uC704\uB2F9\uD588\uC744 \uB54C \uAE38\uC744
+      \uC5EC\uB294 \uB370 \uD2B9\uD654"
+    unlockCost:
+    - type: 3
+      amount: 5
+    - type: 2
+      amount: 5
+    bombardCooldown: 45
+    ultimateName: "\uCD94\uD6C4 \uACF5\uAC1C"
+    ultimateDesc: "\uACE0\uC720 \uD544\uC0B4\uAE30 \uCEF7\uC52C \uC608\uC815"
+    ultimateCutscene: {fileID: 0}
+  companionDamage: 15
+  companionInterval: 6
+  companionRadius: 3
+  companionStrikes: 1

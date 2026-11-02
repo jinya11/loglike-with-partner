@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1776d203790fb3a4f8b9da8f1a6a5ef5, type: 3}
+  m_Name: EnemyConfig
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyConfig
+  enemyHp: 10
+  enemyHpPerStage: 6
+  enemySpeed: 2.6
+  enemySpeedPerStage: 0.2
+  enemyDamage: 8
+  enemyAggroRadius: 3.5
+  enemyPrefab: {fileID: 4260866993821003227, guid: 7f047b6003134ee41ae157197dbc4ae4, type: 3}
+  enemyTypes:
+  - name: "\uC878\uAC1C"
+    prefab: {fileID: 4260866993821003227, guid: 7f047b6003134ee41ae157197dbc4ae4, type: 3}
+    weight: 3
+    minStage: 0
+    hpMul: 1
+    speedMul: 1
+    damageMul: 1
+    ability: 0
+    abilityValue: 0
+    abilityDuration: 2
+    abilityCooldown: 4
+    abilityRange: 6
+  - name: "\uB3CC\uC9C4\uAFBC"
+    prefab: {fileID: 5140851095158108129, guid: c069ca869fb1fb34a95f86d38417bc71, type: 3}
+    weight: 1.2
+    minStage: 0
+    hpMul: 1.4
+    speedMul: 0.9
+    damageMul: 1.2
+    ability: 1
+    abilityValue: 14
+    abilityDuration: 0.6
+    abilityCooldown: 10
+    abilityRange: 4
+  - name: "\uC810\uC561\uAD34"
+    prefab: {fileID: 2509171830763278053, guid: 7a8e82763cd544c4db0a976857caccc7, type: 3}
+    weight: 1
+    minStage: 0
+    hpMul: 1.8
+    speedMul: 0.7
+    damageMul: 0.8
+    ability: 2
+    abilityValue: 0.45
+    abilityDuration: 3
+    abilityCooldown: 4
+    abilityRange: 6
+  - name: "\uBE44\uBA85\uADC0"
+    prefab: {fileID: 4561065245590275423, guid: cae97db86ed0a3b41ac395d5a5590bab, type: 3}
+    weight: 0.8
+    minStage: 0
+    hpMul: 0.8
+    speedMul: 1.1
+    damageMul: 0.6
+    ability: 3
+    abilityValue: 0
+    abilityDuration: 0.4
+    abilityCooldown: 6
+    abilityRange: 2.5
+  - name: "\uD761\uD608\uCDA9"
+    prefab: {fileID: 3355641146690476889, guid: 165acf720f82f5444ba68a4f67a327c6, type: 3}
+    weight: 1
+    minStage: 0
+    hpMul: 0.6
+    speedMul: 1.4
+    damageMul: 0.5
+    ability: 4
+    abilityValue: 3
+    abilityDuration: 4
+    abilityCooldown: 4
+    abilityRange: 6

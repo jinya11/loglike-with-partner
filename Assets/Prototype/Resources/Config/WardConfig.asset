@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd2deecb4c81ca649baa6eee29ceaba9, type: 3}
+  m_Name: WardConfig
+  m_EditorClassIdentifier: Assembly-CSharp::WardConfig
+  wardPrefab: {fileID: 7066806032799519117, guid: 32e42d736cfdf7644afc9a12a9a4f1b6, type: 3}
+  creatures:
+  - name: "\uD1A0\uB07C"
+    desc: "\uBD84\uD64D \uBA38\uB9AC\uC758 \uC791\uC740 \uD1A0\uB07C"
+    model: {fileID: 2012682654000501318, guid: 24ee7b374c3b10f45bda319ed7c3b75e, type: 3}
+    ability: {fileID: 0}
+    attack: {fileID: 11400000, guid: 85eed478a130fdc4b941cd383037166c, type: 2}
+    normalTint: {r: 1, g: 1, b: 1, a: 1}
+    tintStrength: 0.45
+  - name: "\uB9C8\uB140"
+    desc: "\uC5D8\uB9AC \u2014 \uB9C8\uBC95\uC744 \uBC30\uC6B0\uB294 \uC18C\uB140.
+      \uC9C0\uD321\uC774\uB85C \uB9C8\uBC95\uC744 \uC3E8"
+    model: {fileID: 4830346478374480614, guid: 3f30e093b14944f49a90a7630328afbb, type: 3}
+    ability: {fileID: 0}
+    attack: {fileID: 0}
+    normalTint: {r: 1, g: 1, b: 1, a: 1}
+    tintStrength: 0.45
+  - name: "\uC0C8 \uC18C\uB140"
+    desc: "\uC720\uB098 \u2014 \uC0C8\uB97C \uC88B\uC544\uD558\uB294 \uC18C\uB140.
+      \uBA38\uB9AC \uC704\uC758 \uC0C8\uAC00 \uD568\uAED8 \uC2F8\uC6C0"
+    model: {fileID: 5171784695553510353, guid: c92ec05c36d1d314088b5394c80e1e92, type: 3}
+    ability: {fileID: 0}
+    attack: {fileID: 0}
+    normalTint: {r: 1, g: 1, b: 1, a: 1}
+    tintStrength: 0.45
+  defaultCreature: 0
+  attackAugments: {fileID: 11400000, guid: 74720b4bfa8c6704a8b825b7f07101dc, type: 2}
+  wardMaxHp: 60
+  wardRegen: 0.4
+  wardSpeed: 5
+  wardPulseDamage: 2
+  wardPulseRadius: 2.2
+  wardPulseInterval: 6
+  wanderSpeedMul: 0.5
+  wanderRadius: 0.85
+  wanderPauseMin: 0.5
+  wanderPauseMax: 2.5
+  fleeRadius: 5
+  portalReach: 1.5
+  fleeDistance: 10
+  dangerRadius: 4
+  dangerWeight: 12
+  replanInterval: 0.35
+  waypointReach: 0.7
+  surroundRadius: 1.8
+  surroundCount: 4
+  surroundSides: 3
+  surroundDelay: 0.6
+  rescueCooldown: 12
+  rescueRadius: 4.5
+  rescuePush: 28
+  rescueShield: 1.5
+  linkKey: 3
+  autoKey: 40
+  stayKey: 38
+  followKey: 17
+  bothKey: 16
+  watcherOnlyKey: 28
+  creatureOnlyKey: 27
+  autoPickupRadius: 14
+  autoStayNearWard: 7
+  followStopDistance: 3
+  splitDistance: 18
+  steerSpeedMul: 1

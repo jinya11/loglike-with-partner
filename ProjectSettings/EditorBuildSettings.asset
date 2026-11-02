@@ -9,20 +9,41 @@ EditorBuildSettings:
     path: Assets/Scenes/Lobby.unity
     guid: 57d6085fcc349014e991e4c32a33e00b
   - enabled: 1
-    path: Assets/Scenes/Stage_Ruins.unity
-    guid: 8ca68975bb37d404893df642042d3020
-  - enabled: 1
-    path: Assets/Scenes/Stage_Snow.unity
-    guid: a2542424e036e254ba565d83ace747f1
-  - enabled: 1
-    path: Assets/Scenes/Stage_River.unity
-    guid: f9b6f89686478dd45b30c8ec1b67ae20
-  - enabled: 1
-    path: Assets/Scenes/Stage_Volcano.unity
-    guid: 7ce93c518ff1a6b4eb21075509d88dc4
-  - enabled: 1
     path: Assets/Scenes/Bonus_Candy.unity
     guid: 4ca065651018bfe45a309f5633ea0e28
+  - enabled: 1
+    path: Assets/Scenes/Regions/Region_Abyss.unity
+    guid: 92742064bab88dd4f83a9269aeb4e79c
+  - enabled: 1
+    path: Assets/Scenes/Regions/Region_Ruins.unity
+    guid: 1d68b60d815a35040a5c36637e84ec64
+  - enabled: 1
+    path: Assets/Scenes/Regions/Region_Snow.unity
+    guid: b6b37e8d7f9d9cf42baf4d90244da348
+  - enabled: 1
+    path: Assets/Scenes/Regions/Region_River.unity
+    guid: ea7927179f13c814aab12eb4909782cc
+  - enabled: 1
+    path: Assets/Scenes/Regions/Region_Volcano.unity
+    guid: ecf32248888c6d04e864ce60f39d219f
+  - enabled: 1
+    path: Assets/Scenes/Regions/Region_Desert.unity
+    guid: 800216dd119d2d4499df054ca14e9079
+  - enabled: 1
+    path: Assets/Scenes/Regions/Region_Forest.unity
+    guid: 8762be5088660584abe24b7064bc50c7
+  - enabled: 1
+    path: Assets/Scenes/Regions/Region_Swamp.unity
+    guid: 067d2dbd66c5bd74c87940e324da7896
+  - enabled: 1
+    path: Assets/Scenes/Regions/Region_Crystal.unity
+    guid: c6edfd323acf0f94ab9a598376af3134
+  - enabled: 1
+    path: Assets/Scenes/Regions/Region_Mushroom.unity
+    guid: 726d83a44ad58bd47a567dff914eea58
+  - enabled: 1
+    path: Assets/Scenes/Regions/Region_Graveyard.unity
+    guid: cc0d3475a1e98b944934725cc44afed4
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

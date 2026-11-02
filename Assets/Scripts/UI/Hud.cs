@@ -6,10 +6,12 @@ using UnityEngine.UI;
 /// 스테이지 HUD (uGUI). 레이아웃/문구는 HUD_Stage 프리팹에서 편집.
 /// 코드는 텍스트 전체를 덮어쓰지 않고, 프리팹에 적힌 문구를 서식으로 읽어 {0},{1}.. 자리에 값만 채움.
 /// 상태별 문구(레벨업/특수 강화, 승리/사망, 점프, 보너스)는 오브젝트를 켜고 끄기만 함.
+/// 영구 싱글톤: 첫 스테이지에서 StageDirector가 한 번만 생성(StageConfig.hudPrefab), 이후 씬이 바뀌어도 유지.
+/// 스테이지가 아닌 씬(로비 등)에서는 Canvas만 꺼서 숨김.
 /// </summary>
-public class Hud : MonoBehaviour
+public class Hud : Singleton<Hud>
 {
-    public static Hud I { get; private set; }
+    protected override bool Persistent => true;
     [Header("Bars (Fill의 anchorMax.x로 비율 표시)")]
     [SerializeField] RectTransform hpFill;
     [Tooltip("서식: {0}=현재 HP, {1}=최대 HP")]
@@ -69,9 +71,14 @@ public class Hud : MonoBehaviour
     float lastXp = -1f;
     GameState lastState = (GameState)(-1);
 
-    void Awake()
+    Canvas canvas;
+    bool shown = true;
+
+    protected override void Awake()
     {
-        I = this;
+        base.Awake();
+        if (I != this) return; // 이미 HUD가 있으면 이 복제본은 파괴됨
+        canvas = GetComponent<Canvas>();
         if (resourceToast) { toastFmt = resourceToast.text; resourceToast.gameObject.SetActive(false); }
         hpFmt = hpText.text; infoFmt = infoText.text; skillFmt = skillText.text;
         if (wardText) wardFmt = wardText.text;
@@ -109,13 +116,31 @@ public class Hud : MonoBehaviour
     void OnEnable() { if (GameManager.I) GameManager.I.ChoicesChanged += RefreshChoices; }
     void OnDisable() { if (GameManager.I) GameManager.I.ChoicesChanged -= RefreshChoices; }
 
+    /// <summary>표시 on/off. 다시 보일 때는 캐시를 비워 새 스테이지 값으로 전부 갱신.</summary>
+    void SetShown(bool on)
+    {
+        if (shown == on) return;
+        shown = on;
+        if (canvas) canvas.enabled = on;
+        if (!on) return;
+        lastHp = lastMaxHp = lastLevel = lastKills = lastQ = lastE = shownJump = lastBombard = lastWard = lastWardMax = -1;
+        lastXp = -1f;
+        lastState = (GameState)(-1);
+        lastCam = (CameraFollow.Mode)(-1);
+        shownFocus = null;
+        if (promptText) promptText.text = "";
+        toastLeft = 0f;
+        if (resourceToast) resourceToast.gameObject.SetActive(false);
+    }
+
     void LateUpdate()
     {
-        UpdateToast();
         var gm = GameManager.I;
         var stage = StageDirector.I;
         var player = PlayerController.I;
-        if (gm == null || stage == null || player == null) return;
+        SetShown(gm != null && stage != null && player != null);
+        if (!shown) return;
+        UpdateToast();
         var s = gm.Stats;
 
         // 전투에서 플레이어는 형태 없는 존재 → 플레이어 체력바 숨김
@@ -159,7 +184,7 @@ public class Hud : MonoBehaviour
         if (s.level != lastLevel || stage.Kills != lastKills)
         {
             lastLevel = s.level; lastKills = stage.Kills;
-            infoText.text = UiText.Format(infoFmt, s.level, gm.StageIndex + 1, gm.Config.stageCount,
+            infoText.text = UiText.Format(infoFmt, s.level, gm.StageIndex + 1, gm.Config.stage.stageCount,
                 stage.Theme ? stage.Theme.displayName : "", stage.Kills, stage.KillTarget);
             if (bonusBadge) bonusBadge.SetActive(gm.InBonus);
         }

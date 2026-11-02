@@ -58,23 +58,25 @@ public static partial class PrototypeBuilder
 
         // ---- 데이터 ----
         var cfg = Asset<GameConfig>(Root + "/Resources/GameConfig.asset");
-        cfg.enemyPrefab = enemy; cfg.projectilePrefab = proj; cfg.gemPrefab = gem; cfg.fxPrefab = fx; cfg.portalPrefab = portal;
-        cfg.stageScenes = new[] { "Stage_Ruins", "Stage_Snow", "Stage_River", "Stage_Volcano" };
-        cfg.bonusScenes = new[] { "Bonus_Candy" };
-        if (cfg.upgrades == null || cfg.upgrades.Length == 0) cfg.upgrades = DefaultUpgrades();
-        foreach (var u in cfg.upgrades) if (u.weight <= 0f) u.weight = 1f;
-        if (System.Array.FindIndex(cfg.upgrades, u => u.stat == StatType.Jump) < 0)
-            ArrayUtility.Add(ref cfg.upgrades, new UpgradeDef { name = "도약", desc = "점프 해금 (Space)\n공중에서는 접촉 피해와 장판을 피함", stat = StatType.Jump, value = 1f, weight = 0.05f });
+        cfg.EnsureSections();
+        cfg.enemy.enemyPrefab = enemy; cfg.player.projectilePrefab = proj; cfg.player.gemPrefab = gem; cfg.stage.fxPrefab = fx; cfg.stage.portalPrefab = portal;
+        cfg.stage.stageScenes = new[] { "Stage_Ruins", "Stage_Snow", "Stage_River", "Stage_Volcano" };
+        cfg.stage.bonusScenes = new[] { "Bonus_Candy" };
+        if (cfg.player.upgrades == null || cfg.player.upgrades.Length == 0) cfg.player.upgrades = DefaultUpgrades();
+        foreach (var u in cfg.player.upgrades) if (u.weight <= 0f) u.weight = 1f;
+        if (System.Array.FindIndex(cfg.player.upgrades, u => u.stat == StatType.Jump) < 0)
+            ArrayUtility.Add(ref cfg.player.upgrades, new UpgradeDef { name = "도약", desc = "점프 해금 (Space)\n공중에서는 접촉 피해와 장판을 피함", stat = StatType.Jump, value = 1f, weight = 0.05f });
         BuildLobbyData(cfg);
-        EditorUtility.SetDirty(cfg);
+        cfg.SetAllDirty();
         AssetDatabase.SaveAssets();
 
         stageHud = BuildStageHud();
+        cfg.stage.hudPrefab = stageHud.GetComponent<Hud>(); cfg.SetAllDirty();
         cfgForUI = cfg;
         lobbyHud = BuildLobbyHud();
 
         // ---- 씬 ----
-        string lobby = $"Assets/Scenes/{cfg.lobbyScene}.unity";
+        string lobby = $"Assets/Scenes/{cfg.stage.lobbyScene}.unity";
         BuildLobby(lobby, cfg);
         var scenes = new List<EditorBuildSettingsScene> { new EditorBuildSettingsScene(lobby, true) };
         foreach (var t in Themes())
@@ -214,7 +216,7 @@ public static partial class PrototypeBuilder
         var theme = stage.AddComponent<StageTheme>();
         theme.displayName = t.name; theme.ambientRegen = t.regen; theme.killTargetMul = t.killMul;
         Set(stage.AddComponent<StageDirector>(), "generator", gen);
-        AddUI(stageHud);
+        AddUI(null); // 스테이지 HUD는 씬에 넣지 않음: StageConfig.hudPrefab으로 한 번만 생성되어 유지
         EditorSceneManager.SaveScene(scene, path);
     }
 
@@ -224,12 +226,12 @@ public static partial class PrototypeBuilder
     static void BuildLobbyData(GameConfig cfg)
     {
         var giant = BuildCompanion();
-        if (cfg.companions == null || cfg.companions.Length == 0)
-            cfg.companions = new[] { new CompanionDef { name = "거신", desc = "스테이지를 내려다보며 낙뢰로 지원" } };
-        cfg.companions[0].prefab = giant;
+        if (cfg.companion.companions == null || cfg.companion.companions.Length == 0)
+            cfg.companion.companions = new[] { new CompanionDef { name = "거신", desc = "스테이지를 내려다보며 낙뢰로 지원" } };
+        cfg.companion.companions[0].prefab = giant;
 
-        if (cfg.modifiers == null || cfg.modifiers.Length == 0)
-            cfg.modifiers = new[]
+        if (cfg.stage.modifiers == null || cfg.stage.modifiers.Length == 0)
+            cfg.stage.modifiers = new[]
             {
                 new ModifierDef { name = "분노의 석판", desc = "몬스터 피해 +50%", type = ModifierType.EnemyDamage, value = 0.5f },
                 new ModifierDef { name = "강철의 석판", desc = "몬스터 체력 +50%", type = ModifierType.EnemyHp, value = 0.5f },
@@ -298,9 +300,9 @@ public static partial class PrototypeBuilder
         Interactable(tablet.gameObject, LobbyInteractable.Kind.Modifier, 0, tabletRune.GetComponent<Renderer>(), new Color(1f, 0.3f, 0.2f), new Color(0.35f, 0.8f, 1f));
         // 동쪽: 동반자 제단 + 아치
         var cm = Mat("Companion", new Color(0.18f, 0.16f, 0.25f));
-        for (int i = 0; i < cfg.companions.Length; i++)
+        for (int i = 0; i < cfg.companion.companions.Length; i++)
         {
-            var t = new GameObject("Companion_" + cfg.companions[i].name).transform;
+            var t = new GameObject("Companion_" + cfg.companion.companions[i].name).transform;
             t.SetParent(root, false);
             t.localPosition = new Vector3(11.5f, 0, 1f - i * 6f);
             PB(ShapeGenerator.GenerateCylinder(PivotLocation.Center, 24, 2.6f, 0.25f, 0), "Altar", t, new Vector3(0, 0.125f, 0), stone, true);
@@ -315,7 +317,7 @@ public static partial class PrototypeBuilder
         }
 
         // 중앙: 출발 포털 + 아치
-        var portal = (GameObject)PrefabUtility.InstantiatePrefab(cfg.portalPrefab, root);
+        var portal = (GameObject)PrefabUtility.InstantiatePrefab(cfg.stage.portalPrefab, root);
         portal.name = "StartPortal";
         portal.transform.localPosition = Vector3.zero;
         PB(ShapeGenerator.GenerateArch(PivotLocation.Center, 180f, 2.8f, 0.5f, 0.8f, 12, true, true, true, true, true), "PortalArch", root, new Vector3(0, 1.4f, 0.8f), gold, false);

@@ -1,0 +1,193 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4110ec2205f4cd4bb836af08b3d3b33, type: 3}
+  m_Name: PlayerConfig
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerConfig
+  baseStats:
+    maxHp: 100
+    moveSpeed: 6
+    damage: 5
+    attackInterval: 0.6
+    projectileSpeed: 18
+    pickupRadius: 3
+    cooldownMul: 1
+    areaMul: 1
+    projectileCount: 1
+    attackRange: 14
+    spreadAngle: 12
+    hpRegen: 0.5
+    canJump: 0
+    wardMaxHp: 60
+    wardRegen: 0.4
+    wardSpeed: 5
+    wardPulseDamage: 2
+    wardPulseRadius: 2.2
+    wardPulseInterval: 6
+    companionDamage: 15
+    companionInterval: 6
+    companionRadius: 3
+    companionStrikes: 1
+  xpBase: 5
+  xpGrowth: 1.25
+  specialEvery: 3
+  upgrades:
+  - name: "\uB0A0\uCE74\uB85C\uC6C0"
+    desc: "\uACF5\uACA9\uB825 +2"
+    stat: 0
+    value: 2
+    category: 0
+    special: 0
+    weight: 1
+  - name: "\uC2E0\uC18D"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.8"
+    stat: 1
+    value: 0.8
+    category: 0
+    special: 0
+    weight: 1
+  - name: "\uC5F0\uC0AC"
+    desc: "\uACF5\uACA9 \uAC04\uACA9 -12%"
+    stat: 2
+    value: 0.12
+    category: 0
+    special: 0
+    weight: 1
+  - name: "\uAC15\uC778\uD568"
+    desc: "\uCD5C\uB300 \uCCB4\uB825 +20"
+    stat: 3
+    value: 20
+    category: 0
+    special: 0
+    weight: 1
+  - name: "\uC790\uB825"
+    desc: "\uD68D\uB4DD \uBC94\uC704 +1.5"
+    stat: 4
+    value: 1.5
+    category: 0
+    special: 0
+    weight: 1
+  - name: "\uC9D1\uC911"
+    desc: "\uC2A4\uD0AC \uCFE8\uD0C0\uC784 -10%"
+    stat: 5
+    value: 0.1
+    category: 0
+    special: 0
+    weight: 1
+  - name: "\uD68C\uBCF5"
+    desc: "\uCCB4\uB825 40 \uD68C\uBCF5"
+    stat: 6
+    value: 40
+    category: 0
+    special: 0
+    weight: 1
+  - name: "\uB2E4\uC911 \uC0AC\uACA9"
+    desc: "\uD22C\uC0AC\uCCB4 +1"
+    stat: 7
+    value: 1
+    category: 0
+    special: 1
+    weight: 1
+  - name: "\uAD11\uC5ED\uD654"
+    desc: "\uBC94\uC704 +25%"
+    stat: 8
+    value: 0.25
+    category: 2
+    special: 1
+    weight: 1
+  - name: "\uAC70\uC2E0\uC758 \uBD84\uB178"
+    desc: "\uB3D9\uBC18\uC790 \uB099\uB8B0 \uD53C\uD574 +15"
+    stat: 9
+    value: 15
+    category: 2
+    special: 1
+    weight: 1
+  - name: "\uAC70\uC2E0\uC758 \uC8FC\uC2DC"
+    desc: "\uB3D9\uBC18\uC790 \uC9C0\uC6D0 \uC8FC\uAE30 -20%"
+    stat: 10
+    value: 0.2
+    category: 2
+    special: 1
+    weight: 1
+  - name: "\uAC70\uC2E0\uC758 \uC5F0\uACA9"
+    desc: "\uB3D9\uBC18\uC790 \uB099\uB8B0 +1\uD68C"
+    stat: 11
+    value: 1
+    category: 2
+    special: 1
+    weight: 1
+  - name: "\uB3C4\uC57D"
+    desc: "\uC810\uD504 \uD574\uAE08 (Space)\n\uACF5\uC911\uC5D0\uC11C\uB294 \uC811\uCD09
+      \uD53C\uD574\uC640 \uC7A5\uD310\uC744 \uD53C\uD568"
+    stat: 12
+    value: 1
+    category: 0
+    special: 0
+    weight: 0.05
+  - name: "\uBCF4\uD638\uC758 \uAECD\uC9C8"
+    desc: "\uC0DD\uBA85\uCCB4 \uCD5C\uB300 \uCCB4\uB825 +25"
+    stat: 13
+    value: 25
+    category: 1
+    special: 0
+    weight: 1
+  - name: "\uC0DD\uBA85\uC758 \uC774\uC2AC"
+    desc: "\uC0DD\uBA85\uCCB4 \uCCB4\uB825 30 \uD68C\uBCF5"
+    stat: 14
+    value: 30
+    category: 1
+    special: 0
+    weight: 1
+  - name: "\uC791\uC740 \uBC18\uD56D"
+    desc: "\uC0DD\uBA85\uCCB4 \uC800\uD56D \uD30C\uB3D9 \uD53C\uD574 +4, \uBC94\uC704
+      \uC99D\uAC00"
+    stat: 15
+    value: 4
+    category: 1
+    special: 1
+    weight: 1
+  - name: "\uC791\uC740 \uC6A9\uAE30"
+    desc: "\uC0DD\uBA85\uCCB4 \uC800\uD56D \uD30C\uB3D9 \uC8FC\uAE30 -25%"
+    stat: 16
+    value: 0.25
+    category: 1
+    special: 1
+    weight: 1
+  - name: "\uC7A5\uAC70\uB9AC \uD0C4\uB3C4"
+    desc: "\uACF5\uACA9 \uC0AC\uAC70\uB9AC +3"
+    stat: 17
+    value: 3
+    category: 0
+    special: 0
+    weight: 1
+  - name: "\uAC00\uC18D \uD0C4\uD658"
+    desc: "\uD0C4\uC18D +5"
+    stat: 18
+    value: 5
+    category: 0
+    special: 0
+    weight: 1
+  - name: "\uC0C8\uC2F9\uC758 \uC228\uACB0"
+    desc: "\uC0DD\uBA85\uCCB4 \uCD08\uB2F9 \uD68C\uBCF5 +0.6"
+    stat: 19
+    value: 0.6
+    category: 1
+    special: 0
+    weight: 1
+  - name: "\uC7AC\uBE60\uB978 \uBC1C"
+    desc: "\uC0DD\uBA85\uCCB4 \uC774\uB3D9 \uC18D\uB3C4 +0.5"
+    stat: 20
+    value: 0.5
+    category: 1
+    special: 0
+    weight: 1
+  projectilePrefab: {fileID: 2617696397195031713, guid: 65c7dfb6c4ff87b4f839fc40ac22bd42, type: 3}
+  gemPrefab: {fileID: 1702165479639927558, guid: b1407456185e2a94c8aae57c869904f0, type: 3}

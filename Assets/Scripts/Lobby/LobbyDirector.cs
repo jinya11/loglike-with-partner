@@ -27,12 +27,12 @@ public class LobbyDirector : Singleton<LobbyDirector>
     protected override void Awake()
     {
         base.Awake();
-        Arena.Radius = clampToArena ? radius : 100000f;
+        Arena.SetCircle(clampToArena ? radius : 100000f);
     }
 
     void Start()
     {
-        var mods = GameManager.I.Config.modifiers;
+        var mods = GameManager.I.Config.stage.modifiers;
         foreach (var c in cards) c.gameObject.SetActive(c.Index < mods.Length);
         infoFmt = infoText.text; countFmt = activeCountText.text;
         closeButton.onClick.AddListener(CloseDifficulty);
@@ -65,25 +65,27 @@ public class LobbyDirector : Singleton<LobbyDirector>
         {
             // 연 프레임의 F 입력으로 바로 닫히지 않도록
             if (Time.frameCount != openedFrame && (kb.fKey.wasPressedThisFrame || kb.escapeKey.wasPressedThisFrame)) { CloseDifficulty(); return; }
-            for (int i = 0; i < 9 && i < cards.Length && i < GameManager.I.Config.modifiers.Length; i++)
+            for (int i = 0; i < 9 && i < cards.Length && i < GameManager.I.Config.stage.modifiers.Length; i++)
                 if (kb[Key.Digit1 + i].wasPressedThisFrame) { gm.ToggleModifier(cards[i].Index); cards[i].Refresh(); }
         }
         RefreshHud(gm);
     }
 
     /// <summary>바뀐 경우에만 텍스트 갱신.</summary>
+    int shownVersion = -1;
+
     void RefreshHud(GameManager gm)
     {
         var focus = gm.InputLocked ? null : PlayerController.I.Focus;
-        if (focus != shownFocus || (focus != null && focus is LobbyInteractable li && li.kind != LobbyInteractable.Kind.Modifier && gm.ModifierMask != shownMask))
+        if (focus != shownFocus || shownVersion != LobbyInteractable.Version || (focus != null && focus is LobbyInteractable li && li.kind != LobbyInteractable.Kind.Modifier && gm.ModifierMask != shownMask))
         {
-            shownFocus = focus;
+            shownFocus = focus; shownVersion = LobbyInteractable.Version;
             promptText.text = focus != null ? focus.Prompt : "";
         }
         if (gm.ModifierMask == shownMask && gm.CompanionIndex == shownCompanion) return;
         shownMask = gm.ModifierMask; shownCompanion = gm.CompanionIndex;
 
-        var mods = gm.Config.modifiers;
+        var mods = gm.Config.stage.modifiers;
         int active = 0;
         for (int i = 0; i < mods.Length; i++) if (gm.IsModifierOn(i)) active++;
         // 프리팹 문구를 서식으로 사용: {0}=동반자, {1}=각성 수, {2}=전체 석판 수

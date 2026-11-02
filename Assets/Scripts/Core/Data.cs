@@ -33,13 +33,11 @@ public class PlayerStats
     public int projectileCount = 1;
     public float attackRange = 14f, spreadAngle = 12f, hpRegen = 0.5f;
     [Tooltip("점프 가능 여부 (희귀 강화로 획득)")] public bool canJump;
-    [Header("Ward (지켜야 할 작은 생명체)")]
-    public float wardMaxHp = 60f, wardRegen = 0.4f, wardSpeed = 3.2f;
-    [Tooltip("약한 저항: 주변 적에게 주기적으로 작은 피해와 넉백")]
-    public float wardPulseDamage = 3f, wardPulseRadius = 2.2f, wardPulseInterval = 6f;
-    [Header("Companion")]
-    public float companionDamage = 15f, companionInterval = 6f, companionRadius = 3f;
-    public int companionStrikes = 1;
+    // 생명체/감시자 수치: 기본값은 WardConfig / CompanionConfig에서 런 시작 시 복사 (여기서 편집하지 않음)
+    [HideInInspector] public float wardMaxHp = 60f, wardRegen = 0.4f, wardSpeed = 3.2f;
+    [HideInInspector] public float wardPulseDamage = 3f, wardPulseRadius = 2.2f, wardPulseInterval = 6f;
+    [HideInInspector] public float companionDamage = 15f, companionInterval = 6f, companionRadius = 3f;
+    [HideInInspector] public int companionStrikes = 1;
 
     [NonSerialized] public float hp, wardHp;
     [NonSerialized] public int level = 1, xp;
