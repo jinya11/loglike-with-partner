@@ -15,18 +15,18 @@ public static partial class PrototypeBuilder
         int wardLayer = EnsureLayer("Ward");
         var cfg = AssetDatabase.LoadAssetAtPath<GameConfig>(Root + "/Resources/GameConfig.asset");
 
-        cfg.wardPrefab = BuildWard(wardLayer);
-        var b = cfg.baseStats;
+        cfg.ward.wardPrefab = BuildWard(wardLayer);
+        var b = cfg.ward; // 생명체 기본 능력치는 WardConfig
         if (b.wardMaxHp <= 0f) { b.wardMaxHp = 60f; b.wardRegen = 0.4f; }
         if (b.wardSpeed <= 0f || Mathf.Approximately(b.wardSpeed, 5.5f)) b.wardSpeed = 3.2f; // 도망 속도 (배회는 절반)
         if (b.wardPulseInterval <= 0f) { b.wardPulseDamage = 3f; b.wardPulseRadius = 2.2f; b.wardPulseInterval = 6f; }
-        if (cfg.enemyAggroRadius <= 0f) cfg.enemyAggroRadius = 3.5f;
+        if (cfg.enemy.enemyAggroRadius <= 0f) cfg.enemy.enemyAggroRadius = 3.5f;
 
         AddUpgrade(cfg, new UpgradeDef { name = "보호의 껍질", desc = "생명체 최대 체력 +25", stat = StatType.WardMaxHp, value = 25f, weight = 1f });
         AddUpgrade(cfg, new UpgradeDef { name = "생명의 이슬", desc = "생명체 체력 30 회복", stat = StatType.WardHeal, value = 30f, weight = 1f });
         AddUpgrade(cfg, new UpgradeDef { name = "작은 반항", desc = "생명체 저항 파동 피해 +4, 범위 증가", stat = StatType.WardPulseDamage, value = 4f, special = true, weight = 1f });
         AddUpgrade(cfg, new UpgradeDef { name = "작은 용기", desc = "생명체 저항 파동 주기 -25%", stat = StatType.WardPulseRate, value = 0.25f, special = true, weight = 1f });
-        EditorUtility.SetDirty(cfg);
+        cfg.SetAllDirty();
         AssetDatabase.SaveAssets();
 
         UpdateStageHud();
@@ -41,7 +41,7 @@ public static partial class PrototypeBuilder
 
     static void AddUpgrade(GameConfig cfg, UpgradeDef u)
     {
-        if (System.Array.FindIndex(cfg.upgrades, x => x.stat == u.stat) < 0) ArrayUtility.Add(ref cfg.upgrades, u);
+        if (System.Array.FindIndex(cfg.player.upgrades, x => x.stat == u.stat) < 0) ArrayUtility.Add(ref cfg.player.upgrades, u);
     }
 
     /// <summary>작은 생명체: 연두색 동그란 몸, 새싹, 큰 눈.</summary>

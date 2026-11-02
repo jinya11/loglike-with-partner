@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class XpGem : Ticked<XpGem>
 {
+    static readonly Color XpColor = new Color(0.4f, 0.9f, 1f);
     public int value = 1;
     bool magnet;
 
@@ -18,6 +19,7 @@ public class XpGem : Ticked<XpGem>
         if (!magnet) return;
         if (sq < 0.36f)
         {
+            Vfx.Pickup(pos, XpColor, 2);
             GameManager.I.AddXp(value);
             Despawn();
             return;

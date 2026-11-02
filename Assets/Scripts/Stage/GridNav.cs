@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 원형 아레나용 격자 길찾기 (A*, 8방향).
+/// 아레나용 격자 길찾기 (A*, 8방향). 원형 또는 정사각형(지역 스테이지 보더) 경계.
 /// - 벽/장애물 칸은 막힘 (스테이지 시작 시 물리 검사로 한 번 생성)
 /// - 적 주변은 위험 비용, 용암 같은 피해 구역도 비용 → "적을 피하면서 가장 빠른 길"
 /// 할당 없는 고정 버퍼 사용.
@@ -21,11 +21,18 @@ public sealed class GridNav
     static readonly int[] DZ = { 0, 0, 1, -1, 1, -1, 1, -1 };
     static readonly float[] STEP = { 1f, 1f, 1f, 1f, 1.4142f, 1.4142f, 1.4142f, 1.4142f };
 
-    public GridNav(float radius, float cellSize, float clearance, int obstacleMask)
+    /// <summary>
+    /// 원형 경계(반지름 radius, 중심 원점)용. square면 radius 대신 현재 Arena 칸 경계(Arena.Bounds)를 덮는 격자를 만들고
+    /// 경계 밖 칸은 막힘 (보더가 열리면 StageDirector가 격자를 다시 만듦).
+    /// </summary>
+    public GridNav(float radius, float cellSize, float clearance, int obstacleMask, bool square = false)
     {
         cell = cellSize;
-        size = Mathf.CeilToInt(radius * 2f / cell) + 1;
-        origin = new Vector3(-radius, 0f, -radius);
+        float half = radius;
+        Vector3 center = Vector3.zero;
+        if (square) { var b = Arena.Bounds; half = Mathf.Max(b.width, b.height) * 0.5f + 1f; center = new Vector3(b.center.x, 0f, b.center.y); }
+        size = Mathf.CeilToInt(half * 2f / cell) + 1;
+        origin = center - new Vector3(half, 0f, half);
         int count = size * size;
         blocked = new bool[count]; staticCost = new float[count]; danger = new float[count];
         g = new float[count]; f = new float[count];
@@ -38,7 +45,7 @@ public sealed class GridNav
             {
                 int i = z * size + x;
                 Vector3 c = Center(i);
-                blocked[i] = c.x * c.x + c.z * c.z > inner * inner
+                blocked[i] = (square ? !Arena.Contains(c, clearance + 0.3f) : c.x * c.x + c.z * c.z > inner * inner)
                     || Physics.CheckCapsule(c + Vector3.up * 0.3f, c + Vector3.up * 1.2f, clearance, obstacleMask, QueryTriggerInteraction.Ignore);
             }
 
@@ -48,6 +55,8 @@ public sealed class GridNav
                 if (!blocked[i] && zone.Contains(Center(i)))
                     staticCost[i] += zone.type == ZoneType.Damage ? 25f : zone.type == ZoneType.Heal ? 0f : 1.5f;
     }
+
+    bool Free(int i) => !blocked[i];
 
     public Vector3 Center(int i) => origin + new Vector3((i % size + 0.5f) * cell, 0f, (i / size + 0.5f) * cell);
 
@@ -83,7 +92,7 @@ public sealed class GridNav
     public Vector3 NearestFree(Vector3 p)
     {
         int s = Index(p);
-        if (!blocked[s]) return p;
+        if (Free(s)) return p;
         int sx = s % size, sz = s / size;
         for (int r = 1; r < size; r++)
             for (int z = sz - r; z <= sz + r; z++)
@@ -92,7 +101,7 @@ public sealed class GridNav
                     if (x < 0 || z < 0 || x >= size || z >= size) continue;
                     if (Mathf.Abs(x - sx) != r && Mathf.Abs(z - sz) != r) continue;
                     int i = z * size + x;
-                    if (!blocked[i]) return Center(i);
+                    if (Free(i)) return Center(i);
                 }
         return p;
     }
@@ -116,8 +125,8 @@ public sealed class GridNav
                 int nx = cx + DX[d], nz = cz + DZ[d];
                 if (nx < 0 || nz < 0 || nx >= size || nz >= size) continue;
                 int n = nz * size + nx;
-                if (blocked[n]) continue;
-                if (d >= 4 && (blocked[cz * size + nx] || blocked[nz * size + cx])) continue; // 모서리 끼임 방지
+                if (!Free(n)) continue;
+                if (d >= 4 && (!Free(cz * size + nx) || !Free(nz * size + cx))) continue; // 모서리 끼임 방지
                 float ng = g[cur] + STEP[d] * (1f + staticCost[n] + danger[n]);
                 if (visit[n] == visitId && ng >= g[n]) continue;
                 Open(n, ng, cur, goal);

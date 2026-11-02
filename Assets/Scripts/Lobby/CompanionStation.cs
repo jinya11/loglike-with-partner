@@ -60,15 +60,15 @@ public class CompanionStation : Interactable
         var kb = Keyboard.current;
         if (kb == null || Time.frameCount == openedFrame) return;
 
-        var list = GameManager.I.Config.companions;
+        var list = GameManager.I.Config.companion.companions;
         if (kb.escapeKey.wasPressedThisFrame) Close();
         else if (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)
         {
             var def = list[index];
             if (!SaveData.IsUnlocked(def))
             {
-                // 잠긴 감시자: 자원이 충분하면 해금 후 선택
-                if (!SaveData.Spend(def.unlockCost)) { Show(true); return; }
+                // 잠긴 감시자: 자원이 충분하면 해금 후 선택 (개발자 모드는 자원 없이 해금)
+                if (!DevConfig.Enabled && !SaveData.Spend(def.unlockCost)) { Show(true); return; }
                 SaveData.Unlock(def);
             }
             GameManager.I.CompanionIndex = index;
@@ -83,7 +83,7 @@ public class CompanionStation : Interactable
 
     void Show(bool notEnough)
     {
-        var list = GameManager.I.Config.companions;
+        var list = GameManager.I.Config.companion.companions;
         var def = list[index];
         if (preview) Destroy(preview);
         if (def.prefab)
@@ -93,7 +93,8 @@ public class CompanionStation : Interactable
             if (logic) DestroyImmediate(logic); // 미리보기는 모습만
             preview.transform.localScale = def.prefab.transform.localScale * def.previewScale;
         }
-        nameText.text = UiText.Format(nameFmt, def.name);
+        bool lockedName = !SaveData.IsUnlocked(def);
+        nameText.text = UiText.Format(nameFmt, lockedName ? def.name + " <color=#FFB060>[잠김]</color>" : def.name);
         bool locked = !SaveData.IsUnlocked(def);
         abilityText.text = locked ? LockInfo(def, notEnough) + "\n\n" + def.abilityText : def.abilityText;
         ultimateText.text = UiText.Format(ultFmt, def.ultimateName, def.ultimateDesc);
@@ -109,11 +110,11 @@ public class CompanionStation : Interactable
         for (int i = 0; i < def.unlockCost.Length; i++)
         {
             var c = def.unlockCost[i];
-            var r = cfg.Resource(c.type);
+            var r = cfg.meta.Resource(c.type);
             if (i > 0) sb.Append(", ");
             sb.Append(r != null ? r.name : c.type.ToString()).Append(' ').Append(c.amount).Append("개 (보유 ").Append(SaveData.Get(c.type)).Append(')');
         }
-        sb.Append(notEnough ? "\n자원이 부족해요" : "\nEnter로 해금").Append("</color>");
+        sb.Append(notEnough ? "\n자원이 부족해요" : DevConfig.Enabled ? "\n[개발자] Enter로 무료 해금" : "\nEnter로 해금").Append("</color>");
         return sb.ToString();
     }
 

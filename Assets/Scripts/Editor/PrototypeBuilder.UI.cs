@@ -97,7 +97,7 @@ public static partial class PrototypeBuilder
 
         // 석판 카드: 프리팹 안에 개별 배치 (각각 위치/모양 편집 가능, 이름/설명은 GameConfig.modifiers에서 채움)
         var cardRoot = UI("Cards", panel, C, C, new Vector2(0, 10), new Vector2(1160, 420));
-        var mods = cfgForUI.modifiers;
+        var mods = cfgForUI.stage.modifiers;
         var cards = new ModifierCard[mods.Length];
         for (int i = 0; i < mods.Length; i++)
         {
@@ -143,7 +143,7 @@ public static partial class PrototypeBuilder
 
     static void AddUI(GameObject hudPrefab)
     {
-        PrefabUtility.InstantiatePrefab(hudPrefab);
+        if (hudPrefab) PrefabUtility.InstantiatePrefab(hudPrefab);
         var es = new GameObject("EventSystem");
         es.AddComponent<EventSystem>();
         es.AddComponent<InputSystemUIInputModule>();

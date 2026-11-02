@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35a7030605cafd74aa775259ae9f1623, type: 3}
+  m_Name: Layout_Region_Mushroom
+  m_EditorClassIdentifier: Assembly-CSharp::StageLayout
+  centerSafeRadius: 7
+  seed: 0
+  maxAttempts: 30
+  entries:
+  - prefab: {fileID: 3571585734860981514, guid: 2d9a260356abd1140a0015ba623ba593, type: 3}
+    minCount: 8
+    maxCount: 12
+    minRadius: 0.15
+    maxRadius: 0.9
+    spacing: 9
+    scaleRange: {x: 0.8, y: 1.4}
+    randomRotation: 1
+  - prefab: {fileID: 966117783600656929, guid: e07bf3efc875ff14ea3fe7242c90a3cd, type: 3}
+    minCount: 16
+    maxCount: 22
+    minRadius: 0.15
+    maxRadius: 0.97
+    spacing: 6
+    scaleRange: {x: 0.8, y: 1.5}
+    randomRotation: 1
+  - prefab: {fileID: 5525232164640135579, guid: 2c881ff4a04e7584ab5a77ddecebed15, type: 3}
+    minCount: 22
+    maxCount: 32
+    minRadius: 0.1
+    maxRadius: 0.97
+    spacing: 3
+    scaleRange: {x: 0.8, y: 1.4}
+    randomRotation: 1

@@ -44,6 +44,7 @@ public class WindCompanion : CompanionBase
 
             stage.PushArea(p, r, dir * pushSpeed, s.companionDamage * damageMul);
             stage.SpawnFx(lane + Vector3.up * 0.02f, new Vector3(r * 0.6f, 0.02f, r * 1.6f), new Vector3(r * 1.4f, 0.02f, r * 3f), 0.25f, Gust, rot);
+            Vfx.Gust(p, dir, r * 0.6f, Gust);
             yield return waitGap;
         }
     }
@@ -63,9 +64,11 @@ public class WindCompanion : CompanionBase
             float h = 3f + (i % 3);
             stage.SpawnFx(target + Vector3.up * h, new Vector3(R * 0.5f, h, R * 0.5f), new Vector3(R * 0.15f, h, R * 0.15f), 0.25f, Gust, Quaternion.Euler(0f, i * 40f, 0f));
             stage.SpawnFx(target + Vector3.up * 0.04f, new Vector3(D, 0.02f, D), new Vector3(D * 0.3f, 0.02f, D * 0.3f), 0.25f, Warn);
+            Vfx.Vortex(target, R, Gust);
             yield return tick;
         }
         stage.RadialForce(target, R * 1.2f, 40f, s.companionDamage * 2f); // 마지막 폭발
         stage.SpawnFx(target + Vector3.up * 0.05f, new Vector3(1f, 0.02f, 1f), new Vector3(D * 1.6f, 0.02f, D * 1.6f), 0.35f, Gust);
+        Vfx.Explosion(target, R, Gust);
     }
 }

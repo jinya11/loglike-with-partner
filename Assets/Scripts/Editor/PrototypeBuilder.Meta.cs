@@ -23,8 +23,8 @@ public static partial class PrototypeBuilder
         EnsureFonts();
         var cfg = AssetDatabase.LoadAssetAtPath<GameConfig>(Root + "/Resources/GameConfig.asset");
 
-        if (cfg.resources == null || cfg.resources.Length == 0)
-            cfg.resources = new[]
+        if (cfg.meta.resources == null || cfg.meta.resources.Length == 0)
+            cfg.meta.resources = new[]
             {
                 new ResourceDef { type = ResourceType.AncientStone, name = "고대 석재", color = new Color(0.8f, 0.75f, 0.6f) },
                 new ResourceDef { type = ResourceType.FrostCrystal, name = "서리 결정", color = new Color(0.6f, 0.9f, 1f) },
@@ -32,8 +32,8 @@ public static partial class PrototypeBuilder
                 new ResourceDef { type = ResourceType.MagmaStone, name = "용암석", color = new Color(1f, 0.4f, 0.1f) },
                 new ResourceDef { type = ResourceType.SugarCrystal, name = "설탕 결정", color = new Color(1f, 0.6f, 0.85f) },
             };
-        if (cfg.baseUpgrades == null || cfg.baseUpgrades.Length == 0)
-            cfg.baseUpgrades = new[]
+        if (cfg.meta.baseUpgrades == null || cfg.meta.baseUpgrades.Length == 0)
+            cfg.meta.baseUpgrades = new[]
             {
                 BU("ward_hp", "생명의 샘", "생명체 최대 체력 +10", StatType.WardMaxHp, 10f, ResourceType.AncientStone, 3),
                 BU("ward_regen", "서리 방벽", "생명체 초당 회복 +0.15", StatType.WardRegen, 0.15f, ResourceType.FrostCrystal, 3),
@@ -41,11 +41,11 @@ public static partial class PrototypeBuilder
                 BU("damage", "용암 단련", "공격력 +1", StatType.Damage, 1f, ResourceType.MagmaStone, 3),
                 BU("companion", "달콤한 공물", "감시자 피해 +3", StatType.CompanionDamage, 3f, ResourceType.SugarCrystal, 2),
             };
-        foreach (var c in cfg.companions)
+        foreach (var c in cfg.companion.companions)
             if (c.name == "풍신" && (c.unlockCost == null || c.unlockCost.Length == 0))
                 c.unlockCost = new[] { new ResourceCost { type = ResourceType.RiverPebble, amount = 5 }, new ResourceCost { type = ResourceType.FrostCrystal, amount = 5 } };
-        cfg.resourcePickupPrefab = BuildResourcePickup();
-        EditorUtility.SetDirty(cfg);
+        cfg.meta.resourcePickupPrefab = BuildResourcePickup();
+        cfg.SetAllDirty();
         AssetDatabase.SaveAssets();
 
         AddResourceToast();
@@ -57,11 +57,12 @@ public static partial class PrototypeBuilder
         string back = active.path;
         foreach (var (scene, res) in SceneResources)
         {
+            if (!System.IO.File.Exists($"Assets/Scenes/{scene}.unity")) continue; // 지역 스테이지로 바뀌며 삭제된 씬
             var s = EditorSceneManager.OpenScene($"Assets/Scenes/{scene}.unity", OpenSceneMode.Single);
             var theme = Object.FindAnyObjectByType<StageTheme>();
             if (theme && theme.resource != res) { theme.resource = res; EditorUtility.SetDirty(theme); EditorSceneManager.SaveScene(s); }
         }
-        var lobby = EditorSceneManager.OpenScene($"Assets/Scenes/{cfg.lobbyScene}.unity", OpenSceneMode.Single);
+        var lobby = EditorSceneManager.OpenScene($"Assets/Scenes/{cfg.stage.lobbyScene}.unity", OpenSceneMode.Single);
         if (Object.FindAnyObjectByType<BaseUpgradeStation>() == null) { AddBaseCore(upgradeHud); EditorSceneManager.SaveScene(lobby); }
         if (!string.IsNullOrEmpty(back) && back != lobby.path) EditorSceneManager.OpenScene(back);
         Debug.Log("[PrototypeBuilder] 메타 성장 업데이트 완료");
@@ -120,10 +121,10 @@ public static partial class PrototypeBuilder
         Txt("Subtitle", panel, "맵에서 모은 자원으로 거점을 키우면 모든 런에 영구히 적용됩니다.", 22, TextAlignmentOptions.Center, Soft, TC, TC, new Vector2(0, -168), new Vector2(1400, 40));
 
         // 보유 자원
-        for (int i = 0; i < cfg.resources.Length; i++)
+        for (int i = 0; i < cfg.meta.resources.Length; i++)
         {
-            var r = cfg.resources[i];
-            var t = Txt($"Res_{r.name}", panel, "{0}  {1}", 24, TextAlignmentOptions.Center, r.color, TC, TC, new Vector2((i - (cfg.resources.Length - 1) * 0.5f) * 260f, -220), new Vector2(250, 36));
+            var r = cfg.meta.resources[i];
+            var t = Txt($"Res_{r.name}", panel, "{0}  {1}", 24, TextAlignmentOptions.Center, r.color, TC, TC, new Vector2((i - (cfg.meta.resources.Length - 1) * 0.5f) * 260f, -220), new Vector2(250, 36));
             var rl = t.gameObject.AddComponent<ResourceLabel>();
             var rso = new SerializedObject(rl);
             rso.FindProperty("type").enumValueIndex = (int)r.type;
@@ -132,9 +133,9 @@ public static partial class PrototypeBuilder
         }
 
         // 성장 항목
-        for (int i = 0; i < cfg.baseUpgrades.Length; i++)
+        for (int i = 0; i < cfg.meta.baseUpgrades.Length; i++)
         {
-            var b = cfg.baseUpgrades[i];
+            var b = cfg.meta.baseUpgrades[i];
             var row = UI($"Row_{b.name}", panel, TC, TC, new Vector2(0, -300 - i * 118), new Vector2(1300, 104));
             Img(row, new Color(0.15f, 0.14f, 0.18f));
             Txt("Name", row, b.name, 30, TextAlignmentOptions.Left, Color.white, TL, TL, new Vector2(30, -14), new Vector2(420, 40), TL);

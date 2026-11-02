@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e915d103efd960b41983e8abb2029fbf, type: 3}
+  m_Name: MetaConfig
+  m_EditorClassIdentifier: Assembly-CSharp::MetaConfig
+  resources:
+  - type: 1
+    name: "\uACE0\uB300 \uC11D\uC7AC"
+    color: {r: 0.8, g: 0.75, b: 0.6, a: 1}
+  - type: 2
+    name: "\uC11C\uB9AC \uACB0\uC815"
+    color: {r: 0.6, g: 0.9, b: 1, a: 1}
+  - type: 3
+    name: "\uAC15\uC758 \uC870\uC57D\uB3CC"
+    color: {r: 0.3, g: 0.8, b: 0.75, a: 1}
+  - type: 4
+    name: "\uC6A9\uC554\uC11D"
+    color: {r: 1, g: 0.4, b: 0.1, a: 1}
+  - type: 5
+    name: "\uC124\uD0D5 \uACB0\uC815"
+    color: {r: 1, g: 0.6, b: 0.85, a: 1}
+  resourceDropChance: 0.06
+  resourcePickupPrefab: {fileID: 2489645673102143564, guid: 7d6c8663524539d42ba856a6a91f71e9, type: 3}
+  baseUpgrades:
+  - id: ward_hp
+    name: "\uC0DD\uBA85\uC758 \uC0D8"
+    desc: "\uC0DD\uBA85\uCCB4 \uCD5C\uB300 \uCCB4\uB825 +10"
+    stat: 13
+    valuePerLevel: 10
+    maxLevel: 5
+    cost:
+      type: 1
+      amount: 3
+    costGrowth: 2
+  - id: ward_regen
+    name: "\uC11C\uB9AC \uBC29\uBCBD"
+    desc: "\uC0DD\uBA85\uCCB4 \uCD08\uB2F9 \uD68C\uBCF5 +0.15"
+    stat: 19
+    valuePerLevel: 0.15
+    maxLevel: 5
+    cost:
+      type: 2
+      amount: 3
+    costGrowth: 2
+  - id: pickup
+    name: "\uAC15\uC758 \uCD95\uBCF5"
+    desc: "\uD68D\uB4DD \uBC94\uC704 +0.5"
+    stat: 4
+    valuePerLevel: 0.5
+    maxLevel: 5
+    cost:
+      type: 3
+      amount: 3
+    costGrowth: 2
+  - id: damage
+    name: "\uC6A9\uC554 \uB2E8\uB828"
+    desc: "\uACF5\uACA9\uB825 +1"
+    stat: 0
+    valuePerLevel: 1
+    maxLevel: 5
+    cost:
+      type: 4
+      amount: 3
+    costGrowth: 2
+  - id: companion
+    name: "\uB2EC\uCF64\uD55C \uACF5\uBB3C"
+    desc: "\uAC10\uC2DC\uC790 \uD53C\uD574 +3"
+    stat: 9
+    valuePerLevel: 3
+    maxLevel: 5
+    cost:
+      type: 5
+      amount: 2
+    costGrowth: 2

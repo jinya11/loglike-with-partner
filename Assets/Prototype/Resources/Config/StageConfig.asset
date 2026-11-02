@@ -1,0 +1,117 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 235361145bcaa22439c9cf3afada6093, type: 3}
+  m_Name: StageConfig
+  m_EditorClassIdentifier: Assembly-CSharp::StageConfig
+  lobbyScene: Lobby
+  stageCount: 7
+  stageScenes:
+  - Region_Ruins
+  - Region_Snow
+  - Region_River
+  - Region_Volcano
+  - Region_Desert
+  - Region_Forest
+  - Region_Swamp
+  - Region_Crystal
+  - Region_Mushroom
+  - Region_Graveyard
+  centerRegion:
+    name: "\uC2EC\uC5F0"
+    scene: Region_Abyss
+    desc: "\uD558\uB298\uC12C \uBC14\uB85C \uBC11. \uCE60\uD751 \uAC19\uC740 \uC5B4\uB460"
+    mapColor: {r: 0.02, g: 0.02, b: 0.03, a: 1}
+  regionPool:
+  - name: "\uD3D0\uD5C8"
+    scene: Region_Ruins
+    desc: "\uBB34\uB108\uC9C4 \uAE30\uB465\uACFC \uC131\uBCBD"
+    mapColor: {r: 0.32, g: 0.31, b: 0.36, a: 1}
+  - name: "\uC124\uC6D0"
+    scene: Region_Snow
+    desc: "\uBC1C\uC774 \uBB36\uC774\uB294 \uB208\uBC2D"
+    mapColor: {r: 0.7, g: 0.78, b: 0.88, a: 1}
+  - name: "\uAC15\uAC00"
+    scene: Region_River
+    desc: "\uD544\uB4DC\uB97C \uAC00\uB85C\uC9C0\uB974\uB294 \uAC15\uC904\uAE30"
+    mapColor: {r: 0.28, g: 0.45, b: 0.4, a: 1}
+  - name: "\uD654\uC0B0"
+    scene: Region_Volcano
+    desc: "\uB2FF\uC73C\uBA74 \uD0C0\uB294 \uC6A9\uC554 \uC6C5\uB369\uC774"
+    mapColor: {r: 0.5, g: 0.18, b: 0.1, a: 1}
+  - name: "\uC0AC\uB9C9"
+    scene: Region_Desert
+    desc: "\uBAA8\uB798 \uC218\uB801\uACFC \uBD89\uC740 \uBC14\uC704"
+    mapColor: {r: 0.78, g: 0.64, b: 0.42, a: 1}
+  - name: "\uC232"
+    scene: Region_Forest
+    desc: "\uC6B8\uCC3D\uD55C \uB098\uBB34\uC640 \uD68C\uBCF5\uC758 \uC0D8"
+    mapColor: {r: 0.22, g: 0.45, b: 0.24, a: 1}
+  - name: "\uB2AA"
+    scene: Region_Swamp
+    desc: "\uBC1C\uC774 \uBE60\uC9C0\uB294 \uBB3C\uC6C5\uB369\uC774\uC640 \uB3C5"
+    mapColor: {r: 0.3, g: 0.36, b: 0.22, a: 1}
+  - name: "\uC218\uC815 \uB3D9\uAD74"
+    scene: Region_Crystal
+    desc: "\uC5B4\uB451\uD55C \uB3D9\uAD74\uC5D0 \uBE5B\uB098\uB294 \uC218\uC815"
+    mapColor: {r: 0.25, g: 0.3, b: 0.55, a: 1}
+  - name: "\uBC84\uC12F \uAD70\uB77D"
+    scene: Region_Mushroom
+    desc: "\uAC70\uB300 \uBC84\uC12F\uACFC \uB048\uC801\uD55C \uD3EC\uC790"
+    mapColor: {r: 0.5, g: 0.32, b: 0.55, a: 1}
+  - name: "\uBB18\uC9C0"
+    scene: Region_Graveyard
+    desc: "\uC548\uAC1C \uB080 \uBE44\uC11D\uACFC \uBB34\uB364"
+    mapColor: {r: 0.32, g: 0.38, b: 0.36, a: 1}
+  regionSelectPrefab: {fileID: 5901079939216481714, guid: ddae83fc901169745954baaa4059fc8d, type: 3}
+  bonusScenes:
+  - Bonus_Candy
+  bonusChance: 0.3
+  baseKillTarget: 120
+  killTargetPerStage: 60
+  spawnInterval: 0.8
+  spawnIntervalPerStage: -0.08
+  minSpawnInterval: 0.3
+  spawnBatch: 6
+  maxAlive: 250
+  spawnDistance: 16
+  modifiers:
+  - name: "\uBD84\uB178\uC758 \uC11D\uD310"
+    desc: "\uBAAC\uC2A4\uD130 \uD53C\uD574 +50%"
+    type: 0
+    value: 0.5
+  - name: "\uAC15\uCCA0\uC758 \uC11D\uD310"
+    desc: "\uBAAC\uC2A4\uD130 \uCCB4\uB825 +50%"
+    type: 1
+    value: 0.5
+  - name: "\uC9C8\uC8FC\uC758 \uC11D\uD310"
+    desc: "\uBAAC\uC2A4\uD130 \uC18D\uB3C4 +25%"
+    type: 2
+    value: 0.25
+  - name: "\uAD70\uC138\uC758 \uC11D\uD310"
+    desc: "\uC2A4\uD3F0 \uC218 +2"
+    type: 3
+    value: 2
+  - name: "\uACE0\uAC08\uC758 \uC11D\uD310"
+    desc: "\uCCB4\uB825 \uD68C\uBCF5 \uBD88\uAC00"
+    type: 4
+    value: 0
+  - name: "\uC7AC\uC559\uC758 \uC11D\uD310"
+    desc: "\uB9F5\uC5D0 \uC704\uD5D8 \uC7A5\uD310 \uD328\uD134 \uCD94\uAC00"
+    type: 5
+    value: 0
+  hazardInterval: 2.5
+  hazardRadius: 2.5
+  hazardDamage: 20
+  hazardDelay: 1
+  portalPrefab: {fileID: 3231902938794445117, guid: 01b1c3f7e61c94446af4ab4a204961c5, type: 3}
+  fxPrefab: {fileID: 497492082856970045, guid: 19fb6f705f7522245b6f81257285a624, type: 3}
+  hudPrefab: {fileID: 1184181924998774799, guid: f7e117020218a544cb17e165fae1cd7d, type: 3}

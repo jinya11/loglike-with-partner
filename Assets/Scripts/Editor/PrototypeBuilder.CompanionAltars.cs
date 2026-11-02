@@ -20,7 +20,7 @@ public static partial class PrototypeBuilder
     {
         var station = GameObject.Find("CompanionStation");
         var cfg = AssetDatabase.LoadAssetAtPath<GameConfig>(Root + "/Resources/GameConfig.asset");
-        if (!station || !cfg || cfg.companions == null || cfg.companions.Length == 0) return false;
+        if (!station || !cfg || cfg.companion.companions == null || cfg.companion.companions.Length == 0) return false;
 
         // 씬 안의 기존 동반자 제단 수집
         var existing = new List<LobbyInteractable>();
@@ -30,23 +30,23 @@ public static partial class PrototypeBuilder
 
         // 이미 전부 동반자 플랫폼에 있으면 끝
         var seen = new HashSet<int>();
-        bool done = existing.Count == cfg.companions.Length;
+        bool done = existing.Count == cfg.companion.companions.Length;
         foreach (var li in existing)
         {
             if (li.transform.parent != station.transform) done = false;
             seen.Add(li.index);
         }
-        if (done && seen.Count == cfg.companions.Length) return false;
+        if (done && seen.Count == cfg.companion.companions.Length) return false;
 
         foreach (var li in existing) Object.DestroyImmediate(li.gameObject);
 
         var stone = Mat("LobbyStone", new Color(0.33f, 0.31f, 0.36f));
         var rune = Mat("Rune", Color.white);
         var eye = Mat("CompanionEye", Color.white);
-        int n = cfg.companions.Length;
+        int n = cfg.companion.companions.Length;
         for (int i = 0; i < n; i++)
         {
-            var def = cfg.companions[i];
+            var def = cfg.companion.companions[i];
             var t = new GameObject("Companion_" + def.name).transform;
             t.SetParent(station.transform, false);
             t.localPosition = AltarRowOffset + new Vector3((i - (n - 1) * 0.5f) * AltarSpacing, 0f, 0f);

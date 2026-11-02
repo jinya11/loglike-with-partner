@@ -19,6 +19,7 @@ public class BombardSkill : Singleton<BombardSkill>
     Transform marker;
     float readyAt;
     int aimFrame = -1;
+    float autoCheckAt;
 
     public bool Aiming { get; private set; }
     public float CooldownLeft => Mathf.Max(0f, readyAt - Time.time);
@@ -30,7 +31,7 @@ public class BombardSkill : Singleton<BombardSkill>
         go.name = "BombardMarker";
         Destroy(go.GetComponent<Collider>());
         var r = go.GetComponent<Renderer>();
-        var fxr = GameManager.I.Config.fxPrefab ? GameManager.I.Config.fxPrefab.GetComponent<Renderer>() : null;
+        var fxr = GameManager.I.Config.stage.fxPrefab ? GameManager.I.Config.stage.fxPrefab.GetComponent<Renderer>() : null;
         if (fxr) r.sharedMaterial = fxr.sharedMaterial;
         var mpb = new MaterialPropertyBlock();
         mpb.SetColor(ColorId, markerColor);
@@ -50,7 +51,7 @@ public class BombardSkill : Singleton<BombardSkill>
 
         if (!Aiming)
         {
-            if (gm.State == GameState.Playing && !gm.InputBlocked && comp != null && kb != null
+            if (gm.State == GameState.Playing && !gm.InputBlocked && comp != null && kb != null && !(Ward.I && Ward.I.WatcherAuto) // 감시자 자동일 때는 직접 조준 불가
                 && kb[key].wasPressedThisFrame && Time.time >= readyAt)
                 BeginAim(comp);
             return;
@@ -61,7 +62,7 @@ public class BombardSkill : Singleton<BombardSkill>
         marker.position = p + Vector3.up * 0.06f;
         if (Time.frameCount == aimFrame) return;
 
-        bool confirm = (mouse != null && mouse.leftButton.wasPressedThisFrame)
+        bool confirm = (mouse != null && mouse.leftButton.wasPressedThisFrame && !WardDebugPanel.PointerOver(mouse.position.ReadValue()))
             || (kb != null && (kb[key].wasPressedThisFrame || kb.enterKey.wasPressedThisFrame));
         bool cancel = (mouse != null && mouse.rightButton.wasPressedThisFrame) || (kb != null && kb.escapeKey.wasPressedThisFrame);
         if (cancel) { readyAt = Time.time + cancelCooldown; EndAim(); return; }
@@ -71,6 +72,32 @@ public class BombardSkill : Singleton<BombardSkill>
         readyAt = Time.time + (def != null ? def.bombardCooldown : 45f) * gm.Stats.cooldownMul;
         EndAim();
         comp.BeginBombard(p);
+    }
+
+    /// <summary>
+    /// 감시자 자동(자율 + 생명체만 조작)일 때 자동 폭격: 쿨타임이 끝나면 생명체 주변(사거리 안)에서 적이 가장 많이 모인 곳에.
+    /// </summary>
+    public void TryAuto(Vector3 around)
+    {
+        var comp = CompanionBase.Current;
+        var gm = GameManager.I;
+        if (Aiming || comp == null || Time.time < readyAt || gm.State != GameState.Playing || Time.time < autoCheckAt) return;
+        autoCheckAt = Time.time + 0.5f; // 검사는 0.5초마다
+        float r = comp.BombardRadius * gm.Stats.areaMul, reach = gm.Stats.attackRange + r;
+        var list = Enemy.Active;
+        int best = 0; Vector3 target = around;
+        for (int i = 0; i < list.Count; i += 2) // 후보는 적 위치 (절반만 검사)
+        {
+            Vector3 c = list[i].transform.position; c.y = 0f;
+            if ((c - around).sqrMagnitude > reach * reach) continue;
+            int n = 0;
+            for (int k = 0; k < list.Count; k++) if ((list[k].transform.position - c).sqrMagnitude < r * r) n++;
+            if (n > best) { best = n; target = c; }
+        }
+        if (best < 5) return; // 적이 충분히 모였을 때만
+        var def = gm.Companion;
+        readyAt = Time.time + (def != null ? def.bombardCooldown : 45f) * gm.Stats.cooldownMul;
+        comp.BeginBombard(Arena.Clamp(target));
     }
 
     void BeginAim(CompanionBase comp)

@@ -345,15 +345,12 @@ MonoBehaviour:
   eye: {fileID: 6086474097732257878}
   tintRenderers:
   - {fileID: 7285147678165614932}
-  wanderSpeedMul: 0.5
-  wanderRadius: 0.85
-  wanderPauseMin: 0.5
-  wanderPauseMax: 2.5
-  fleeRadius: 5
-  portalReach: 1.5
   normalColor: {r: 0.75, g: 1, b: 0.7, a: 1}
   hurtColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   shieldColor: {r: 0.55, g: 0.9, b: 1, a: 1}
+  fearColor: {r: 0.7, g: 0.45, b: 1, a: 1}
+  bleedColor: {r: 0.75, g: 0.15, b: 0.2, a: 1}
+  slowColor: {r: 0.45, g: 0.65, b: 1, a: 1}
 --- !u!1 &5444542473403254302
 GameObject:
   m_ObjectHideFlags: 0

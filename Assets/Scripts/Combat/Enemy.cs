@@ -13,12 +13,20 @@ public class Enemy : Ticked<Enemy>
     [SerializeField] Transform visual;
     Rigidbody rb;
     EnemyDef def;
-    float hp, speed, damage, abilityReadyAt, chargeLeft;
-    Vector3 knock, chargeDir;
+    float hp, speed, damage, abilityReadyAt, chargeLeft, punch;
+    Vector3 knock, chargeDir, visualScale;
+    Color bodyColor = Color.white;
 
     public EnemyDef Def => def;
+    Vector3 HitPoint => rb.position + Vector3.up * 0.4f;
 
-    void Awake() { rb = GetComponent<Rigidbody>(); }
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody>();
+        visualScale = visual.localScale;
+        var r = visual.GetComponentInChildren<Renderer>();
+        if (r && r.sharedMaterial && r.sharedMaterial.HasColor("_BaseColor")) bodyColor = r.sharedMaterial.GetColor("_BaseColor");
+    }
 
     public void Init(float hp, float speed, float damage, EnemyDef def = null)
     {
@@ -26,7 +34,8 @@ public class Enemy : Ticked<Enemy>
         float hm = def != null ? def.hpMul : 1f, sm = def != null ? def.speedMul : 1f, dm = def != null ? def.damageMul : 1f;
         this.hp = hp * hm; this.speed = speed * sm * Random.Range(0.85f, 1.15f); this.damage = damage * dm;
         knock = Vector3.zero;
-        chargeLeft = 0f;
+        chargeLeft = 0f; punch = 0f;
+        visual.localScale = visualScale;
         abilityReadyAt = Time.time + Random.Range(0.5f, 2f); // 동시에 몰려서 쓰지 않도록
         rb.linearVelocity = Vector3.zero;
     }
@@ -65,6 +74,11 @@ public class Enemy : Ticked<Enemy>
         }
         rb.linearVelocity = v;
         knock = Vector3.MoveTowards(knock, Vector3.zero, 30f * dt);
+        if (punch > 0f) // 피격 시 부풀었다 돌아옴
+        {
+            punch = Mathf.Max(0f, punch - dt);
+            visual.localScale = visualScale * (1f + punch * 2.5f);
+        }
     }
 
     /// <summary>종류별 능력. 이번 프레임 이동 속도를 반환.</summary>
@@ -81,6 +95,7 @@ public class Enemy : Ticked<Enemy>
                     {
                         ward.Knockback(chargeDir * def.abilityValue);
                         ward.TakeDamage(damage);
+                        Vfx.Debuff(ward.Position, EnemyAbility.Charge);
                         chargeLeft = 0f;
                     }
                     return speed * 3.5f;
@@ -91,6 +106,7 @@ public class Enemy : Ticked<Enemy>
                     chargeLeft = def.abilityDuration;
                     chargeDir = toWard.normalized;
                     visual.rotation = Quaternion.LookRotation(chargeDir);
+                    Vfx.Hit(HitPoint, new Color(1f, 0.6f, 0.2f)); // 돌진 개시 신호
                 }
                 return chargeLeft > 0f ? speed * 3.5f : speed;
 
@@ -126,10 +142,13 @@ public class Enemy : Ticked<Enemy>
         hp -= dmg;
         Vector3 k = rb.position - from; k.y = 0f;
         knock = k.normalized * 8f;
+        punch = 0.12f;
         if (hp <= 0f)
         {
+            Vfx.Death(rb.position, bodyColor);
             StageDirector.I.OnEnemyKilled(rb.position);
             Despawn();
         }
+        else Vfx.Hit(HitPoint, bodyColor);
     }
 }

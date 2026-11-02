@@ -17,7 +17,7 @@ public static partial class PrototypeBuilder
         var cfg = AssetDatabase.LoadAssetAtPath<GameConfig>(Root + "/Resources/GameConfig.asset");
 
         // ---- 데이터: 거신 설명 보강 + 풍신 추가 ----
-        var giant = cfg.companions[0];
+        var giant = cfg.companion.companions[0];
         if (string.IsNullOrEmpty(giant.abilityText))
         {
             giant.abilityText = "• 일정 주기마다 플레이어 근처의 적에게 예고 후 낙뢰를 떨어뜨림\n• 낙뢰는 범위 피해 (특수 강화로 피해, 주기, 횟수 증가)\n• 강한 적을 확실하게 처리하는 데 특화";
@@ -25,16 +25,16 @@ public static partial class PrototypeBuilder
             giant.previewScale = 0.07f;
         }
         var wind = BuildWindCompanion();
-        int wi = System.Array.FindIndex(cfg.companions, c => c.name == "풍신");
+        int wi = System.Array.FindIndex(cfg.companion.companions, c => c.name == "풍신");
         if (wi < 0)
-            ArrayUtility.Add(ref cfg.companions, new CompanionDef
+            ArrayUtility.Add(ref cfg.companion.companions, new CompanionDef
             {
                 name = "풍신", desc = "돌풍으로 적을 한쪽으로 밀어냄", prefab = wind, previewScale = 0.07f,
                 abilityText = "• 적이 가장 많이 몰린 쪽으로 돌풍을 일으켜 적들을 한쪽으로 멀리 밀어냄\n• 약한 피해 (거신 낙뢰의 30%)\n• 포위당했을 때 길을 여는 데 특화",
                 ultimateName = "추후 공개", ultimateDesc = "고유 필살기 컷씬 예정",
             });
-        else cfg.companions[wi].prefab = wind;
-        EditorUtility.SetDirty(cfg);
+        else cfg.companion.companions[wi].prefab = wind;
+        cfg.SetAllDirty();
 
         var labelPrefab = BuildWorldLabel();
         var hudPrefab = BuildCompanionSelectHud();

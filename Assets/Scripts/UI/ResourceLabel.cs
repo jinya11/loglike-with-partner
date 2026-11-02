@@ -16,7 +16,7 @@ public class ResourceLabel : MonoBehaviour
     public void Refresh()
     {
         if (fmt == null) fmt = text.text;
-        var def = GameManager.I ? GameManager.I.Config.Resource(type) : null;
+        var def = GameManager.I ? GameManager.I.Config.meta.Resource(type) : null;
         text.text = UiText.Format(fmt, def != null ? def.name : type.ToString(), SaveData.Get(type));
     }
 }

@@ -34,6 +34,7 @@ public class Companion : CompanionBase
             stage.DamageArea(p, r, s.companionDamage);
             stage.SpawnFx(p + Vector3.up * 6f, new Vector3(r * 0.5f, 6f, r * 0.5f), new Vector3(0.05f, 6f, 0.05f), 0.2f, Strike);
             stage.SpawnFx(p + Vector3.up * 0.04f, new Vector3(d, 0.02f, d), new Vector3(d * 1.2f, 0.02f, d * 1.2f), 0.2f, Strike);
+            Vfx.Explosion(p, r, Strike);
             yield return waitGap;
         }
     }
@@ -55,10 +56,12 @@ public class Companion : CompanionBase
             stage.DamageArea(p, r, s.companionDamage * 1.5f);
             stage.SpawnFx(p + Vector3.up * 8f, new Vector3(r * 0.4f, 8f, r * 0.4f), new Vector3(0.05f, 8f, 0.05f), 0.18f, Strike);
             stage.SpawnFx(p + Vector3.up * 0.04f, new Vector3(d, 0.02f, d), new Vector3(d * 1.3f, 0.02f, d * 1.3f), 0.2f, Strike);
+            Vfx.Explosion(p, r, Strike);
             yield return gap;
         }
         stage.DamageArea(target, R * 0.6f, s.companionDamage * 4f);
         stage.SpawnFx(target + Vector3.up * 12f, new Vector3(R * 0.5f, 12f, R * 0.5f), new Vector3(0.1f, 12f, 0.1f), 0.35f, Strike);
         stage.SpawnFx(target + Vector3.up * 0.05f, new Vector3(R, 0.02f, R), new Vector3(D * 1.1f, 0.02f, D * 1.1f), 0.35f, Strike);
+        Vfx.Explosion(target, R, Strike);
     }
 }
