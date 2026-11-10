@@ -48,7 +48,7 @@ public class StageDirector : Singleton<StageDirector>
         EnemyMask = LayerMask.GetMask("Enemy");
         Enemy.Routed = false; Enemy.SpeedMul = 1f;
         Ground.Clear();
-        Trait = gm.InBonus ? null : gm.ActiveTrait;
+        Traits.Clear(); if (!gm.InBonus) Traits.AddRange(gm.ActiveTraits); // 누적 스테이지 증강 (보너스 스테이지는 없음)
         if (!cfg.stage.IsExpandable(gameObject.scene.name) && !gm.InBonus) SetupTerrain(); // 심연 외: 씬의 Terrain이 지면
         gm.XpMul = 1f;
         var border = generator.Border;
@@ -96,7 +96,8 @@ public class StageDirector : Singleton<StageDirector>
         hazards = gm.Has(ModifierType.Hazards);
         maxAlive = cfg.stage.maxAlive;
         resourceDropMul = 1f;
-        ApplyTrait();
+        ApplyTraits();
+        UpdateKillTarget(); // 증강(속전속결) 반영
         var comp = gm.Companion;
         if (comp != null && comp.prefab) Instantiate(comp.prefab);
 
@@ -115,47 +116,54 @@ public class StageDirector : Singleton<StageDirector>
         base.OnDestroy();
     }
 
-    // ---- 심연 외 스테이지의 레벨 디자인 (Unity Terrain 지형 + 특징) ----
+    // ---- 심연 외 스테이지의 레벨 디자인 (Unity Terrain 지형 + 누적 스테이지 증강) ----
     /// <summary>보더를 넓혀가는 스테이지인지 (심연). 이 경우 포털/다음 스테이지 없음.</summary>
     public bool Expandable { get; private set; }
-    /// <summary>이번 스테이지 특징 (카드로 고른 것, 없으면 null).</summary>
-    public StageTraitDef Trait { get; private set; }
-    /// <summary>제한 시간 특징: 남은 시간 (없으면 음수).</summary>
-    public float TimeLeft => Trait != null && Trait.type == StageTraitType.TimeLimit ? timeLeft : -1f;
+    /// <summary>이번 스테이지에 적용 중인 스테이지 증강 (런 동안 고른 것 전부, 누적).</summary>
+    public readonly List<StageTraitDef> Traits = new List<StageTraitDef>(16);
+    /// <summary>제한 시간 증강: 남은 시간 (없으면 음수).</summary>
+    public float TimeLeft => Is(StageTraitType.TimeLimit) ? timeLeft : -1f;
     public bool Enraged { get; private set; }
     int maxAlive;
     float flowTimer;
-    float resourceDropMul = 1f, eliteChance, eliteHpMul = 1f, timeLeft;
+    float resourceDropMul = 1f, eliteChance, eliteHpMul = 1f, timeLeft, enemyScale = 1f, killTargetMul = 1f;
+    float meteorTimer, supplyTimer, waveTimer, treasureTimer;
+    // 예고 후 터지는 유성: xyz = 위치, w = 남은 시간
+    readonly List<Vector4> pendingMeteors = new List<Vector4>(8);
 
-    bool Is(StageTraitType t) => Trait != null && Trait.type == t;
+    StageTraitDef Get(StageTraitType t) { for (int i = 0; i < Traits.Count; i++) if (Traits[i].type == t) return Traits[i]; return null; }
+    bool Is(StageTraitType t) => Get(t) != null;
 
     /// <summary>
     /// 지형: 씬의 Unity Terrain을 지면으로 등록 (심연 외). 원본 TerrainData(손으로 고친 지형)는 건드리지 않음 —
-    /// 고지대 특징/런타임 랜덤 생성이 필요할 때만 복제본을 만들어 바꿈. 지형 충돌은 끔 (높이는 Ground가 계산).
+    /// 고지대 증강/런타임 랜덤 생성이 필요할 때만 복제본을 만들어 바꿈. 지형 충돌은 끔 (높이는 Ground가 계산).
     /// </summary>
     void SetupTerrain()
     {
         var t = FindAnyObjectByType<Terrain>();
         if (!t || !t.terrainData) return;
         var g = cfg.stage.ground;
-        bool highlands = Is(StageTraitType.Highlands);
-        if (g.randomizeAtRuntime || highlands)
+        var high = Get(StageTraitType.Highlands);
+        if (g.randomizeAtRuntime || high != null)
         {
             var td = Instantiate(t.terrainData);
             if (g.randomizeAtRuntime) TerrainHills.Generate(td, t.transform.position, g.hills, Random.Range(1, int.MaxValue));
-            if (highlands) { var sz = td.size; sz.y *= Mathf.Max(0.1f, Trait.value); td.size = sz; }
+            if (high != null) { var sz = td.size; sz.y *= Mathf.Max(0.1f, high.value); td.size = sz; }
             t.terrainData = td;
             if (t.TryGetComponent(out TerrainCollider tcd)) tcd.terrainData = td;
         }
         if (t.TryGetComponent(out TerrainCollider tc)) tc.enabled = false;
         Ground.SetTerrain(t, g.maxWalkSlope);
+        if (g.randomizeAtRuntime || high != null) Ground.MarkRuntimeCopy();
     }
 
-    /// <summary>특징 장판(독/회복), 배치물을 지면 높이로. 길찾기 격자를 만들기 전에 호출 (장판 비용 반영).</summary>
+    /// <summary>증강 장판(독/회복/진흙), 배치물을 지면 높이로. 길찾기 격자를 만들기 전에 호출 (장판 비용 반영).</summary>
     void BuildLevelDesign()
     {
-        if (Is(StageTraitType.Toxic)) SpawnPools(Mathf.RoundToInt(Trait.value), ZoneType.Damage, Trait.value2, new Color(0.45f, 0.75f, 0.15f));
-        if (Is(StageTraitType.Sanctuary)) SpawnPools(Mathf.RoundToInt(Trait.value), ZoneType.Heal, Trait.value2, new Color(0.4f, 1f, 0.7f));
+        StageTraitDef d;
+        if ((d = Get(StageTraitType.Toxic)) != null) SpawnPools(Mathf.RoundToInt(d.value), ZoneType.Damage, d.value2, new Color(0.45f, 0.75f, 0.15f), "Trait_PoisonPool");
+        if ((d = Get(StageTraitType.Sanctuary)) != null) SpawnPools(Mathf.RoundToInt(d.value), ZoneType.Heal, d.value2, new Color(0.4f, 1f, 0.7f), "Trait_HealSpring");
+        if ((d = Get(StageTraitType.Mire)) != null) SpawnPools(Mathf.RoundToInt(d.value), ZoneType.Slow, d.value2, new Color(0.45f, 0.32f, 0.2f), "Trait_Mire");
         if (!Ground.HasTerrain) return;
         LiftToGround(generator.transform);
         LiftToGround(transform);
@@ -172,22 +180,24 @@ public class StageDirector : Singleton<StageDirector>
         }
     }
 
-    /// <summary>특징 장판(독 웅덩이/회복의 샘): 평평한 원형 StageZone.</summary>
-    void SpawnPools(int count, ZoneType type, float value, Color c)
+    /// <summary>증강 장판(독 웅덩이/회복의 샘/진흙탕): 평평한 원형 StageZone. 지형 고저차가 있는 곳(경사지)에는 놓지 않음.</summary>
+    void SpawnPools(int count, ZoneType type, float value, Color c, string name)
     {
         var fxr = cfg.stage.fxPrefab ? cfg.stage.fxPrefab.GetComponent<Renderer>() : null;
         var mpb = new MaterialPropertyBlock();
         mpb.SetColor(Shader.PropertyToID("_BaseColor"), new Color(c.r, c.g, c.b, 0.55f));
-        for (int i = 0, tries = 0; i < count && tries < count * 20; tries++)
+        var g = cfg.stage.ground;
+        for (int i = 0, tries = 0; i < count && tries < count * 40; tries++)
         {
             var p = Arena.RandomPoint(0.85f);
             if (p.magnitude < 12f) continue; // 시작 지점은 비움
+            float d = Random.Range(5f, 8f);
+            if (!Ground.IsFlat(p, d * 0.5f + 0.5f, g.zoneFlatTolerance, g.zoneMaxSlope)) continue; // 평지에만
             bool near = false;
             foreach (var z in StageZone.All) if ((z.transform.position - p).sqrMagnitude < 64f) { near = true; break; }
             if (near) continue;
-            float d = Random.Range(5f, 8f);
             var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            go.name = type == ZoneType.Heal ? "Trait_HealSpring" : "Trait_PoisonPool";
+            go.name = name;
             Destroy(go.GetComponent<Collider>());
             go.transform.SetParent(transform, false);
             go.transform.position = p + Vector3.up * 0.03f;
@@ -202,35 +212,137 @@ public class StageDirector : Singleton<StageDirector>
         }
     }
 
-    /// <summary>스테이지 특징 수치 적용 (스폰/능력치/보상 배율).</summary>
-    void ApplyTrait()
+    /// <summary>누적 스테이지 증강 수치 적용 (스폰/능력치/보상 배율). 같은 종류 효과는 곱해서 쌓임.</summary>
+    void ApplyTraits()
     {
-        if (Trait == null) return;
-        switch (Trait.type)
-        {
-            case StageTraitType.Horde:
-                spawnBatch = Mathf.CeilToInt(spawnBatch * (1f + Trait.value));
-                maxAlive = Mathf.RoundToInt(maxAlive * (1f + Trait.value));
-                gm.XpMul *= 1f + Trait.value2;
-                break;
-            case StageTraitType.Elite: eliteChance = Trait.value; eliteHpMul = Trait.value2; break;
-            case StageTraitType.Toxic: hazards = true; break;
-            case StageTraitType.Riches: resourceDropMul = Trait.value; break;
-            case StageTraitType.TimeLimit: timeLeft = Trait.value; gm.XpMul *= 1f + Trait.value2; break;
-            case StageTraitType.Swift: enemySpeed *= 1f + Trait.value; gm.XpMul *= 1f + Trait.value2; break;
-        }
+        Enemy.RegenFrac = 0f;
+        foreach (var t in Traits)
+            switch (t.type)
+            {
+                case StageTraitType.Horde:
+                    spawnBatch = Mathf.CeilToInt(spawnBatch * (1f + t.value));
+                    maxAlive = Mathf.RoundToInt(maxAlive * (1f + t.value));
+                    gm.XpMul *= 1f + t.value2;
+                    break;
+                case StageTraitType.Elite: eliteChance = t.value; eliteHpMul = t.value2; break;
+                case StageTraitType.TimeLimit: timeLeft = t.value; gm.XpMul *= 1f + t.value2; break;
+                case StageTraitType.MeteorShower: meteorTimer = t.value; break;
+                case StageTraitType.SupplyDrop: supplyTimer = t.value; break;
+                case StageTraitType.Waves: waveTimer = t.value; break;
+                case StageTraitType.TreasureCarrier: treasureTimer = t.value * 0.5f; break;
+                case StageTraitType.Riches: resourceDropMul *= t.value; break;
+                case StageTraitType.Fog:
+                    RenderSettings.fog = true;
+                    RenderSettings.fogStartDistance *= t.value; RenderSettings.fogEndDistance *= t.value;
+                    gm.XpMul *= 1f + t.value2;
+                    break;
+                case StageTraitType.Blitz: killTargetMul *= t.value; enemyHp *= 1f + t.value2; break;
+                case StageTraitType.Swift: enemySpeed *= 1f + t.value; gm.XpMul *= 1f + t.value2; break;
+                case StageTraitType.IronSkin: enemyHp *= 1f + t.value; gm.XpMul *= 1f + t.value2; break;
+                case StageTraitType.Giant: enemyHp *= t.value; enemySpeed *= 0.85f; enemyScale *= 1.35f; gm.XpMul *= 1f + t.value2; break;
+                case StageTraitType.Sharp: enemyDamage *= 1f + t.value; gm.XpMul *= 1f + t.value2; break;
+                case StageTraitType.Regen: Enemy.RegenFrac += t.value; gm.XpMul *= 1f + t.value2; break;
+                case StageTraitType.Toxic: hazards = true; break;
+                // Split/Volatile: 적이 죽을 때 (OnDeathMutations). Highlands: SetupTerrain. Sanctuary/Mire: BuildLevelDesign
+            }
     }
 
     void TickTimeLimit(float dt)
     {
-        if (!Is(StageTraitType.TimeLimit) || Enraged || PortalOpen) return;
+        var t = Get(StageTraitType.TimeLimit);
+        if (t == null || Enraged || PortalOpen) return;
         if ((timeLeft -= dt) > 0f) return;
         timeLeft = 0f;
         Enraged = true; // 시간 초과: 적 광폭화, 경험치 보너스 끝
         Enemy.SpeedMul = cfg.stage.enrageSpeedMul;
         spawnBatch = Mathf.CeilToInt(spawnBatch * cfg.stage.enrageSpawnMul);
-        gm.XpMul /= 1f + Trait.value2;
+        gm.XpMul /= 1f + t.value2;
         if (PlayerController.I) Vfx.Pillar(PlayerController.I.Position, new Color(1f, 0.2f, 0.2f));
+    }
+
+    static readonly Color MeteorWarn = new Color(1f, 0.35f, 0.1f), MeteorBlast = new Color(1f, 0.7f, 0.3f);
+
+    /// <summary>주기형 사건 증강: 유성우 / 보급 상자 / 습격 파도 / 보물 운반자.</summary>
+    void TickEvents(float dt)
+    {
+        Vector3 w = Ward.I != null ? Ward.I.Position : PlayerController.I.Position;
+        StageTraitDef t;
+        var meteor = Get(StageTraitType.MeteorShower);
+        if (meteor != null && !PortalOpen && (meteorTimer -= dt) <= 0f)
+        {
+            meteorTimer = meteor.value;
+            for (int i = 0; i < 3; i++)
+            {
+                Vector2 o = Random.insideUnitCircle * 14f;
+                var p = Ground.Snap(Arena.Clamp(w + new Vector3(o.x, 0f, o.y), 2f));
+                const float r = 3f, delay = 1.4f;
+                SpawnFx(p + Vector3.up * 0.05f, new Vector3(r * 2f, 0.02f, r * 2f), new Vector3(r * 0.4f, 0.02f, r * 0.4f), delay, MeteorWarn);
+                pendingMeteors.Add(new Vector4(p.x, p.y, p.z, delay));
+            }
+        }
+        for (int i = pendingMeteors.Count - 1; i >= 0; i--)
+        {
+            var m = pendingMeteors[i];
+            m.w -= dt;
+            if (m.w > 0f) { pendingMeteors[i] = m; continue; }
+            pendingMeteors.RemoveAt(i);
+            var p = new Vector3(m.x, m.y, m.z);
+            float dmg = meteor != null ? meteor.value2 : 40f;
+            DamageArea(p, 3f, dmg);
+            if (Ward.I != null) { Vector3 d = Ward.I.Position - p; d.y = 0f; if (d.sqrMagnitude < 9f) Ward.I.TakeDamage(dmg); }
+            SpawnFx(p + Vector3.up * 6f, new Vector3(1.2f, 6f, 1.2f), new Vector3(0.2f, 6f, 0.2f), 0.25f, MeteorBlast);
+            Vfx.Explosion(p, 3f, MeteorBlast);
+        }
+        if (PortalOpen) return;
+        if ((t = Get(StageTraitType.SupplyDrop)) != null && (supplyTimer -= dt) <= 0f)
+        {
+            supplyTimer = t.value;
+            Vector2 o = Random.insideUnitCircle.normalized * Random.Range(6f, 12f);
+            var p = Arena.Clamp(w + new Vector3(o.x, 0f, o.y), 3f);
+            if (Nav != null) p = Nav.NearestFree(p);
+            p = Ground.Snap(p);
+            Vfx.Pillar(p, new Color(0.5f, 0.9f, 1f));
+            int n = Mathf.RoundToInt(t.value2);
+            for (int i = 0; i < n; i++)
+            {
+                float a = i * Mathf.PI * 2f / n;
+                gems.Get(Ground.Snap(p + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * 1.2f), Quaternion.Euler(45f, 0f, 45f));
+            }
+        }
+        if ((t = Get(StageTraitType.Waves)) != null && (waveTimer -= dt) <= 0f)
+        {
+            waveTimer = t.value;
+            Vfx.Pillar(w, new Color(1f, 0.3f, 0.4f));
+            int n = Mathf.RoundToInt(t.value2);
+            for (int i = 0; i < n && Enemy.Active.Count < maxAlive + n; i++) SpawnEnemy();
+        }
+        if ((t = Get(StageTraitType.TreasureCarrier)) != null && (treasureTimer -= dt) <= 0f)
+        {
+            treasureTimer = t.value;
+            var e = SpawnEnemy();
+            if (e) { e.MakeTreasure(3f, 30f); Vfx.Pillar(e.transform.position, new Color(1f, 0.85f, 0.2f)); }
+        }
+    }
+
+    /// <summary>적이 죽을 때 변이 효과: 자폭 / 분열.</summary>
+    void OnDeathMutations(Enemy dead, Vector3 pos)
+    {
+        StageTraitDef t;
+        if ((t = Get(StageTraitType.Volatile)) != null)
+        {
+            Vfx.Explosion(pos, t.value, new Color(1f, 0.4f, 0.2f));
+            if (Ward.I != null) { Vector3 d = Ward.I.Position - pos; d.y = 0f; if (d.sqrMagnitude < t.value * t.value) Ward.I.TakeDamage(t.value2); }
+        }
+        if ((t = Get(StageTraitType.Split)) != null && !dead.Splitling && Random.value < t.value && Enemy.Active.Count < maxAlive)
+            for (int i = 0; i < 2; i++)
+            {
+                Vector2 o = Random.insideUnitCircle * 0.8f;
+                var p = Ground.Snap(pos + new Vector3(o.x, 0f, o.y));
+                int k = PickEnemyType();
+                var e = enemyPools[k].Get(p, Quaternion.identity);
+                e.Init(enemyHp * t.value2, enemySpeed * 1.1f, enemyDamage * 0.5f, enemyDefs[k]);
+                e.MakeSplitling(enemyScale * 0.6f);
+            }
     }
 
     /// <summary>보더를 열기 시작할 때: 새 구역 자리의 바깥 풍경(언덕 등)을 미리 치우고, 처치 목표를 늘림.</summary>
@@ -263,7 +375,7 @@ public class StageDirector : Singleton<StageDirector>
             for (int i = 1; i < border.Areas.Count; i++) extra += border.Areas[i].width * border.Areas[i].height;
             mul *= 1f + extra / baseArea * cfg.stage.killPerOpenedArea;
         }
-        KillTarget = Mathf.Max(1, Mathf.RoundToInt(gm.KillTarget * mul));
+        KillTarget = Mathf.Max(1, Mathf.RoundToInt(gm.KillTarget * mul * killTargetMul));
     }
 
     /// <summary>열린 칸에 맞춰 바닥을 넓히고, 칸 안에 들어온 바깥 풍경(언덕 등)은 숨김.</summary>
@@ -296,6 +408,7 @@ public class StageDirector : Singleton<StageDirector>
         }
 
         TickTimeLimit(dt);
+        TickEvents(dt);
         // 지형: 적이 가파른 비탈을 돌아오도록 생명체까지의 흐름장을 주기적으로 갱신
         if (Ground.HasTerrain && Nav != null && (flowTimer -= dt) <= 0f)
         {
@@ -312,7 +425,7 @@ public class StageDirector : Singleton<StageDirector>
 
     }
 
-    void SpawnEnemy()
+    Enemy SpawnEnemy()
     {
         // 생명체를 중심으로 사방에서 몰려오도록
         Vector3 p = Ward.I != null ? Ward.I.Position : PlayerController.I.Position;
@@ -329,9 +442,11 @@ public class StageDirector : Singleton<StageDirector>
             pos.y = Ground.HeightAt(pos);
             var e = enemyPools[k].Get(pos, Quaternion.identity);
             e.Init(enemyHp, enemySpeed, enemyDamage, enemyDefs[k]);
-            if (eliteChance > 0f && Random.value < eliteChance) e.MakeElite(eliteHpMul, cfg.stage.eliteDamageMul, cfg.stage.eliteScale);
-            return;
+            if (enemyScale != 1f) e.SetScale(enemyScale); // 거대화 변이
+            if (eliteChance > 0f && Random.value < eliteChance) e.MakeElite(eliteHpMul, cfg.stage.eliteDamageMul, cfg.stage.eliteScale * enemyScale);
+            return e;
         }
+        return null;
     }
 
     void BuildEnemyPools(int stageIndex)
@@ -358,22 +473,27 @@ public class StageDirector : Singleton<StageDirector>
         return enemyDefs.Count - 1;
     }
 
-    public void OnEnemyKilled(Vector3 pos, bool elite = false)
+    public void OnEnemyKilled(Enemy dead)
     {
+        Vector3 pos = dead.transform.position;
+        bool elite = dead.Elite, treasure = dead.Treasure;
         Kills++;
         gems.Get(pos, Quaternion.Euler(45f, 0f, 45f));
-        if (elite)
-            for (int i = 1; i < cfg.stage.eliteGems; i++)
-            {
-                Vector2 o = Random.insideUnitCircle * 1.5f;
-                gems.Get(Ground.Snap(pos + new Vector3(o.x, 0f, o.y)), Quaternion.Euler(45f, 0f, 45f));
-            }
-        // 이 맵의 자원을 가끔 떨어뜨림
-        if (resourcePickups != null && Theme && Theme.resource != ResourceType.None && Random.value < cfg.meta.resourceDropChance * resourceDropMul * (elite ? 3f : 1f))
+        int extra = elite ? cfg.stage.eliteGems - 1 : 0;
+        var tc = Get(StageTraitType.TreasureCarrier);
+        if (treasure && tc != null) extra += Mathf.RoundToInt(tc.value2) - 1;
+        for (int i = 0; i < extra; i++)
+        {
+            Vector2 o = Random.insideUnitCircle * 1.5f;
+            gems.Get(Ground.Snap(pos + new Vector3(o.x, 0f, o.y)), Quaternion.Euler(45f, 0f, 45f));
+        }
+        // 이 맵의 자원을 가끔 떨어뜨림 (보물 운반자는 반드시)
+        if (resourcePickups != null && Theme && Theme.resource != ResourceType.None && (treasure || Random.value < cfg.meta.resourceDropChance * resourceDropMul * (elite ? 3f : 1f)))
         {
             var def = cfg.meta.Resource(Theme.resource);
             resourcePickups.Get(pos + Vector3.up * 0.1f, Quaternion.identity).Init(Theme.resource, def != null ? def.color : Color.white);
         }
+        OnDeathMutations(dead, pos);
         if (!PortalOpen && !Expandable && Kills >= KillTarget) OpenPortal(); // 심연은 포털 없음
     }
 

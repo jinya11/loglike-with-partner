@@ -22,7 +22,7 @@ public static class Ground
 
     public static void SetTerrain(Terrain t, float maxSlopeDeg)
     {
-        terrain = t;
+        terrain = t; runtimeCopy = false;
         data = t ? t.terrainData : null;
         if (!data) { terrain = null; return; }
         origin = t.transform.position;
@@ -31,7 +31,42 @@ public static class Ground
         maxSlopeTan = Mathf.Tan(MaxSlope * Mathf.Deg2Rad);
     }
 
-    public static void Clear() { terrain = null; data = null; }
+    public static void Clear() { terrain = null; data = null; runtimeCopy = false; }
+
+    static bool runtimeCopy;
+    /// <summary>이미 런타임 복제본(TerrainData)을 쓰고 있다고 표시 (원본 에셋을 바꾸지 않도록).</summary>
+    public static void MarkRuntimeCopy() => runtimeCopy = true;
+
+    /// <summary>
+    /// 상자 영역(중심 p, 회전 rot, 반 변 half) 아래 지형을 바닥 높이로 평평하게 깎음 + 가장자리 margin만큼 완만하게.
+    /// 긴 강줄기처럼 피할 수 없는 장판용. 원본 TerrainData는 건드리지 않고 런타임 복제본에서만.
+    /// </summary>
+    public static void FlattenBox(Vector3 p, Quaternion rot, Vector2 half, float margin)
+    {
+        if (!terrain) return;
+        if (!runtimeCopy)
+        {
+            data = Object.Instantiate(data);
+            terrain.terrainData = data;
+            if (terrain.TryGetComponent(out TerrainCollider tc)) tc.terrainData = data;
+            runtimeCopy = true;
+        }
+        int res = data.heightmapResolution;
+        var h = data.GetHeights(0, 0, res, res);
+        var inv = Quaternion.Inverse(rot);
+        float target = Mathf.Clamp01((p.y - origin.y) / size.y);
+        for (int z = 0; z < res; z++)
+            for (int x = 0; x < res; x++)
+            {
+                Vector3 w = new Vector3(origin.x + x / (float)(res - 1) * size.x, 0f, origin.z + z / (float)(res - 1) * size.z);
+                Vector3 l = inv * (w - new Vector3(p.x, 0f, p.z));
+                float d = Mathf.Max(Mathf.Abs(l.x) - half.x, Mathf.Abs(l.z) - half.y, 0f);
+                if (d >= margin) continue;
+                float k = d / margin; k = k * k * (3f - 2f * k);
+                h[z, x] = Mathf.Lerp(target, h[z, x], k);
+            }
+        data.SetHeights(0, 0, h);
+    }
 
     public static float HeightAt(Vector3 p) => HeightAt(p.x, p.z);
 
@@ -53,6 +88,31 @@ public static class Ground
         float nx = (x - origin.x) / size.x, nz = (z - origin.z) / size.z;
         if (nx < 0f || nz < 0f || nx > 1f || nz > 1f) return 0f;
         return data.GetSteepness(nx, nz);
+    }
+
+    /// <summary>
+    /// 원(중심 p, 반경 r) 안이 평평한지: 높이 편차 ≤ tolerance, 경사 ≤ maxSlope(도). 독 웅덩이/용암 같은 바닥 장판 배치용.
+    /// 지형이 없으면 항상 평평.
+    /// </summary>
+    public static bool IsFlat(Vector3 p, float r, float tolerance, float maxSlope)
+    {
+        if (!terrain) return true;
+        float min = float.MaxValue, max = float.MinValue;
+        for (int ring = 0; ring <= 2; ring++)
+        {
+            float rr = r * ring * 0.5f;
+            int n = ring == 0 ? 1 : 8 * ring;
+            for (int i = 0; i < n; i++)
+            {
+                float a = i * Mathf.PI * 2f / n;
+                float x = p.x + Mathf.Cos(a) * rr, z = p.z + Mathf.Sin(a) * rr;
+                float h = HeightAt(x, z);
+                if (h < min) min = h;
+                if (h > max) max = h;
+                if (max - min > tolerance || SteepnessAt(x, z) > maxSlope) return false;
+            }
+        }
+        return true;
     }
 
     /// <summary>오를 수 없을 만큼 가파른지 (길찾기 격자 벽 판정).</summary>

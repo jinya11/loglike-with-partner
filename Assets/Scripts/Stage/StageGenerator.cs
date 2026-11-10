@@ -42,10 +42,13 @@ public class StageGenerator : MonoBehaviour
     void Place(Vector3 center, Vector2 size, bool square, bool keepCenterSafe, float countMul)
     {
         float safeSq = keepCenterSafe ? layout.centerSafeRadius * layout.centerSafeRadius : 0f;
+        var gs = GameManager.I ? GameManager.I.Config.stage.ground : null;
+        float flatTol = gs != null ? gs.zoneFlatTolerance : 0.2f, flatSlope = gs != null ? gs.zoneMaxSlope : 6f;
         foreach (var e in layout.entries)
         {
             if (e.prefab == null) continue;
             int count = Mathf.RoundToInt(rng.Next(e.minCount, Mathf.Max(e.minCount, e.maxCount) + 1) * countMul);
+            float zoneRadius = ZoneRadius(e.prefab);
             float r0 = e.minRadius, r1 = e.maxRadius; // 반 변 대비 비율
             for (int k = 0; k < count; k++)
             {
@@ -56,14 +59,34 @@ public class StageGenerator : MonoBehaviour
                     var p = center + off;
                     if (off.sqrMagnitude < safeSq || Overlaps(p, e.spacing)) continue;
 
+                    float sc = Mathf.Lerp(e.scaleRange.x, e.scaleRange.y, (float)rng.NextDouble());
+                    // 바닥 장판(독 웅덩이/용암/물 등)은 지형 고저차가 없는 평지에만
+                    // (강줄기처럼 아주 긴 장판은 피할 수 없으므로 대신 그 아래 지형을 평평하게 깎음)
+                    bool longZone = zoneRadius > 20f;
+                    if (zoneRadius > 0f && !longZone && !Ground.IsFlat(p, zoneRadius * sc + 0.5f, flatTol, flatSlope)) continue;
                     var rot = e.randomRotation ? Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f) : Quaternion.identity;
                     var go = Instantiate(e.prefab, p, rot, transform);
-                    go.transform.localScale *= Mathf.Lerp(e.scaleRange.x, e.scaleRange.y, (float)rng.NextDouble());
+                    go.transform.localScale *= sc;
+                    if (longZone && Ground.HasTerrain)
+                    {
+                        var z = go.GetComponentInChildren<StageZone>();
+                        var ls = z.transform.lossyScale;
+                        Ground.FlattenBox(p, z.transform.rotation, new Vector2(ls.x * 0.5f + 1f, ls.z * 0.5f + 1f), 6f);
+                    }
                     placed.Add(new Vector4(p.x, 0f, p.z, e.spacing));
                     break;
                 }
             }
         }
+    }
+
+    /// <summary>바닥 장판 프리셋이면 장판 반경 (프리셋 기준 크기), 아니면 0.</summary>
+    static float ZoneRadius(GameObject prefab)
+    {
+        var z = prefab.GetComponentInChildren<StageZone>(true);
+        if (!z) return 0f;
+        var s = z.transform.lossyScale;
+        return Mathf.Max(s.x, s.z) * 0.5f;
     }
 
     /// <summary>면적 균등 분포 (원형 고리).</summary>

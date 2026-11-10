@@ -132,7 +132,7 @@ public class GameManager : Singleton<GameManager>
         State = GameState.Playing;
         Kind = ChoiceKind.Upgrade;
         RewardOrder.Clear(); RewardStacks.Clear();
-        ActiveTrait = PendingTrait = null;
+        ActiveTraits.Clear(); TraitPoolExhausted = false;
         XpMul = 1f; xpCarry = 0f;
     }
 
@@ -231,10 +231,10 @@ public class GameManager : Singleton<GameManager>
     /// <summary>선택 화면(State = LevelUp)이 무엇을 고르는지: 레벨업 증강 / 다음 스테이지 특징.</summary>
     public ChoiceKind Kind { get; private set; }
     public readonly List<StageTraitDef> TraitChoices = new List<StageTraitDef>(3);
-    /// <summary>이번 스테이지에 적용 중인 특징 (없으면 null).</summary>
-    public StageTraitDef ActiveTrait { get; private set; }
-    /// <summary>골라 둔 다음 스테이지 특징 (다음 일반 스테이지가 로드될 때 ActiveTrait이 됨).</summary>
-    public StageTraitDef PendingTrait { get; private set; }
+    /// <summary>이번 런에서 고른 스테이지 증강 (누적형: 고른 순서대로, 이후 모든 일반 스테이지에 적용. 다시 고를 수 없음).</summary>
+    public readonly List<StageTraitDef> ActiveTraits = new List<StageTraitDef>(16);
+    /// <summary>후보로 나올 수 있는 남은 증강이 없음 (풀 소진).</summary>
+    public bool TraitPoolExhausted { get; private set; }
 
     /// <summary>
     /// 포털 진입: 다음 일반 스테이지가 있으면 먼저 특징 카드를 고르게 하고(선택 후 이동), 아니면 바로 이동.
@@ -248,9 +248,9 @@ public class GameManager : Singleton<GameManager>
             NextStage();
             return;
         }
-        buffer.Clear();
         var pool = new List<StageTraitDef>(st.stageTraits.Length);
-        foreach (var t in st.stageTraits) if (t != null && t.weight > 0f) pool.Add(t);
+        foreach (var t in st.stageTraits) if (t != null && t.weight > 0f && !ActiveTraits.Contains(t)) pool.Add(t); // 이미 고른 증강은 제외
+        TraitPoolExhausted = pool.Count == 0;
         TraitChoices.Clear();
         for (int i = 0; i < st.traitChoiceCount && pool.Count > 0; i++)
         {
@@ -262,7 +262,7 @@ public class GameManager : Singleton<GameManager>
             TraitChoices.Add(pool[r]);
             pool.RemoveAt(r);
         }
-        if (TraitChoices.Count == 0) { NextStage(); return; }
+        if (TraitChoices.Count == 0) { NextStage(); return; } // 풀 소진: 고를 증강이 없으면 바로 이동
         Kind = ChoiceKind.StageTrait;
         State = GameState.LevelUp;
         Time.timeScale = 0f;
@@ -309,7 +309,7 @@ public class GameManager : Singleton<GameManager>
         if (Kind == ChoiceKind.StageTrait)
         {
             if (i >= TraitChoices.Count) return;
-            PendingTrait = TraitChoices[i];
+            ActiveTraits.Add(TraitChoices[i]); // 누적: 다음 일반 스테이지부터 계속 적용
             Kind = ChoiceKind.Upgrade;
             State = GameState.Playing;
             Time.timeScale = 1f;
@@ -340,7 +340,6 @@ public class GameManager : Singleton<GameManager>
         if (!InBonus && Config.stage.bonusScenes.Length > 0 && StageIndex + 1 < Config.stage.stageCount && Random.value < Config.stage.bonusChance)
         {
             InBonus = true;
-            ActiveTrait = null; // 보너스 스테이지에는 특징 없음 (골라 둔 특징은 다음 일반 스테이지에)
             Load(Config.stage.bonusScenes[Random.Range(0, Config.stage.bonusScenes.Length)]);
             return;
         }
@@ -352,8 +351,6 @@ public class GameManager : Singleton<GameManager>
 
     void LoadStage()
     {
-        ActiveTrait = PendingTrait;
-        PendingTrait = null;
         var region = CurrentRegion;
         if (region != null) { Load(region.scene); return; }
         var s = Config.stage.stageScenes;

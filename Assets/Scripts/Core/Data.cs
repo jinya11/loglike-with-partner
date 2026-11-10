@@ -202,31 +202,56 @@ public class LevelRewardDef
     { this.name = name; this.desc = desc; this.stat = stat; this.value = value; this.weight = weight; this.color = color; this.maxStacks = maxStacks; }
 }
 
-/// <summary>다음 스테이지 특징 종류 (심연 외 스테이지, 포털 진입 전 카드로 선택).</summary>
+/// <summary>스테이지 증강 큰 분류. 사건 = 스테이지에서 일어나는 일, 변이 = 적/땅/규칙이 바뀜.</summary>
+public enum StageTraitCategory { Event, Mutation }
+
+/// <summary>
+/// 스테이지 증강 종류 (심연 외 스테이지, 포털 진입 전 카드로 선택). 누적형: 고른 증강은 런 동안 계속 적용되고 다시 나오지 않음.
+/// value/value2의 뜻은 종류마다 다름 (툴팁 참고).
+/// </summary>
 public enum StageTraitType
 {
-    [Tooltip("적 밀도 ×(1+value), 경험치 ×(1+value2)")] Horde,
+    // ---- 사건 ----
+    [Tooltip("적 밀도 ×(1+value), 경험치 +value2")] Horde,
     [Tooltip("엘리트 출현 확률 value, 엘리트 체력 배율 value2")] Elite,
-    [Tooltip("지형(Terrain) 높이 ×value")] Highlands,
-    [Tooltip("독 웅덩이 value개 (초당 피해 value2) + 위험 장판")] Toxic,
+    [Tooltip("제한 시간 value초, 시간 안에는 경험치 +value2, 넘으면 적 광폭화")] TimeLimit,
+    [Tooltip("value초마다 유성 낙하 (반경 3, 적과 생명체 모두 피해 value2)")] MeteorShower,
+    [Tooltip("value초마다 보급 상자: 경험치 보석 value2개")] SupplyDrop,
+    [Tooltip("value초마다 습격 파도: 적 value2마리가 한꺼번에")] Waves,
+    [Tooltip("value초마다 보물 운반자(도망치는 황금 적) 출현, 처치 시 보석 value2개 + 자원")] TreasureCarrier,
+    [Tooltip("회복의 샘 value개 (초당 회복 value2)")] Sanctuary,
     [Tooltip("자원 드롭 확률 ×value")] Riches,
-    [Tooltip("제한 시간 value초, 시간 안에는 경험치 ×value2, 넘으면 적 광폭화")] TimeLimit,
-    [Tooltip("적 이동속도 +value(비율), 경험치 +value2(비율)")] Swift,
-    [Tooltip("회복 샘 value개 (초당 회복 value2)")] Sanctuary,
+    [Tooltip("안개: 시야 거리 ×value, 경험치 +value2")] Fog,
+    [Tooltip("처치 목표 ×value, 적 체력 +value2")] Blitz,
+    // ---- 변이 ----
+    [Tooltip("적 이동속도 +value, 경험치 +value2")] Swift,
+    [Tooltip("적 체력 +value, 경험치 +value2")] IronSkin,
+    [Tooltip("적이 죽을 때 value 확률로 작은 적 2마리로 분열 (체력 배율 value2)")] Split,
+    [Tooltip("적이 죽을 때 폭발 (반경 value, 생명체 피해 value2)")] Volatile,
+    [Tooltip("적이 거대화: 체력 ×value, 크기 1.35배, 속도 -15%, 경험치 +value2")] Giant,
+    [Tooltip("적 접촉 피해 +value, 경험치 +value2")] Sharp,
+    [Tooltip("적이 초당 최대 체력의 value 비율만큼 재생, 경험치 +value2")] Regen,
+    [Tooltip("독 웅덩이 value개 (초당 피해 value2) + 위험 장판")] Toxic,
+    [Tooltip("지형(Terrain) 높이 ×value")] Highlands,
+    [Tooltip("진흙탕 value개 (생명체 이동속도 ×value2)")] Mire,
 }
 
-/// <summary>다음 스테이지 특징 하나 (카드). StageConfig.stageTraits.</summary>
+/// <summary>스테이지 증강 하나 (카드). StageConfig.stageTraits.</summary>
 [Serializable]
 public class StageTraitDef
 {
     public string name;
     [TextArea(1, 3)] public string desc;
+    public StageTraitCategory category;
     public StageTraitType type;
     public float value, value2;
     [Tooltip("선택지 등장 가중치")] public float weight = 1f;
     public Color color = Color.white;
 
+    public static string CategoryName(StageTraitCategory c) => c == StageTraitCategory.Event ? "사건" : "변이";
+    public static Color CategoryColor(StageTraitCategory c) => c == StageTraitCategory.Event ? new Color(1f, 0.78f, 0.35f) : new Color(0.8f, 0.55f, 1f);
+
     public StageTraitDef() { }
-    public StageTraitDef(string name, string desc, StageTraitType type, float value, float value2, Color color, float weight = 1f)
-    { this.name = name; this.desc = desc; this.type = type; this.value = value; this.value2 = value2; this.color = color; this.weight = weight; }
+    public StageTraitDef(StageTraitCategory category, string name, string desc, StageTraitType type, float value, float value2, Color color, float weight = 1f)
+    { this.category = category; this.name = name; this.desc = desc; this.type = type; this.value = value; this.value2 = value2; this.color = color; this.weight = weight; }
 }

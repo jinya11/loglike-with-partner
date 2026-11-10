@@ -33,7 +33,7 @@ public class Hud : Singleton<Hud>
     [Tooltip("서식: {0}=레벨, {1}=스테이지, {2}=총 스테이지, {3}=스테이지 이름, {4}=처치, {5}=목표")]
     [SerializeField] TMP_Text infoText;
     [SerializeField] GameObject bonusBadge;
-    [Tooltip("서식: {0}=Q 쿨타임, {1}=E 쿨타임")]
+    [Tooltip("(사용 안 함: 감시자 충격파/보호막 제거됨) 서식: {0}=Q 쿨타임, {1}=E 쿨타임")]
     [SerializeField] TMP_Text skillText;
     [SerializeField] string readyText = "준비";
     [SerializeField] GameObject jumpHint;
@@ -103,7 +103,7 @@ public class Hud : Singleton<Hud>
             traitTitle = Instantiate(normalTitle, normalTitle.transform.parent);
             traitTitle.name = "TraitTitle";
             var tt = traitTitle.GetComponent<TMP_Text>();
-            if (tt) tt.text = "다음 스테이지 특징을 고르세요";
+            if (tt) tt.text = "스테이지 증강 (누적) — 다음 스테이지부터 계속 적용";
             traitTitle.SetActive(false);
         }
         // 포털은 이제 임의 위치에 생김 → 안내 문구 갱신 (프리팹 문구가 옛 '중앙' 안내일 때만)
@@ -208,12 +208,8 @@ public class Hud : Singleton<Hud>
             if (bonusBadge) bonusBadge.SetActive(gm.InBonus);
         }
 
-        int q = Mathf.CeilToInt(player.QLeft * 10f), e = Mathf.CeilToInt(player.ELeft * 10f);
-        if (q != lastQ || e != lastE)
-        {
-            lastQ = q; lastE = e;
-            skillText.text = UiText.Format(skillFmt, Cd(q), Cd(e));
-        }
+        // 감시자 충격파(Q)/보호막(E)은 제거됨 → 스킬 문구 숨김
+        if (skillText && skillText.gameObject.activeSelf) skillText.gameObject.SetActive(false);
         int jump = s.canJump ? 1 : 0;
         if (jump != shownJump) { shownJump = jump; if (jumpHint) jumpHint.SetActive(s.canJump); }
 
@@ -255,7 +251,8 @@ public class Hud : Singleton<Hud>
                 choiceButtons[i].gameObject.SetActive(has);
                 if (!has) continue;
                 var t = gm.TraitChoices[i];
-                choiceTexts[i].text = UiText.Format(choiceFmt[i], i + 1, $"<color=#{ColorUtility.ToHtmlStringRGB(t.color)}>{t.name}</color>", t.desc);
+                string catLabel = $"<color=#{ColorUtility.ToHtmlStringRGB(StageTraitDef.CategoryColor(t.category))}>[{StageTraitDef.CategoryName(t.category)}]</color>";
+                choiceTexts[i].text = UiText.Format(choiceFmt[i], i + 1, $"{catLabel} <color=#{ColorUtility.ToHtmlStringRGB(t.color)}>{t.name}</color>", t.desc);
             }
             return;
         }

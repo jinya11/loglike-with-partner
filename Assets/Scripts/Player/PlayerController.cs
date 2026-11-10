@@ -4,8 +4,8 @@ using UnityEngine.InputSystem;
 /// <summary>
 /// 로비: 몸이 있는 캐릭터 (WASD 이동, 점프, F 상호작용). 대시 없이 이동 속도를 높임.
 /// 전투 스테이지: 형태 없는 존재 (동반자와 같은 존재). 전장을 떠다니는 조준점으로만 표시되며 공격받지 않음.
-///   WASD 조준점 이동(지형 무시), Q 조준점 충격파, E 생명체 보호막, F 상호작용. 공격은 생명체가 고유 공격으로 함.
-///   자율 + 생명체만 조작이면 AI가 대신 움직임 (재화 줍기, 스킬/폭격 자동).
+///   WASD 조준점 이동(지형 무시), R 폭격(감시자 위치에), F 상호작용. 공격은 생명체가 고유 공격으로 함. (충격파 Q/보호막 E는 제거됨)
+///   자율 + 생명체만 조작이면 AI가 대신 움직임 (재화 줍기, 폭격 자동).
 /// </summary>
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : Singleton<PlayerController>
@@ -17,16 +17,11 @@ public class PlayerController : Singleton<PlayerController>
     [Header("이동 (로비)")]
     [Tooltip("로비 이동 속도 배율 (stats.moveSpeed 기준, 대시 대신 빠르게)")]
     [SerializeField] float lobbySpeedMul = 1.8f;
-    [Header("Q - 충격파 (조준점)")]
-    [SerializeField] float qCooldown = 6f, qRadius = 4.5f, qDamageMul = 3f;
-    [Header("E - 생명체 보호막 (전투)")]
-    [SerializeField] float shieldCooldown = 10f, shieldTime = 2.5f;
     [Header("형태 없는 존재 (전투)")]
     [Tooltip("조준점 이동 속도 배율 (stats.moveSpeed 기준)")]
     [SerializeField] float presenceSpeedMul = 2f;
     [SerializeField] Color reticleColor = new Color(0.7f, 0.85f, 1f);
 
-    static readonly Color QColor = new Color(0.4f, 0.8f, 1f);
     static readonly int ColorId = Shader.PropertyToID("_BaseColor");
 
     CharacterController cc;
@@ -34,7 +29,7 @@ public class PlayerController : Singleton<PlayerController>
     StageDirector stage;
     Transform reticle;
     Vector3 facing = Vector3.forward;
-    float qReady, eReady, iframe, vy;
+    float iframe, vy;
 
     public Vector3 Position => transform.position;
     /// <summary>전투 스테이지에서는 형태 없는 존재 (피격/충돌 없음).</summary>
@@ -43,8 +38,6 @@ public class PlayerController : Singleton<PlayerController>
     public Interactable Focus { get; private set; }
     public bool Airborne => transform.position.y > 0.8f;
     public Vector3 Facing => facing;
-    public float QLeft => Mathf.Max(0f, qReady - Time.time);
-    public float ELeft => Mathf.Max(0f, eReady - Time.time);
 
     protected override void Awake()
     {
@@ -164,7 +157,7 @@ public class PlayerController : Singleton<PlayerController>
 
     void UpdatePresence(float dt, Vector3 move, Keyboard kb)
     {
-        // 공격은 생명체가 함 (생명체 고유 공격). 감시자는 이동/스킬/재화 획득
+        // 공격은 생명체가 함 (생명체 고유 공격). 감시자는 이동/폭격 마커/재화 획득
         var ward = Ward.I;
         if (ward != null && ward.WatcherAuto) { AutoPresence(dt, ward); return; }
         if (ward != null && ward.Order == Ward.Command.Auto && ward.Controls == Ward.Control.CreatureOnly) move = Vector3.zero;
@@ -172,9 +165,6 @@ public class PlayerController : Singleton<PlayerController>
         Vector3 p = Arena.Clamp(transform.position + move * (stats.moveSpeed * presenceSpeedMul * dt));
         transform.position = Hover(ward == null || ward.Order == Ward.Command.Linked ? Leash(p) : p, dt); // 지형: 비탈과 상관없이 지면 높이를 따라 떠다님
         if (ward == null || ward.Order != Ward.Command.Linked) ShowLeash(false, Vector3.zero, 0f, 0f, null);
-        if (kb == null) return;
-        if (kb.qKey.wasPressedThisFrame && Time.time >= qReady) CastQ();
-        if (kb.eKey.wasPressedThisFrame && Time.time >= eReady && ward != null) CastShield(ward);
     }
 
     /// <summary>감시자는 가파른 비탈도 넘어감: 지면 높이를 부드럽게 따라감.</summary>
@@ -185,15 +175,10 @@ public class PlayerController : Singleton<PlayerController>
         return p;
     }
 
-    void CastShield(Ward ward)
-    {
-        eReady = Time.time + shieldCooldown * stats.cooldownMul;
-        ward.Shield(shieldTime);
-    }
 
     /// <summary>
     /// 감시자 자동 (자율 + 생명체만 조작): 생명체 근처에서 재화(경험치 보석/자원)를 주우러 다니고,
-    /// 충격파/보호막/폭격을 알아서 사용 (폭격 위치도 자동).
+    /// 폭격을 알아서 사용 (감시자 위치에 적이 모이면).
     /// </summary>
     void AutoPresence(float dt, Ward ward)
     {
@@ -216,9 +201,7 @@ public class PlayerController : Singleton<PlayerController>
         transform.position = Hover(Arena.Clamp(p), dt);
         ShowLeash(false, Vector3.zero, 0f, 0f, null);
 
-        // 스킬 자동 사용
-        if (Time.time >= qReady && CountEnemies(transform.position, qRadius * stats.areaMul) >= 3) CastQ();
-        if (Time.time >= eReady && (stats.wardHp < stats.wardMaxHp * 0.4f || CountEnemies(w, 2.5f) >= 4)) CastShield(ward);
+        // 폭격 자동 사용
         if (BombardSkill.I) BombardSkill.I.TryAuto(w);
     }
 
@@ -240,18 +223,6 @@ public class PlayerController : Singleton<PlayerController>
         }
     }
 
-    static int CountEnemies(Vector3 c, float r)
-    {
-        int n = 0;
-        float r2 = r * r;
-        var list = Enemy.Active;
-        for (int i = 0; i < list.Count; i++)
-        {
-            Vector3 d = list[i].transform.position - c; d.y = 0f;
-            if (d.sqrMagnitude < r2) n++;
-        }
-        return n;
-    }
 
     void UpdateLobby(float dt, Vector3 move, Keyboard kb)
     {
@@ -284,15 +255,6 @@ public class PlayerController : Singleton<PlayerController>
         Focus = f;
     }
 
-    void CastQ()
-    {
-        qReady = Time.time + qCooldown * stats.cooldownMul;
-        float r = qRadius * stats.areaMul;
-        Vector3 p = Ground.Snap(transform.position);
-        stage.DamageArea(p, r, stats.damage * qDamageMul);
-        stage.SpawnFx(p + Vector3.up * 0.05f, new Vector3(0.5f, 0.02f, 0.5f), new Vector3(r * 2f, 0.02f, r * 2f), 0.25f, QColor);
-        Vfx.Nova(p, r, QColor);
-    }
 
     /// <summary>형태 없는 상태에서는 피해를 받지 않음 (지켜야 할 것은 생명체).</summary>
     public void TakeDamage(float dmg)

@@ -15,16 +15,26 @@ public class Enemy : Ticked<Enemy>
     public static float RoutSpeedMul = 1.25f;
     /// <summary>전체 이동속도 배율 (제한 시간 초과 광폭화 등).</summary>
     public static float SpeedMul = 1f;
+    /// <summary>재생 변이: 초당 최대 체력의 이 비율만큼 회복 (스테이지마다 StageDirector가 설정).</summary>
+    public static float RegenFrac;
+    static readonly int ColorId = Shader.PropertyToID("_BaseColor");
+    static readonly Color TreasureColor = new Color(1f, 0.82f, 0.2f);
+    static MaterialPropertyBlock tintMpb;
     [SerializeField] Transform visual;
     Rigidbody rb;
     EnemyDef def;
-    float hp, speed, damage, abilityReadyAt, chargeLeft, punch, scaleMul = 1f;
+    float hp, maxHp, speed, damage, abilityReadyAt, chargeLeft, punch, scaleMul = 1f, treasureLeft;
     Vector3 knock, chargeDir, visualScale;
     Color bodyColor = Color.white;
-    bool elite;
+    bool elite, treasure, splitling;
+    Renderer[] renderers;
 
     public EnemyDef Def => def;
     public bool Elite => elite;
+    /// <summary>보물 운반자 (사건): 생명체/감시자에게서 도망치는 황금 적. 일정 시간 뒤 사라짐.</summary>
+    public bool Treasure => treasure;
+    /// <summary>분열로 생긴 작은 적 (다시 분열하지 않음).</summary>
+    public bool Splitling => splitling;
     Vector3 HitPoint => rb.position + Vector3.up * 0.4f;
 
     void Awake()
@@ -33,6 +43,7 @@ public class Enemy : Ticked<Enemy>
         visualScale = visual.localScale;
         var r = visual.GetComponentInChildren<Renderer>();
         if (r && r.sharedMaterial && r.sharedMaterial.HasColor("_BaseColor")) bodyColor = r.sharedMaterial.GetColor("_BaseColor");
+        renderers = visual.GetComponentsInChildren<Renderer>(true);
     }
 
     public void Init(float hp, float speed, float damage, EnemyDef def = null)
@@ -42,7 +53,8 @@ public class Enemy : Ticked<Enemy>
         this.hp = hp * hm; this.speed = speed * sm * Random.Range(0.85f, 1.15f); this.damage = damage * dm;
         knock = Vector3.zero;
         chargeLeft = 0f; punch = 0f;
-        elite = false; scaleMul = 1f;
+        elite = treasure = splitling = false; scaleMul = 1f; maxHp = this.hp;
+        if (renderers != null) foreach (var rr in renderers) rr.SetPropertyBlock(null); // 보물 색 초기화 (풀 재사용)
         visual.localScale = visualScale;
         abilityReadyAt = Time.time + Random.Range(0.5f, 2f); // 동시에 몰려서 쓰지 않도록
         rb.linearVelocity = Vector3.zero;
@@ -52,13 +64,47 @@ public class Enemy : Ticked<Enemy>
     public void MakeElite(float hpMul, float damageMul, float scale)
     {
         elite = true;
-        hp *= hpMul; damage *= damageMul; scaleMul = scale;
+        hp *= hpMul; maxHp = hp; damage *= damageMul; scaleMul = scale;
         visual.localScale = visualScale * scale;
         Vfx.Pillar(rb.position, new Color(1f, 0.75f, 0.25f));
     }
 
     /// <summary>포털이 열려 도망치기 시작할 때.</summary>
     public void OnRouted() { chargeLeft = 0f; }
+
+    /// <summary>크기 배율 (거대화 변이).</summary>
+    public void SetScale(float scale) { scaleMul = scale; visual.localScale = visualScale * scale; }
+
+    /// <summary>보물 운반자 (사건 증강): 황금색, 체력 hpMul배, 생명체/감시자에게서 계속 도망. lifetime 초 뒤 사라짐.</summary>
+    public void MakeTreasure(float hpMul, float lifetime)
+    {
+        treasure = true; treasureLeft = lifetime;
+        hp *= hpMul; maxHp = hp; speed *= 1.15f;
+        SetScale(scaleMul * 1.2f);
+        tintMpb ??= new MaterialPropertyBlock();
+        tintMpb.SetColor(ColorId, TreasureColor);
+        foreach (var r in renderers) r.SetPropertyBlock(tintMpb);
+    }
+
+    /// <summary>분열로 생긴 작은 적 (분열 변이). 다시 분열하지 않음.</summary>
+    public void MakeSplitling(float scale) { splitling = true; SetScale(scale); }
+
+    /// <summary>보물 운반자: 가까운 쪽(생명체/감시자)에게서 도망, 시간이 다 되면 사라짐.</summary>
+    void TickTreasure(float dt)
+    {
+        if ((treasureLeft -= dt) <= 0f) { Vfx.Pillar(rb.position, TreasureColor); Despawn(); return; }
+        Vector3 pos = rb.position;
+        Vector3 from = PlayerController.I.Position;
+        if (Ward.I != null) { Vector3 w = Ward.I.Position; if ((w - pos).sqrMagnitude < (from - pos).sqrMagnitude) from = w; }
+        Vector3 away = pos - from; away.y = 0f;
+        if (away.sqrMagnitude < 0.01f) away = Vector3.forward;
+        if (Arena.EdgeDistance(pos) < 4f) { Vector3 c = Arena.Center - pos; c.y = 0f; away = away.normalized + c.normalized * 0.8f; }
+        Vector3 dir = away.normalized;
+        rb.linearVelocity = Climb(pos, knock + dir * speed, dt);
+        visual.rotation = Quaternion.LookRotation(dir);
+        knock = Vector3.MoveTowards(knock, Vector3.zero, 30f * dt);
+        FollowGround();
+    }
 
     /// <summary>지면 높이 따라가기 (고저차). Y 위치는 물리 대신 직접 맞춤 (Rigidbody Y 고정 유지).</summary>
     void FollowGround()
@@ -100,6 +146,8 @@ public class Enemy : Ticked<Enemy>
 
     public override void Tick(float dt)
     {
+        if (RegenFrac > 0f && hp < maxHp) hp = Mathf.Min(maxHp, hp + maxHp * RegenFrac * dt); // 재생 변이
+        if (treasure) { TickTreasure(dt); return; }
         if (Routed) { TickRouted(dt); return; }
         var player = PlayerController.I;
         var ward = Ward.I;
@@ -208,7 +256,7 @@ public class Enemy : Ticked<Enemy>
         if (hp <= 0f)
         {
             Vfx.Death(rb.position, bodyColor);
-            StageDirector.I.OnEnemyKilled(rb.position, elite);
+            StageDirector.I.OnEnemyKilled(this);
             Despawn();
         }
         else Vfx.Hit(HitPoint, bodyColor);

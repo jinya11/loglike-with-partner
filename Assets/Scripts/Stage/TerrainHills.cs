@@ -72,5 +72,8 @@ public class GroundSettings
     [Tooltip("이보다 가파른 오르막은 작은 생명체/적이 못 오름 (도). 감시자는 예외")] [Range(5, 85)] public float maxWalkSlope = 40f;
     [Tooltip("켜면 매 스테이지 시작 시 Terrain 복제본에 새 언덕을 랜덤 생성 (원본 에셋/손으로 고친 지형은 건드리지 않음). 끄면 씬에 만든 지형 그대로")]
     public bool randomizeAtRuntime = false;
+    [Header("바닥 장판 (독 웅덩이/용암/물/진흙 등)")]
+    [Tooltip("장판은 평지에만: 장판 범위 안 높이 편차가 이 값(m) 이하")] public float zoneFlatTolerance = 0.2f;
+    [Tooltip("장판은 평지에만: 경사가 이 각도(도) 이하")] [Range(0, 45)] public float zoneMaxSlope = 6f;
     [Tooltip("언덕 생성 설정 (에디터 메뉴 기본 지형 + 런타임 랜덤 생성)")] public TerrainHillSettings hills = new TerrainHillSettings();
 }

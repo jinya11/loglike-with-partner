@@ -21,7 +21,7 @@ public class HudExtras : MonoBehaviour
     float toastLeft;
     readonly List<(Image bg, TMP_Text label)> chips = new List<(Image, TMP_Text)>(16);
     int shownRewardCount = -1, shownStacks = -1;
-    StageTraitDef shownTrait;
+    int shownTraitCount = -1;
     int shownTime = int.MinValue;
     bool shownEnraged;
 
@@ -43,7 +43,8 @@ public class HudExtras : MonoBehaviour
         toastGroup = toast.gameObject.AddComponent<CanvasGroup>();
         toast.gameObject.SetActive(false);
 
-        traitLabel = Text("StageTraitLabel", root, 24, Color.white, new Vector2(0.5f, 1f), new Vector2(0f, -22f), new Vector2(1000f, 36f));
+        traitLabel = Text("StageTraitLabel", root, 21, Color.white, new Vector2(0.5f, 1f), new Vector2(0f, -14f), new Vector2(1200f, 90f));
+        traitLabel.textWrappingMode = TextWrappingModes.Normal; traitLabel.verticalAlignment = VerticalAlignmentOptions.Top;
         traitLabel.gameObject.SetActive(false);
 
         var gm = GameManager.I;
@@ -75,7 +76,7 @@ public class HudExtras : MonoBehaviour
     /// <summary>표시 초기화 (HUD가 다시 보일 때).</summary>
     public void ResetShown()
     {
-        shownRewardCount = shownStacks = -1; shownTrait = null; shownTime = int.MinValue;
+        shownRewardCount = shownStacks = -1; shownTraitCount = -1; shownTime = int.MinValue;
         toastQueue.Clear(); toastLeft = 0f;
         if (toast) toast.gameObject.SetActive(false);
     }
@@ -140,19 +141,28 @@ public class HudExtras : MonoBehaviour
         return (img, t);
     }
 
+    /// <summary>누적 스테이지 증강 목록 (위 중앙, 카테고리별 색). 제한 시간 증강이면 남은 시간.</summary>
     void UpdateTrait()
     {
         var stage = StageDirector.I;
-        var trait = stage ? stage.Trait : null;
+        int count = stage ? stage.Traits.Count : 0;
         int time = stage && stage.TimeLeft >= 0f ? Mathf.CeilToInt(stage.TimeLeft) : -1;
         bool enraged = stage && stage.Enraged;
-        if (trait == shownTrait && time == shownTime && enraged == shownEnraged) return;
-        shownTrait = trait; shownTime = time; shownEnraged = enraged;
-        traitLabel.gameObject.SetActive(trait != null);
-        if (trait == null) return;
-        string s = $"스테이지 특징: <color=#{ColorUtility.ToHtmlStringRGB(trait.color)}>{trait.name}</color>";
-        if (enraged) s += "   <color=#FF5555>시간 초과 — 적 광폭화!</color>";
-        else if (time >= 0) s += $"   남은 시간 {time / 60}:{time % 60:00}";
-        traitLabel.text = s;
+        if (count == shownTraitCount && time == shownTime && enraged == shownEnraged) return;
+        shownTraitCount = count; shownTime = time; shownEnraged = enraged;
+        traitLabel.gameObject.SetActive(count > 0);
+        if (count == 0) return;
+        var sb = new System.Text.StringBuilder("스테이지 증강  ");
+        for (int i = 0; i < count; i++)
+        {
+            var t = stage.Traits[i];
+            if (i > 0) sb.Append("  ·  ");
+            sb.Append("<color=#").Append(ColorUtility.ToHtmlStringRGB(StageTraitDef.CategoryColor(t.category))).Append('>')
+              .Append('[').Append(StageTraitDef.CategoryName(t.category)).Append("]</color> ")
+              .Append("<color=#").Append(ColorUtility.ToHtmlStringRGB(t.color)).Append('>').Append(t.name).Append("</color>");
+        }
+        if (enraged) sb.Append("\n<color=#FF5555>시간 초과 — 적 광폭화!</color>");
+        else if (time >= 0) sb.Append($"\n남은 시간 {time / 60}:{time % 60:00}");
+        traitLabel.text = sb.ToString();
     }
 }
