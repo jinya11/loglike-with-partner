@@ -170,11 +170,19 @@ public class PlayerController : Singleton<PlayerController>
         if (ward != null && ward.Order == Ward.Command.Auto && ward.Controls == Ward.Control.CreatureOnly) move = Vector3.zero;
         // 지형/적과 충돌 없이 전장 위를 떠다님. 고리 연결 중엔 생명체에서 일정 거리 이상은 못 감 (생명체가 움직이면 같이 끌려감)
         Vector3 p = Arena.Clamp(transform.position + move * (stats.moveSpeed * presenceSpeedMul * dt));
-        transform.position = Ground.Snap(ward == null || ward.Order == Ward.Command.Linked ? Leash(p) : p); // 고저차: 지면 높이를 따라 떠다님
+        transform.position = Hover(ward == null || ward.Order == Ward.Command.Linked ? Leash(p) : p, dt); // 고저차: 절벽을 무시하고 지면 높이를 따라 떠다님
         if (ward == null || ward.Order != Ward.Command.Linked) ShowLeash(false, Vector3.zero, 0f, 0f, null);
         if (kb == null) return;
         if (kb.qKey.wasPressedThisFrame && Time.time >= qReady) CastQ();
         if (kb.eKey.wasPressedThisFrame && Time.time >= eReady && ward != null) CastShield(ward);
+    }
+
+    /// <summary>감시자는 절벽도 넘어감: 지면 높이를 부드럽게 따라감 (절벽에서 순간이동처럼 튀지 않게).</summary>
+    Vector3 Hover(Vector3 p, float dt)
+    {
+        float gy = Ground.HeightAt(p);
+        p.y = Mathf.MoveTowards(transform.position.y, gy, Mathf.Max(8f, Mathf.Abs(gy - transform.position.y) * 12f) * dt);
+        return p;
     }
 
     void CastShield(Ward ward)
@@ -205,7 +213,7 @@ public class PlayerController : Singleton<PlayerController>
         // 생명체에서 너무 멀어지지 않게
         Vector3 off = p - w; off.y = 0f;
         if (off.magnitude > W.autoStayNearWard + W.autoPickupRadius) p = w + off.normalized * (W.autoStayNearWard + W.autoPickupRadius);
-        transform.position = Ground.Snap(Arena.Clamp(p));
+        transform.position = Hover(Arena.Clamp(p), dt);
         ShowLeash(false, Vector3.zero, 0f, 0f, null);
 
         // 스킬 자동 사용

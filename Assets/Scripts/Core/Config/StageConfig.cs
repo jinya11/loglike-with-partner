@@ -62,7 +62,7 @@ public class StageConfig : ScriptableObject
     {
         new StageTraitDef("몰려드는 무리", "적이 60% 더 많이 몰려온다.\n대신 경험치 +50%", StageTraitType.Horde, 0.6f, 0.5f, new Color(1f, 0.45f, 0.35f)),
         new StageTraitDef("정예의 습격", "12% 확률로 엘리트(체력 5배, 거대) 출현.\n처치 시 경험치 보석 다수", StageTraitType.Elite, 0.12f, 5f, new Color(1f, 0.75f, 0.25f)),
-        new StageTraitDef("고지대", "언덕과 단차가 2배로 많고 1.5배 높다.\n높은 곳을 오가며 싸운다", StageTraitType.Highlands, 2f, 1.5f, new Color(0.55f, 0.85f, 0.45f)),
+        new StageTraitDef("고지대", "고원과 절벽이 2배로 많고 1.5배 높다.\n경사로로 오르내리며 싸운다", StageTraitType.Highlands, 2f, 1.5f, new Color(0.55f, 0.85f, 0.45f)),
         new StageTraitDef("독의 땅", "독 웅덩이(초당 피해 8)가 곳곳에 생기고\n위험 장판이 떨어진다", StageTraitType.Toxic, 6f, 8f, new Color(0.6f, 0.9f, 0.3f)),
         new StageTraitDef("풍요의 땅", "지역 자원 드롭 확률 2배", StageTraitType.Riches, 2f, 0f, new Color(0.45f, 0.85f, 1f)),
         new StageTraitDef("시간과의 싸움", "150초 제한. 시간 안에는 경험치 +50%,\n넘기면 적이 광폭화한다", StageTraitType.TimeLimit, 150f, 0.5f, new Color(0.85f, 0.6f, 1f)),

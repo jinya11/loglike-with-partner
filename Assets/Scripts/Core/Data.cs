@@ -207,7 +207,7 @@ public enum StageTraitType
 {
     [Tooltip("적 밀도 ×(1+value), 경험치 ×(1+value2)")] Horde,
     [Tooltip("엘리트 출현 확률 value, 엘리트 체력 배율 value2")] Elite,
-    [Tooltip("언덕 수 ×value, 높이 ×value2")] Highlands,
+    [Tooltip("고원 수 ×value, 높이 ×value2")] Highlands,
     [Tooltip("독 웅덩이 value개 (초당 피해 value2) + 위험 장판")] Toxic,
     [Tooltip("자원 드롭 확률 ×value")] Riches,
     [Tooltip("제한 시간 value초, 시간 안에는 경험치 ×value2, 넘으면 적 광폭화")] TimeLimit,

@@ -46,7 +46,8 @@ public sealed class GridNav
                 int i = z * size + x;
                 Vector3 c = Center(i); c.y = Ground.HeightAt(c); // 고저차: 지면 높이 기준으로 장애물 검사
                 blocked[i] = (square ? !Arena.Contains(c, clearance + 0.3f) : c.x * c.x + c.z * c.z > inner * inner)
-                    || Physics.CheckCapsule(c + Vector3.up * 0.3f, c + Vector3.up * 1.2f, clearance, obstacleMask, QueryTriggerInteraction.Ignore);
+                    || Physics.CheckCapsule(c + Vector3.up * 0.3f, c + Vector3.up * 1.2f, clearance, obstacleMask, QueryTriggerInteraction.Ignore)
+                    || Ground.HasCliff(c.x, c.z, cell * 0.5f + clearance * 0.75f); // 고저차: 오를 수 없는 절벽은 벽 (경사로는 통과)
             }
 
         // 바닥 구역 비용 (용암은 크게, 눈밭/물은 약간)
@@ -193,5 +194,112 @@ public sealed class GridNav
     {
         int t = heap[a]; heap[a] = heap[b]; heap[b] = t;
         heapPos[heap[a]] = a; heapPos[heap[b]] = b;
+    }
+
+    // =====================================================================
+    // 흐름장 (적 전체용): 목표 칸에서 거꾸로 Dijkstra → 각 칸이 목표 쪽 다음 칸을 가리킴.
+    // 고저차 스테이지에서 적이 절벽을 돌아 경사로로 오르게 함 (수백 마리가 A* 없이 공유).
+    // =====================================================================
+    float[] flowDist;
+    int[] flowNext, flowHeap, flowPos;
+    int flowCount, flowGoal = -1;
+    public bool HasFlow => flowGoal >= 0;
+
+    public bool IsFree(Vector3 p) => Free(Index(p));
+
+    /// <summary>목표 위치로 가는 흐름장 다시 계산 (StageDirector가 주기적으로).</summary>
+    public void BuildFlow(Vector3 target)
+    {
+        int n = size * size;
+        if (flowDist == null) { flowDist = new float[n]; flowNext = new int[n]; flowHeap = new int[n]; flowPos = new int[n]; }
+        for (int i = 0; i < n; i++) { flowDist[i] = float.MaxValue; flowNext[i] = -1; flowPos[i] = -2; }
+        int goal = Index(NearestFree(target));
+        flowGoal = goal;
+        flowCount = 0;
+        flowDist[goal] = 0f;
+        FlowPush(goal);
+        while (flowCount > 0)
+        {
+            int cur = FlowPop();
+            int cx = cur % size, cz = cur / size;
+            for (int d = 0; d < 8; d++)
+            {
+                int nx = cx + DX[d], nz = cz + DZ[d];
+                if (nx < 0 || nz < 0 || nx >= size || nz >= size) continue;
+                int nb = nz * size + nx;
+                if (!Free(nb)) continue;
+                if (d >= 4 && (!Free(cz * size + nx) || !Free(nz * size + cx))) continue;
+                float nd = flowDist[cur] + STEP[d] * (1f + staticCost[nb] * 0.3f);
+                if (nd >= flowDist[nb]) continue;
+                flowDist[nb] = nd;
+                flowNext[nb] = cur;
+                if (flowPos[nb] >= 0) FlowUp(flowPos[nb]); else FlowPush(nb);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 흐름장을 따라 목표로 가는 방향 (수평, 정규화). 막힌 칸이면 가장 가까운 열린 칸 쪽. 쓸 수 없으면 false.
+    /// </summary>
+    public bool FlowDir(Vector3 p, out Vector3 dir)
+    {
+        dir = Vector3.zero;
+        if (flowGoal < 0) return false;
+        int i = Index(p);
+        if (!Free(i)) { Vector3 q = NearestFree(p) - p; q.y = 0f; if (q.sqrMagnitude < 0.0001f) return false; dir = q.normalized; return true; }
+        int nx = flowNext[i];
+        if (nx < 0) return false;
+        // 두 칸 앞을 보면 지그재그가 줄어듦
+        int nn = flowNext[nx];
+        Vector3 t = Center(nn >= 0 && IsLine(i, nn) ? nn : nx) - p; t.y = 0f;
+        if (t.sqrMagnitude < 0.0001f) return false;
+        dir = t.normalized;
+        return true;
+    }
+
+    /// <summary>두 칸 사이 직선이 막힌 칸을 지나지 않는지 (간단히 중간 칸만 검사).</summary>
+    bool IsLine(int a, int b)
+    {
+        int ax = a % size, az = a / size, bx = b % size, bz = b / size;
+        return Free(((az + bz) / 2) * size + (ax + bx) / 2) && Free(az * size + bx) && Free(bz * size + ax);
+    }
+
+    void FlowPush(int i) { flowHeap[flowCount] = i; flowPos[i] = flowCount; flowCount++; FlowUp(flowCount - 1); }
+
+    int FlowPop()
+    {
+        int top = flowHeap[0];
+        flowPos[top] = -1;
+        flowCount--;
+        if (flowCount > 0) { flowHeap[0] = flowHeap[flowCount]; flowPos[flowHeap[0]] = 0; FlowDown(0); }
+        return top;
+    }
+
+    void FlowUp(int k)
+    {
+        while (k > 0)
+        {
+            int p = (k - 1) >> 1;
+            if (flowDist[flowHeap[p]] <= flowDist[flowHeap[k]]) break;
+            FlowSwap(k, p); k = p;
+        }
+    }
+
+    void FlowDown(int k)
+    {
+        while (true)
+        {
+            int l = k * 2 + 1, r = l + 1, m = k;
+            if (l < flowCount && flowDist[flowHeap[l]] < flowDist[flowHeap[m]]) m = l;
+            if (r < flowCount && flowDist[flowHeap[r]] < flowDist[flowHeap[m]]) m = r;
+            if (m == k) return;
+            FlowSwap(k, m); k = m;
+        }
+    }
+
+    void FlowSwap(int a, int b)
+    {
+        int t = flowHeap[a]; flowHeap[a] = flowHeap[b]; flowHeap[b] = t;
+        flowPos[flowHeap[a]] = a; flowPos[flowHeap[b]] = b;
     }
 }

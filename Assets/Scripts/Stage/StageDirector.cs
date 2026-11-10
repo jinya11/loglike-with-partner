@@ -123,6 +123,7 @@ public class StageDirector : Singleton<StageDirector>
     public float TimeLeft => Trait != null && Trait.type == StageTraitType.TimeLimit ? timeLeft : -1f;
     public bool Enraged { get; private set; }
     int maxAlive;
+    float flowTimer;
     float resourceDropMul = 1f, eliteChance, eliteHpMul = 1f, timeLeft;
 
     bool Is(StageTraitType t) => Trait != null && Trait.type == t;
@@ -261,6 +262,12 @@ public class StageDirector : Singleton<StageDirector>
         }
 
         TickTimeLimit(dt);
+        // 고저차: 적이 절벽을 돌아 경사로로 오도록 생명체까지의 흐름장을 주기적으로 갱신
+        if (Ground.HasHills && Nav != null && (flowTimer -= dt) <= 0f)
+        {
+            flowTimer = 0.35f;
+            Nav.BuildFlow(Ward.I != null ? Ward.I.Position : PlayerController.I.Position);
+        }
         if (hazards) TickHazards(dt);
         Enemy.TickAll(dt);
         Projectile.TickAll(dt);
@@ -284,6 +291,7 @@ public class StageDirector : Singleton<StageDirector>
             var pos = Arena.Clamp(wide ? Arena.RandomPoint(0.95f) : new Vector3(p.x + d.x, 0f, p.z + d.y), 1.5f); // 경계(보더) 밖에는 생성하지 않음
             if ((pos - p).sqrMagnitude < 64f || (pos - pp).sqrMagnitude < 64f) continue; // 근처 스폰 방지
             int k = PickEnemyType();
+            if (Ground.HasHills && Nav != null && !Nav.IsFree(pos)) pos = Nav.NearestFree(pos); // 절벽 칸에는 스폰하지 않음
             pos.y = Ground.HeightAt(pos);
             var e = enemyPools[k].Get(pos, Quaternion.identity);
             e.Init(enemyHp, enemySpeed, enemyDamage, enemyDefs[k]);

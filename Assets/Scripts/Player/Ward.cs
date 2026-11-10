@@ -366,7 +366,8 @@ public class Ward : Singleton<Ward>
             if (dir.sqrMagnitude > 0f) heading = dir;
             float speed = stats.wardSpeed * zoneMul * speedMul;
             Vector3 delta = Arena.Clamp(pos + (dir * speed + knockVel) * dt) - pos;
-            delta.y = Ground.HeightAt(pos + delta) - pos.y; // 고저차: 지면 높이를 따라 이동
+            delta = Ground.ClampMove(pos, new Vector3(delta.x, 0f, delta.z)); // 고저차: 절벽은 못 오름 (경사로로만)
+            delta.y = Ground.HeightAt(pos + delta) - pos.y; // 지면 높이를 따라 이동
             Vector3 before = transform.position;
             cc.Move(delta);
             // 막혀서 못 움직이면 곧 경로 재계산 (매 프레임 A*는 피함)

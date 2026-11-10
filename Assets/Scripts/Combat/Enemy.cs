@@ -70,6 +70,19 @@ public class Enemy : Ticked<Enemy>
         if (Mathf.Abs(gy - p.y) > 0.005f) { p.y = gy; rb.position = p; transform.position = p; }
     }
 
+    /// <summary>절벽은 못 오름: 앞쪽(0.4m)이 절벽 위면 벽을 따라 미끄러지는 속도로 바꿈. 내려가는 건 가능.</summary>
+    static Vector3 Climb(Vector3 pos, Vector3 v, float dt)
+    {
+        if (!Ground.HasHills) return v;
+        v.y = 0f;
+        float m = v.magnitude;
+        if (m < 0.001f) return v;
+        Vector3 probe = v * (0.4f / m);
+        Vector3 ok = Ground.ClampMove(pos, probe);
+        if (ok == probe) return v;
+        return ok * (m / 0.4f);
+    }
+
     /// <summary>도망: 플레이어(조준점)에게서 멀어짐. 접촉 피해/능력 없음.</summary>
     void TickRouted(float dt)
     {
@@ -80,7 +93,7 @@ public class Enemy : Ticked<Enemy>
         // 경계에 몰리면 경계를 따라 미끄러지도록 중심 쪽 성분을 섞음
         if (Arena.EdgeDistance(pos) < 4f) { Vector3 c = Arena.Center - pos; c.y = 0f; away = away.normalized + c.normalized * 0.8f; }
         Vector3 dir = away.normalized;
-        rb.linearVelocity = knock + dir * speed * RoutSpeedMul;
+        rb.linearVelocity = Climb(pos, knock + dir * speed * RoutSpeedMul, dt);
         visual.rotation = Quaternion.LookRotation(dir);
         knock = Vector3.MoveTowards(knock, Vector3.zero, 30f * dt);
         FollowGround();
@@ -116,10 +129,12 @@ public class Enemy : Ticked<Enemy>
         else if (sq > 0.0001f)
         {
             Vector3 dir = to / Mathf.Sqrt(sq);
+            // 고저차: 절벽을 돌아 경사로로 오르도록 흐름장을 따라감 (가까우면 직진)
+            if (Ground.HasHills && sq > 9f && StageDirector.I.Nav != null && StageDirector.I.Nav.FlowDir(pos, out var fd)) dir = fd;
             v += dir * moveSpeed;
             visual.rotation = Quaternion.LookRotation(dir);
         }
-        rb.linearVelocity = v;
+        rb.linearVelocity = Climb(pos, v, dt);
         knock = Vector3.MoveTowards(knock, Vector3.zero, 30f * dt);
         if (punch > 0f) // 피격 시 부풀었다 돌아옴
         {
