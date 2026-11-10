@@ -47,7 +47,7 @@ public sealed class GridNav
                 Vector3 c = Center(i); c.y = Ground.HeightAt(c); // 고저차: 지면 높이 기준으로 장애물 검사
                 blocked[i] = (square ? !Arena.Contains(c, clearance + 0.3f) : c.x * c.x + c.z * c.z > inner * inner)
                     || Physics.CheckCapsule(c + Vector3.up * 0.3f, c + Vector3.up * 1.2f, clearance, obstacleMask, QueryTriggerInteraction.Ignore)
-                    || Ground.HasCliff(c.x, c.z, cell * 0.5f + clearance * 0.75f); // 고저차: 오를 수 없는 절벽은 벽 (경사로는 통과)
+                    || Ground.TooSteep(c.x, c.z); // 지형: 너무 가파른 비탈은 벽
             }
 
         // 바닥 구역 비용 (용암은 크게, 눈밭/물은 약간)
@@ -56,10 +56,10 @@ public sealed class GridNav
                 if (!blocked[i] && zone.Contains(Center(i)))
                     staticCost[i] += zone.type == ZoneType.Damage ? 25f : zone.type == ZoneType.Heal ? 0f : 1.5f;
 
-        // 경사 비용: 언덕을 오르내리는 길은 약간 돌아가도 평지를 선호 (완전히 막지는 않음)
-        if (Ground.HasHills)
+        // 경사 비용: 비탈길은 약간 돌아가도 평지를 선호
+        if (Ground.HasTerrain)
             for (int i = 0; i < count; i++)
-                if (!blocked[i]) { Vector3 c = Center(i); staticCost[i] += Ground.Slope(c.x, c.z) * 1.5f; }
+                if (!blocked[i]) { Vector3 c = Center(i); staticCost[i] += Ground.SteepnessAt(c.x, c.z) / Ground.MaxSlope * 1.5f; }
     }
 
     bool Free(int i) => !blocked[i];
@@ -198,7 +198,7 @@ public sealed class GridNav
 
     // =====================================================================
     // 흐름장 (적 전체용): 목표 칸에서 거꾸로 Dijkstra → 각 칸이 목표 쪽 다음 칸을 가리킴.
-    // 고저차 스테이지에서 적이 절벽을 돌아 경사로로 오르게 함 (수백 마리가 A* 없이 공유).
+    // 지형 스테이지에서 적이 가파른 비탈을 돌아가게 함 (수백 마리가 A* 없이 공유).
     // =====================================================================
     float[] flowDist;
     int[] flowNext, flowHeap, flowPos;

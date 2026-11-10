@@ -147,7 +147,7 @@ public class BombardSkill : Singleton<BombardSkill>
     {
         var comp = CompanionBase.Current;
         var gm = GameManager.I;
-        if (Aiming || comp == null || Time.time < readyAt || gm.State != GameState.Playing || Time.time < autoCheckAt || Enemy.Routed) return;
+        if (Aiming || comp == null || Time.time < readyAt || gm.State != GameState.Playing || Time.time < autoCheckAt) return;
         autoCheckAt = Time.time + 0.5f; // 검사는 0.5초마다
         if (gm.Config.companion.bombardAtWatcher && PlayerController.I)
         {

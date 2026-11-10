@@ -10,12 +10,11 @@ public class Enemy : Ticked<Enemy>
     const float ContactSq = 1f, WardContactSq = 0.75f, ChargeContactSq = 1.2f;
     /// <summary>StageDirector가 설정 (GameConfig.enemyAggroRadius 제곱).</summary>
     public static float AggroSq = 12.25f;
-    /// <summary>포털이 열린 뒤: 남은 적은 플레이어에게서 도망치고 무적 (StageDirector가 설정, 스테이지마다 초기화).</summary>
+    /// <summary>포털이 열린 뒤: 남은 적은 플레이어에게서 도망 (공격 안 함, 처치는 가능). StageDirector가 설정, 스테이지마다 초기화.</summary>
     public static bool Routed;
     public static float RoutSpeedMul = 1.25f;
     /// <summary>전체 이동속도 배율 (제한 시간 초과 광폭화 등).</summary>
     public static float SpeedMul = 1f;
-    static readonly Color ImmuneColor = new Color(0.75f, 0.75f, 0.8f);
     [SerializeField] Transform visual;
     Rigidbody rb;
     EnemyDef def;
@@ -64,16 +63,16 @@ public class Enemy : Ticked<Enemy>
     /// <summary>지면 높이 따라가기 (고저차). Y 위치는 물리 대신 직접 맞춤 (Rigidbody Y 고정 유지).</summary>
     void FollowGround()
     {
-        if (!Ground.HasHills) return;
+        if (!Ground.HasTerrain) return;
         Vector3 p = rb.position;
         float gy = Ground.HeightAt(p.x, p.z);
         if (Mathf.Abs(gy - p.y) > 0.005f) { p.y = gy; rb.position = p; transform.position = p; }
     }
 
-    /// <summary>절벽은 못 오름: 앞쪽(0.4m)이 절벽 위면 벽을 따라 미끄러지는 속도로 바꿈. 내려가는 건 가능.</summary>
+    /// <summary>너무 가파른 오르막은 못 오름: 앞쪽(0.4m)이 막히면 비탈을 따라 미끄러지는 속도로 바꿈. 내려가는 건 가능.</summary>
     static Vector3 Climb(Vector3 pos, Vector3 v, float dt)
     {
-        if (!Ground.HasHills) return v;
+        if (!Ground.HasTerrain) return v;
         v.y = 0f;
         float m = v.magnitude;
         if (m < 0.001f) return v;
@@ -83,7 +82,7 @@ public class Enemy : Ticked<Enemy>
         return ok * (m / 0.4f);
     }
 
-    /// <summary>도망: 플레이어(조준점)에게서 멀어짐. 접촉 피해/능력 없음.</summary>
+    /// <summary>도망: 플레이어(조준점)에게서 멀어짐. 접촉 피해/능력 없음 (맞으면 죽음).</summary>
     void TickRouted(float dt)
     {
         Vector3 pos = rb.position;
@@ -129,8 +128,8 @@ public class Enemy : Ticked<Enemy>
         else if (sq > 0.0001f)
         {
             Vector3 dir = to / Mathf.Sqrt(sq);
-            // 고저차: 절벽을 돌아 경사로로 오르도록 흐름장을 따라감 (가까우면 직진)
-            if (Ground.HasHills && sq > 9f && StageDirector.I.Nav != null && StageDirector.I.Nav.FlowDir(pos, out var fd)) dir = fd;
+            // 지형: 가파른 비탈을 돌아가도록 흐름장을 따라감 (가까우면 직진)
+            if (Ground.HasTerrain && sq > 9f && StageDirector.I.Nav != null && StageDirector.I.Nav.FlowDir(pos, out var fd)) dir = fd;
             v += dir * moveSpeed;
             visual.rotation = Quaternion.LookRotation(dir);
         }
@@ -202,7 +201,6 @@ public class Enemy : Ticked<Enemy>
 
     public void Hit(float dmg, Vector3 from)
     {
-        if (Routed) { Vfx.Hit(HitPoint, ImmuneColor); return; } // 포털이 열린 뒤에는 처치 불가
         hp -= dmg;
         Vector3 k = rb.position - from; k.y = 0f;
         knock = k.normalized * 8f;

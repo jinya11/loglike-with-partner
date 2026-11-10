@@ -68,6 +68,7 @@ public static partial class PrototypeBuilder
         EditorUtility.SetDirty(st);
         AssetDatabase.SaveAssetIfDirty(st);
         AssetDatabase.SaveAssets();
+        SetupTerrains(false); // 지역 지형(Terrain) 다시 배치 (기존 TerrainData 에셋을 그대로 써서 손으로 고친 지형 유지)
 
         if (!string.IsNullOrEmpty(returnTo)) EditorSceneManager.OpenScene(returnTo);
         Debug.Log($"[PrototypeBuilder] 지역 스테이지 {themes.Count}개 생성 (중앙: {center.name})");

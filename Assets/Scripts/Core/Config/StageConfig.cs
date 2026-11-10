@@ -45,12 +45,13 @@ public class StageConfig : ScriptableObject
     public string[] expandableBorderScenes = { "Region_Abyss" };
     public bool IsExpandable(string scene) => expandableBorderScenes != null && System.Array.IndexOf(expandableBorderScenes, scene) >= 0;
 
-    [Header("고저차 지형 (심연 외 스테이지)")]
-    public TerrainSettings terrain = new TerrainSettings();
+    [Header("지형 (Unity Terrain, 심연 외 지역 씬)")]
+    [Tooltip("지역 씬의 Terrain으로 높이를 따름. 기본 지형은 메뉴 Roguelike/Setup Region Terrains로 만들고 Terrain 툴로 직접 편집")]
+    public GroundSettings ground = new GroundSettings();
 
     [Header("포털")]
     [Tooltip("포털은 이동 가능한 지면 위 임의 위치에 생성: 생명체/플레이어에서 최소 이 거리")] public float portalMinDistance = 22f;
-    [Tooltip("포털이 열리면 남은 적이 플레이어에게서 도망 (무적). 도망 속도 배율")] public float routSpeedMul = 1.25f;
+    [Tooltip("포털이 열리면 남은 적이 플레이어에게서 도망 (처치는 가능). 도망 속도 배율")] public float routSpeedMul = 1.25f;
 
     [Header("다음 스테이지 특징 (카드 선택, 심연 외)")]
     [Tooltip("포털로 이동하기 전에 다음 스테이지 특징을 카드로 고름")] public bool stageTraitsEnabled = true;
@@ -62,7 +63,7 @@ public class StageConfig : ScriptableObject
     {
         new StageTraitDef("몰려드는 무리", "적이 60% 더 많이 몰려온다.\n대신 경험치 +50%", StageTraitType.Horde, 0.6f, 0.5f, new Color(1f, 0.45f, 0.35f)),
         new StageTraitDef("정예의 습격", "12% 확률로 엘리트(체력 5배, 거대) 출현.\n처치 시 경험치 보석 다수", StageTraitType.Elite, 0.12f, 5f, new Color(1f, 0.75f, 0.25f)),
-        new StageTraitDef("고지대", "고원과 절벽이 2배로 많고 1.5배 높다.\n경사로로 오르내리며 싸운다", StageTraitType.Highlands, 2f, 1.5f, new Color(0.55f, 0.85f, 0.45f)),
+        new StageTraitDef("고지대", "언덕이 1.6배 높고 가팔라진다.\n높은 곳을 오르내리며 싸운다", StageTraitType.Highlands, 1.6f, 0f, new Color(0.55f, 0.85f, 0.45f)),
         new StageTraitDef("독의 땅", "독 웅덩이(초당 피해 8)가 곳곳에 생기고\n위험 장판이 떨어진다", StageTraitType.Toxic, 6f, 8f, new Color(0.6f, 0.9f, 0.3f)),
         new StageTraitDef("풍요의 땅", "지역 자원 드롭 확률 2배", StageTraitType.Riches, 2f, 0f, new Color(0.45f, 0.85f, 1f)),
         new StageTraitDef("시간과의 싸움", "150초 제한. 시간 안에는 경험치 +50%,\n넘기면 적이 광폭화한다", StageTraitType.TimeLimit, 150f, 0.5f, new Color(0.85f, 0.6f, 1f)),

@@ -49,6 +49,7 @@ public class StageDirector : Singleton<StageDirector>
         Enemy.Routed = false; Enemy.SpeedMul = 1f;
         Ground.Clear();
         Trait = gm.InBonus ? null : gm.ActiveTrait;
+        if (!cfg.stage.IsExpandable(gameObject.scene.name) && !gm.InBonus) SetupTerrain(); // 심연 외: 씬의 Terrain이 지면
         gm.XpMul = 1f;
         var border = generator.Border;
         // 보더를 넓혀가는 구조는 심연(StageConfig.expandableBorderScenes)에서만. 나머지는 중앙 칸 하나로 고정
@@ -114,7 +115,7 @@ public class StageDirector : Singleton<StageDirector>
         base.OnDestroy();
     }
 
-    // ---- 심연 외 스테이지의 레벨 디자인 (고저차 지형 + 특징) ----
+    // ---- 심연 외 스테이지의 레벨 디자인 (Unity Terrain 지형 + 특징) ----
     /// <summary>보더를 넓혀가는 스테이지인지 (심연). 이 경우 포털/다음 스테이지 없음.</summary>
     public bool Expandable { get; private set; }
     /// <summary>이번 스테이지 특징 (카드로 고른 것, 없으면 null).</summary>
@@ -128,14 +129,47 @@ public class StageDirector : Singleton<StageDirector>
 
     bool Is(StageTraitType t) => Trait != null && Trait.type == t;
 
-    /// <summary>고저차 지형, 특징 장판(독/회복). 길찾기 격자를 만들기 전에 호출 (장판 비용 반영).</summary>
+    /// <summary>
+    /// 지형: 씬의 Unity Terrain을 지면으로 등록 (심연 외). 원본 TerrainData(손으로 고친 지형)는 건드리지 않음 —
+    /// 고지대 특징/런타임 랜덤 생성이 필요할 때만 복제본을 만들어 바꿈. 지형 충돌은 끔 (높이는 Ground가 계산).
+    /// </summary>
+    void SetupTerrain()
+    {
+        var t = FindAnyObjectByType<Terrain>();
+        if (!t || !t.terrainData) return;
+        var g = cfg.stage.ground;
+        bool highlands = Is(StageTraitType.Highlands);
+        if (g.randomizeAtRuntime || highlands)
+        {
+            var td = Instantiate(t.terrainData);
+            if (g.randomizeAtRuntime) TerrainHills.Generate(td, t.transform.position, g.hills, Random.Range(1, int.MaxValue));
+            if (highlands) { var sz = td.size; sz.y *= Mathf.Max(0.1f, Trait.value); td.size = sz; }
+            t.terrainData = td;
+            if (t.TryGetComponent(out TerrainCollider tcd)) tcd.terrainData = td;
+        }
+        if (t.TryGetComponent(out TerrainCollider tc)) tc.enabled = false;
+        Ground.SetTerrain(t, g.maxWalkSlope);
+    }
+
+    /// <summary>특징 장판(독/회복), 배치물을 지면 높이로. 길찾기 격자를 만들기 전에 호출 (장판 비용 반영).</summary>
     void BuildLevelDesign()
     {
         if (Is(StageTraitType.Toxic)) SpawnPools(Mathf.RoundToInt(Trait.value), ZoneType.Damage, Trait.value2, new Color(0.45f, 0.75f, 0.15f));
         if (Is(StageTraitType.Sanctuary)) SpawnPools(Mathf.RoundToInt(Trait.value), ZoneType.Heal, Trait.value2, new Color(0.4f, 1f, 0.7f));
-        float countMul = Is(StageTraitType.Highlands) ? Trait.value : 1f, heightMul = Is(StageTraitType.Highlands) ? Trait.value2 : 1f;
-        StageTerrain.Build(cfg.stage.terrain, transform, countMul, heightMul);
-        StageTerrain.LiftChildren(generator.transform);
+        if (!Ground.HasTerrain) return;
+        LiftToGround(generator.transform);
+        LiftToGround(transform);
+    }
+
+    /// <summary>자식 배치물을 지형 높이로 올림 (장애물/장판이 언덕에 묻히지 않게).</summary>
+    static void LiftToGround(Transform root)
+    {
+        foreach (Transform t in root)
+        {
+            var p = t.position;
+            p.y += Ground.HeightAt(p.x, p.z);
+            t.position = p;
+        }
     }
 
     /// <summary>특징 장판(독 웅덩이/회복의 샘): 평평한 원형 StageZone.</summary>
@@ -262,8 +296,8 @@ public class StageDirector : Singleton<StageDirector>
         }
 
         TickTimeLimit(dt);
-        // 고저차: 적이 절벽을 돌아 경사로로 오도록 생명체까지의 흐름장을 주기적으로 갱신
-        if (Ground.HasHills && Nav != null && (flowTimer -= dt) <= 0f)
+        // 지형: 적이 가파른 비탈을 돌아오도록 생명체까지의 흐름장을 주기적으로 갱신
+        if (Ground.HasTerrain && Nav != null && (flowTimer -= dt) <= 0f)
         {
             flowTimer = 0.35f;
             Nav.BuildFlow(Ward.I != null ? Ward.I.Position : PlayerController.I.Position);
@@ -291,7 +325,7 @@ public class StageDirector : Singleton<StageDirector>
             var pos = Arena.Clamp(wide ? Arena.RandomPoint(0.95f) : new Vector3(p.x + d.x, 0f, p.z + d.y), 1.5f); // 경계(보더) 밖에는 생성하지 않음
             if ((pos - p).sqrMagnitude < 64f || (pos - pp).sqrMagnitude < 64f) continue; // 근처 스폰 방지
             int k = PickEnemyType();
-            if (Ground.HasHills && Nav != null && !Nav.IsFree(pos)) pos = Nav.NearestFree(pos); // 절벽 칸에는 스폰하지 않음
+            if (Ground.HasTerrain && Nav != null && !Nav.IsFree(pos)) pos = Nav.NearestFree(pos); // 너무 가파른 칸에는 스폰하지 않음
             pos.y = Ground.HeightAt(pos);
             var e = enemyPools[k].Get(pos, Quaternion.identity);
             e.Init(enemyHp, enemySpeed, enemyDamage, enemyDefs[k]);
@@ -349,7 +383,7 @@ public class StageDirector : Singleton<StageDirector>
         Vector3 at = PortalSpot();
         portal = Instantiate(cfg.stage.portalPrefab, at, Quaternion.identity, transform).transform;
         Vfx.Pillar(at, new Color(0.6f, 0.4f, 1f));
-        // 남은 적은 플레이어에게서 도망치고 무적 (Enemy.Routed). 생명체가 포털에 도착하면 다음 스테이지 (Ward 참고)
+        // 남은 적은 플레이어에게서 도망 (Enemy.Routed, 공격하지 않음. 처치는 가능). 생명체가 포털에 도착하면 다음 스테이지 (Ward 참고)
         Enemy.Routed = true;
         Enemy.RoutSpeedMul = cfg.stage.routSpeedMul;
         foreach (var e in Enemy.Active) e.OnRouted();
@@ -472,7 +506,6 @@ public class StageDirector : Singleton<StageDirector>
     /// <summary>자동 공격 대상: 플레이어 사거리 안에서 생명체에 가장 가까운 적 (디펜스 우선).</summary>
     public Enemy AttackTarget(Vector3 playerPos, float range)
     {
-        if (Enemy.Routed) return null; // 포털이 열리면 남은 적은 무적 (공격하지 않음)
         if (Ward.I == null) return NearestEnemy(playerPos, range);
         Vector3 w = Ward.I.Position;
         Enemy best = null;
@@ -490,7 +523,6 @@ public class StageDirector : Singleton<StageDirector>
 
     public Enemy NearestEnemy(Vector3 p, float range)
     {
-        if (Enemy.Routed) return null; // 포털이 열리면 남은 적은 무적 (공격하지 않음)
         Enemy best = null;
         float bestSq = range * range;
         var list = Enemy.Active;

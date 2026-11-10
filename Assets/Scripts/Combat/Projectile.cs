@@ -15,7 +15,7 @@ public class Projectile : Ticked<Projectile>
     public override void Tick(float dt)
     {
         Vector3 pos = transform.position + velocity * dt;
-        if (Ground.HasHills) pos.y = Ground.HeightAt(pos) + lift;
+        if (Ground.HasTerrain) pos.y = Ground.HeightAt(pos) + lift;
         transform.position = pos;
         int n = Physics.OverlapSphereNonAlloc(pos, 0.45f, hits, StageDirector.I.EnemyMask, QueryTriggerInteraction.Collide);
         for (int i = 0; i < n; i++)

@@ -44,7 +44,7 @@ public abstract class CompanionBase : MonoBehaviour
         head.rotation = Quaternion.Slerp(head.rotation, Quaternion.LookRotation(to), 4f * Time.deltaTime);
 
         var s = GameManager.I.Stats;
-        if ((timer += Time.deltaTime) < s.companionInterval || Enemy.Active.Count == 0 || Enemy.Routed) return;
+        if ((timer += Time.deltaTime) < s.companionInterval || Enemy.Active.Count == 0) return;
         timer = 0f;
         StartCoroutine(Run(s));
     }
