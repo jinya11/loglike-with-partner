@@ -39,6 +39,6 @@ public class ResourcePickup : Ticked<ResourcePickup>
             Despawn();
             return;
         }
-        transform.position = pos + to * (14f * dt / Mathf.Sqrt(sq));
+        transform.position = Ground.Snap(pos + to * (14f * dt / Mathf.Sqrt(sq)), 0.1f);
     }
 }

@@ -50,6 +50,8 @@ public class Hud : Singleton<Hud>
     [SerializeField] GameObject normalTitle, specialTitle;
     [Tooltip("생명체 생존력 증강 제목")]
     [SerializeField] GameObject wardTitle;
+    [Tooltip("다음 스테이지 특징 선택 제목 (비우면 NormalTitle을 복제해 자동 생성)")]
+    [SerializeField] GameObject traitTitle;
     [SerializeField] Button[] choiceButtons;
     [Tooltip("서식: {0}=번호, {1}=강화 이름, {2}=설명")]
     [SerializeField] TMP_Text[] choiceTexts;
@@ -73,6 +75,7 @@ public class Hud : Singleton<Hud>
 
     Canvas canvas;
     bool shown = true;
+    HudExtras extras;
 
     protected override void Awake()
     {
@@ -91,6 +94,21 @@ public class Hud : Singleton<Hud>
             int idx = i;
             choiceButtons[i].onClick.AddListener(() => GameManager.I.Choose(idx));
         }
+        // 보조 UI: 레벨업 자동 보상 알림/아이콘, 스테이지 특징 표시
+        extras = gameObject.AddComponent<HudExtras>();
+        extras.Init(infoText.font);
+        // 다음 스테이지 특징 선택 제목 (프리팹에 없으면 기존 제목을 복제해 만듦)
+        if (!traitTitle && normalTitle)
+        {
+            traitTitle = Instantiate(normalTitle, normalTitle.transform.parent);
+            traitTitle.name = "TraitTitle";
+            var tt = traitTitle.GetComponent<TMP_Text>();
+            if (tt) tt.text = "다음 스테이지 특징을 고르세요";
+            traitTitle.SetActive(false);
+        }
+        // 포털은 이제 임의 위치에 생김 → 안내 문구 갱신 (프리팹 문구가 옛 '중앙' 안내일 때만)
+        var pm = portalMessage ? portalMessage.GetComponent<TMP_Text>() : null;
+        if (pm && pm.text.Contains("중앙")) pm.text = "포털이 열렸습니다! 남은 적은 도망칩니다 — 생명체를 포털로 데려가세요 (F)";
     }
 
     /// <summary>"자원 이름 획득" 알림. 같은 자원이 연속이면 개수를 올림.</summary>
@@ -131,6 +149,7 @@ public class Hud : Singleton<Hud>
         if (promptText) promptText.text = "";
         toastLeft = 0f;
         if (resourceToast) resourceToast.gameObject.SetActive(false);
+        if (extras) extras.ResetShown();
     }
 
     void LateUpdate()
@@ -224,6 +243,23 @@ public class Hud : Singleton<Hud>
     void RefreshChoices()
     {
         var gm = GameManager.I;
+        if (gm.Kind == GameManager.ChoiceKind.StageTrait)
+        {
+            // 다음 스테이지 특징 카드 (레벨업 증강 선택 UI 재사용)
+            normalTitle.SetActive(false); specialTitle.SetActive(false);
+            if (wardTitle) wardTitle.SetActive(false);
+            if (traitTitle) traitTitle.SetActive(true);
+            for (int i = 0; i < choiceButtons.Length; i++)
+            {
+                bool has = i < gm.TraitChoices.Count;
+                choiceButtons[i].gameObject.SetActive(has);
+                if (!has) continue;
+                var t = gm.TraitChoices[i];
+                choiceTexts[i].text = UiText.Format(choiceFmt[i], i + 1, $"<color=#{ColorUtility.ToHtmlStringRGB(t.color)}>{t.name}</color>", t.desc);
+            }
+            return;
+        }
+        if (traitTitle) traitTitle.SetActive(false);
         var cat = gm.ChoiceCategory;
         bool ward = cat == UpgradeCategory.Ward && wardTitle;
         normalTitle.SetActive(cat == UpgradeCategory.Projectile || (cat == UpgradeCategory.Ward && !ward));

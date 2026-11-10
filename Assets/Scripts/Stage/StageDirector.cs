@@ -46,17 +46,28 @@ public class StageDirector : Singleton<StageDirector>
         gm = GameManager.I;
         cfg = gm.Config;
         EnemyMask = LayerMask.GetMask("Enemy");
+        Enemy.Routed = false; Enemy.SpeedMul = 1f;
+        Ground.Clear();
+        Trait = gm.InBonus ? null : gm.ActiveTrait;
+        gm.XpMul = 1f;
         var border = generator.Border;
+        // 보더를 넓혀가는 구조는 심연(StageConfig.expandableBorderScenes)에서만. 나머지는 중앙 칸 하나로 고정
+        Expandable = border && cfg.stage.IsExpandable(gameObject.scene.name);
         if (border)
         {
-            border.Apply(); // 저장된 열린 칸까지 반영해 Arena 설정
-            if (!border.GetComponentInChildren<BorderUnlock>()) { var u = new GameObject("BorderUnlock"); u.transform.SetParent(border.transform, false); u.AddComponent<BorderUnlock>(); }
-            border.AreaOpened += OnAreaOpened;
-            BorderUnlock.Unlocked += OnUnlockStarted;
+            if (Expandable)
+            {
+                border.Apply(); // 저장된 열린 칸까지 반영해 Arena 설정
+                if (!border.GetComponentInChildren<BorderUnlock>()) { var u = new GameObject("BorderUnlock"); u.transform.SetParent(border.transform, false); u.AddComponent<BorderUnlock>(); }
+                border.AreaOpened += OnAreaOpened;
+                BorderUnlock.Unlocked += OnUnlockStarted;
+            }
+            else border.LockToBase();
             FitRegionToCells();
         }
         else Arena.SetCircle(generator.Radius);
         generator.Build();
+        if (!Expandable && !gm.InBonus) BuildLevelDesign();
         Nav = new GridNav(ArenaRadius, 1.2f, 0.4f, LayerMask.GetMask("Default"), border);
         Theme = GetComponent<StageTheme>();
         UpdateKillTarget(); // 저장된 열린 구역만큼 늘어남
@@ -82,6 +93,9 @@ public class StageDirector : Singleton<StageDirector>
         enemyDamage = cfg.enemy.enemyDamage * (1f + gm.ModValue(ModifierType.EnemyDamage));
         spawnBatch = cfg.stage.spawnBatch + (int)gm.ModValue(ModifierType.MoreEnemies);
         hazards = gm.Has(ModifierType.Hazards);
+        maxAlive = cfg.stage.maxAlive;
+        resourceDropMul = 1f;
+        ApplyTrait();
         var comp = gm.Companion;
         if (comp != null && comp.prefab) Instantiate(comp.prefab);
 
@@ -96,7 +110,92 @@ public class StageDirector : Singleton<StageDirector>
     protected override void OnDestroy()
     {
         BorderUnlock.Unlocked -= OnUnlockStarted;
+        if (I == this) { Ground.Clear(); Enemy.Routed = false; Enemy.SpeedMul = 1f; if (GameManager.I) GameManager.I.XpMul = 1f; }
         base.OnDestroy();
+    }
+
+    // ---- 심연 외 스테이지의 레벨 디자인 (고저차 지형 + 특징) ----
+    /// <summary>보더를 넓혀가는 스테이지인지 (심연). 이 경우 포털/다음 스테이지 없음.</summary>
+    public bool Expandable { get; private set; }
+    /// <summary>이번 스테이지 특징 (카드로 고른 것, 없으면 null).</summary>
+    public StageTraitDef Trait { get; private set; }
+    /// <summary>제한 시간 특징: 남은 시간 (없으면 음수).</summary>
+    public float TimeLeft => Trait != null && Trait.type == StageTraitType.TimeLimit ? timeLeft : -1f;
+    public bool Enraged { get; private set; }
+    int maxAlive;
+    float resourceDropMul = 1f, eliteChance, eliteHpMul = 1f, timeLeft;
+
+    bool Is(StageTraitType t) => Trait != null && Trait.type == t;
+
+    /// <summary>고저차 지형, 특징 장판(독/회복). 길찾기 격자를 만들기 전에 호출 (장판 비용 반영).</summary>
+    void BuildLevelDesign()
+    {
+        if (Is(StageTraitType.Toxic)) SpawnPools(Mathf.RoundToInt(Trait.value), ZoneType.Damage, Trait.value2, new Color(0.45f, 0.75f, 0.15f));
+        if (Is(StageTraitType.Sanctuary)) SpawnPools(Mathf.RoundToInt(Trait.value), ZoneType.Heal, Trait.value2, new Color(0.4f, 1f, 0.7f));
+        float countMul = Is(StageTraitType.Highlands) ? Trait.value : 1f, heightMul = Is(StageTraitType.Highlands) ? Trait.value2 : 1f;
+        StageTerrain.Build(cfg.stage.terrain, transform, countMul, heightMul);
+        StageTerrain.LiftChildren(generator.transform);
+    }
+
+    /// <summary>특징 장판(독 웅덩이/회복의 샘): 평평한 원형 StageZone.</summary>
+    void SpawnPools(int count, ZoneType type, float value, Color c)
+    {
+        var fxr = cfg.stage.fxPrefab ? cfg.stage.fxPrefab.GetComponent<Renderer>() : null;
+        var mpb = new MaterialPropertyBlock();
+        mpb.SetColor(Shader.PropertyToID("_BaseColor"), new Color(c.r, c.g, c.b, 0.55f));
+        for (int i = 0, tries = 0; i < count && tries < count * 20; tries++)
+        {
+            var p = Arena.RandomPoint(0.85f);
+            if (p.magnitude < 12f) continue; // 시작 지점은 비움
+            bool near = false;
+            foreach (var z in StageZone.All) if ((z.transform.position - p).sqrMagnitude < 64f) { near = true; break; }
+            if (near) continue;
+            float d = Random.Range(5f, 8f);
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            go.name = type == ZoneType.Heal ? "Trait_HealSpring" : "Trait_PoisonPool";
+            Destroy(go.GetComponent<Collider>());
+            go.transform.SetParent(transform, false);
+            go.transform.position = p + Vector3.up * 0.03f;
+            go.transform.localScale = new Vector3(d, 0.01f, d);
+            var r = go.GetComponent<Renderer>();
+            if (fxr) r.sharedMaterial = fxr.sharedMaterial;
+            r.SetPropertyBlock(mpb);
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            var zone = go.AddComponent<StageZone>();
+            zone.type = type; zone.value = value; zone.box = false;
+            i++;
+        }
+    }
+
+    /// <summary>스테이지 특징 수치 적용 (스폰/능력치/보상 배율).</summary>
+    void ApplyTrait()
+    {
+        if (Trait == null) return;
+        switch (Trait.type)
+        {
+            case StageTraitType.Horde:
+                spawnBatch = Mathf.CeilToInt(spawnBatch * (1f + Trait.value));
+                maxAlive = Mathf.RoundToInt(maxAlive * (1f + Trait.value));
+                gm.XpMul *= 1f + Trait.value2;
+                break;
+            case StageTraitType.Elite: eliteChance = Trait.value; eliteHpMul = Trait.value2; break;
+            case StageTraitType.Toxic: hazards = true; break;
+            case StageTraitType.Riches: resourceDropMul = Trait.value; break;
+            case StageTraitType.TimeLimit: timeLeft = Trait.value; gm.XpMul *= 1f + Trait.value2; break;
+            case StageTraitType.Swift: enemySpeed *= 1f + Trait.value; gm.XpMul *= 1f + Trait.value2; break;
+        }
+    }
+
+    void TickTimeLimit(float dt)
+    {
+        if (!Is(StageTraitType.TimeLimit) || Enraged || PortalOpen) return;
+        if ((timeLeft -= dt) > 0f) return;
+        timeLeft = 0f;
+        Enraged = true; // 시간 초과: 적 광폭화, 경험치 보너스 끝
+        Enemy.SpeedMul = cfg.stage.enrageSpeedMul;
+        spawnBatch = Mathf.CeilToInt(spawnBatch * cfg.stage.enrageSpawnMul);
+        gm.XpMul /= 1f + Trait.value2;
+        if (PlayerController.I) Vfx.Pillar(PlayerController.I.Position, new Color(1f, 0.2f, 0.2f));
     }
 
     /// <summary>보더를 열기 시작할 때: 새 구역 자리의 바깥 풍경(언덕 등)을 미리 치우고, 처치 목표를 늘림.</summary>
@@ -158,9 +257,10 @@ public class StageDirector : Singleton<StageDirector>
         if (!PortalOpen && (spawnTimer -= dt) <= 0f)
         {
             spawnTimer = spawnInterval;
-            for (int i = 0; i < spawnBatch && Enemy.Active.Count < cfg.stage.maxAlive; i++) SpawnEnemy();
+            for (int i = 0; i < spawnBatch && Enemy.Active.Count < maxAlive; i++) SpawnEnemy();
         }
 
+        TickTimeLimit(dt);
         if (hazards) TickHazards(dt);
         Enemy.TickAll(dt);
         Projectile.TickAll(dt);
@@ -184,7 +284,10 @@ public class StageDirector : Singleton<StageDirector>
             var pos = Arena.Clamp(wide ? Arena.RandomPoint(0.95f) : new Vector3(p.x + d.x, 0f, p.z + d.y), 1.5f); // 경계(보더) 밖에는 생성하지 않음
             if ((pos - p).sqrMagnitude < 64f || (pos - pp).sqrMagnitude < 64f) continue; // 근처 스폰 방지
             int k = PickEnemyType();
-            enemyPools[k].Get(pos, Quaternion.identity).Init(enemyHp, enemySpeed, enemyDamage, enemyDefs[k]);
+            pos.y = Ground.HeightAt(pos);
+            var e = enemyPools[k].Get(pos, Quaternion.identity);
+            e.Init(enemyHp, enemySpeed, enemyDamage, enemyDefs[k]);
+            if (eliteChance > 0f && Random.value < eliteChance) e.MakeElite(eliteHpMul, cfg.stage.eliteDamageMul, cfg.stage.eliteScale);
             return;
         }
     }
@@ -213,17 +316,23 @@ public class StageDirector : Singleton<StageDirector>
         return enemyDefs.Count - 1;
     }
 
-    public void OnEnemyKilled(Vector3 pos)
+    public void OnEnemyKilled(Vector3 pos, bool elite = false)
     {
         Kills++;
         gems.Get(pos, Quaternion.Euler(45f, 0f, 45f));
+        if (elite)
+            for (int i = 1; i < cfg.stage.eliteGems; i++)
+            {
+                Vector2 o = Random.insideUnitCircle * 1.5f;
+                gems.Get(Ground.Snap(pos + new Vector3(o.x, 0f, o.y)), Quaternion.Euler(45f, 0f, 45f));
+            }
         // 이 맵의 자원을 가끔 떨어뜨림
-        if (resourcePickups != null && Theme && Theme.resource != ResourceType.None && Random.value < cfg.meta.resourceDropChance)
+        if (resourcePickups != null && Theme && Theme.resource != ResourceType.None && Random.value < cfg.meta.resourceDropChance * resourceDropMul * (elite ? 3f : 1f))
         {
             var def = cfg.meta.Resource(Theme.resource);
             resourcePickups.Get(pos + Vector3.up * 0.1f, Quaternion.identity).Init(Theme.resource, def != null ? def.color : Color.white);
         }
-        if (!PortalOpen && Kills >= KillTarget) OpenPortal();
+        if (!PortalOpen && !Expandable && Kills >= KillTarget) OpenPortal(); // 심연은 포털 없음
     }
 
     void OpenPortal()
@@ -232,26 +341,41 @@ public class StageDirector : Singleton<StageDirector>
         Vector3 at = PortalSpot();
         portal = Instantiate(cfg.stage.portalPrefab, at, Quaternion.identity, transform).transform;
         Vfx.Pillar(at, new Color(0.6f, 0.4f, 1f));
-        // 생명체가 포털에 도착하면 다음 스테이지 (Ward 참고)
+        // 남은 적은 플레이어에게서 도망치고 무적 (Enemy.Routed). 생명체가 포털에 도착하면 다음 스테이지 (Ward 참고)
+        Enemy.Routed = true;
+        Enemy.RoutSpeedMul = cfg.stage.routSpeedMul;
+        foreach (var e in Enemy.Active) e.OnRouted();
     }
 
-    /// <summary>포털 위치: 보더를 한 번이라도 열었으면 활성 보더 안의 임의 지점 (생명체에서 어느 정도 떨어진 곳), 아니면 중앙.</summary>
+    /// <summary>
+    /// 포털 위치: 경계 안 임의의 이동 가능한 지면 (길찾기 격자에서 막히지 않은 칸, 바닥 피해 구역 제외).
+    /// 생명체/플레이어에서 portalMinDistance 이상 떨어진 곳을 우선 (못 찾으면 가장 먼 후보).
+    /// </summary>
     Vector3 PortalSpot()
     {
-        var border = generator.Border;
-        if (!border || border.OpenCount == 0) return Vector3.zero;
         Vector3 w = Ward.I != null ? Ward.I.Position : Vector3.zero;
+        Vector3 pp = PlayerController.I ? PlayerController.I.Position : w;
+        float min = Mathf.Min(cfg.stage.portalMinDistance, ArenaRadius * 0.9f);
         Vector3 best = Vector3.zero; float bestSq = -1f;
-        for (int i = 0; i < 12; i++)
+        for (int i = 0; i < 40; i++)
         {
             var p = Arena.RandomPoint(0.8f);
             if (Nav != null) p = Nav.NearestFree(p);
-            p.y = 0f;
-            float sq = (p - w).sqrMagnitude;
-            if (sq >= 25f * 25f) return p;
+            if (!Arena.Contains(p, 3f) || InDamageZone(p)) continue;
+            p = Ground.Snap(p);
+            float sq = Mathf.Min(Flat(p - w).sqrMagnitude, Flat(p - pp).sqrMagnitude);
+            if (sq >= min * min) return p;
             if (sq > bestSq) { bestSq = sq; best = p; }
         }
-        return best;
+        return bestSq >= 0f ? best : Ground.Snap(Vector3.zero);
+    }
+
+    static Vector3 Flat(Vector3 v) { v.y = 0f; return v; }
+
+    static bool InDamageZone(Vector3 p)
+    {
+        foreach (var z in StageZone.All) if (z.type == ZoneType.Damage && z.Contains(p)) return true;
+        return false;
     }
 
     /// <summary>난이도 디버프: 플레이어 주변에 예고 후 폭발하는 위험 장판.</summary>
@@ -262,10 +386,10 @@ public class StageDirector : Singleton<StageDirector>
             hazardTimer = cfg.stage.hazardInterval;
             Vector2 o = Random.insideUnitCircle * 5f;
             Vector3 center = Ward.I != null ? Ward.I.Position : PlayerController.I.Position;
-            var p = Arena.Clamp(center + new Vector3(o.x, 0f, o.y)); p.y = 0f;
+            var p = Ground.Snap(Arena.Clamp(center + new Vector3(o.x, 0f, o.y)));
             float d = cfg.stage.hazardRadius * 2f;
             SpawnFx(p + Vector3.up * 0.02f, new Vector3(d, 0.02f, d), new Vector3(d, 0.02f, d), cfg.stage.hazardDelay, new Color(0.6f, 0f, 0.4f));
-            pendingHazards.Add(new Vector4(p.x, 0f, p.z, cfg.stage.hazardDelay));
+            pendingHazards.Add(new Vector4(p.x, p.y, p.z, cfg.stage.hazardDelay));
         }
         Vector3 pp = Ward.I != null ? Ward.I.Position : PlayerController.I.Position;
         for (int i = pendingHazards.Count - 1; i >= 0; i--)
@@ -279,8 +403,8 @@ public class StageDirector : Singleton<StageDirector>
                 if (Ward.I != null) Ward.I.TakeDamage(cfg.stage.hazardDamage);
                 else PlayerController.I.TakeDamage(cfg.stage.hazardDamage);
             }
-            SpawnFx(new Vector3(h.x, 1.5f, h.z), new Vector3(1f, 1.5f, 1f), new Vector3(cfg.stage.hazardRadius * 2f, 0.1f, cfg.stage.hazardRadius * 2f), 0.2f, new Color(1f, 0.2f, 0.6f));
-            Vfx.Explosion(new Vector3(h.x, 0f, h.z), cfg.stage.hazardRadius, new Color(1f, 0.2f, 0.6f));
+            SpawnFx(new Vector3(h.x, h.y + 1.5f, h.z), new Vector3(1f, 1.5f, 1f), new Vector3(cfg.stage.hazardRadius * 2f, 0.1f, cfg.stage.hazardRadius * 2f), 0.2f, new Color(1f, 0.2f, 0.6f));
+            Vfx.Explosion(new Vector3(h.x, h.y, h.z), cfg.stage.hazardRadius, new Color(1f, 0.2f, 0.6f));
             pendingHazards.RemoveAt(i);
         }
     }
@@ -305,6 +429,7 @@ public class StageDirector : Singleton<StageDirector>
     /// <summary>범위 내 적을 중심에서 방사형으로 밀거나(speed &gt; 0) 끌어당김(speed &lt; 0).</summary>
     public void RadialForce(Vector3 center, float radius, float speed, float dmg)
     {
+        center.y = Ground.HeightAt(center) + 0.4f; // 언덕 위에서도 지면 기준으로 판정
         int n = Physics.OverlapSphereNonAlloc(center, radius, areaHits, EnemyMask, QueryTriggerInteraction.Collide);
         for (int i = 0; i < n; i++)
         {
@@ -318,6 +443,7 @@ public class StageDirector : Singleton<StageDirector>
     /// <summary>범위 내 적에게 피해 후 지정 속도로 밀어냄.</summary>
     public void PushArea(Vector3 center, float radius, Vector3 velocity, float dmg)
     {
+        center.y = Ground.HeightAt(center) + 0.4f; // 언덕 위에서도 지면 기준으로 판정
         int n = Physics.OverlapSphereNonAlloc(center, radius, areaHits, EnemyMask, QueryTriggerInteraction.Collide);
         for (int i = 0; i < n; i++)
         {
@@ -329,6 +455,7 @@ public class StageDirector : Singleton<StageDirector>
 
     public void DamageArea(Vector3 center, float radius, float dmg)
     {
+        center.y = Ground.HeightAt(center) + 0.4f; // 언덕 위에서도 지면 기준으로 판정
         int n = Physics.OverlapSphereNonAlloc(center, radius, areaHits, EnemyMask, QueryTriggerInteraction.Collide);
         for (int i = 0; i < n; i++)
             if (areaHits[i].TryGetComponent(out Enemy e) && e.isActiveAndEnabled) e.Hit(dmg, center);
@@ -337,6 +464,7 @@ public class StageDirector : Singleton<StageDirector>
     /// <summary>자동 공격 대상: 플레이어 사거리 안에서 생명체에 가장 가까운 적 (디펜스 우선).</summary>
     public Enemy AttackTarget(Vector3 playerPos, float range)
     {
+        if (Enemy.Routed) return null; // 포털이 열리면 남은 적은 무적 (공격하지 않음)
         if (Ward.I == null) return NearestEnemy(playerPos, range);
         Vector3 w = Ward.I.Position;
         Enemy best = null;
@@ -354,12 +482,14 @@ public class StageDirector : Singleton<StageDirector>
 
     public Enemy NearestEnemy(Vector3 p, float range)
     {
+        if (Enemy.Routed) return null; // 포털이 열리면 남은 적은 무적 (공격하지 않음)
         Enemy best = null;
         float bestSq = range * range;
         var list = Enemy.Active;
         for (int i = 0; i < list.Count; i++)
         {
-            float sq = (list[i].transform.position - p).sqrMagnitude;
+            Vector3 d = list[i].transform.position - p; d.y = 0f; // 고저차가 있어도 수평 거리로
+            float sq = d.sqrMagnitude;
             if (sq < bestSq) { bestSq = sq; best = list[i]; }
         }
         return best;

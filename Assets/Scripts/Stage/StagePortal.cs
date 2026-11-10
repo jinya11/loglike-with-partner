@@ -2,5 +2,5 @@
 public class StagePortal : Interactable
 {
     public override string Prompt => "[F] 다음 스테이지로 이동";
-    public override void Interact() => GameManager.I.NextStage();
+    public override void Interact() => GameManager.I.RequestNextStage();
 }

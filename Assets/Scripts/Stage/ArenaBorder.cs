@@ -105,6 +105,17 @@ public class ArenaBorder : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// 이번 플레이 동안 중앙 칸 하나로 고정 (보더 확장을 쓰지 않는 스테이지). 저장된 열린 구역은 지우지 않고 무시만 함.
+    /// </summary>
+    public void LockToBase()
+    {
+        persist = false; loaded = true;
+        areas.Clear(); areas.Add(BaseRect);
+        growT = 1f; growIndex = -1;
+        Apply();
+    }
+
     /// <summary>저장된 열린 구역 지우기 (중앙만 남김).</summary>
     [ContextMenu("열린 구역 초기화")]
     public void ResetAreas()

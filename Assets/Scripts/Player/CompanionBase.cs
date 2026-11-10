@@ -22,7 +22,8 @@ public abstract class CompanionBase : MonoBehaviour
 
     /// <summary>현재 스테이지의 감시자 (폭격 스킬이 사용).</summary>
     public static CompanionBase Current { get; private set; }
-    public float BombardRadius => bombardRadius;
+    /// <summary>폭격 반경 (레벨업 폭격 범위 보상 포함, areaMul 제외).</summary>
+    public float BombardRadius => bombardRadius * (GameManager.I ? GameManager.I.Stats.bombardAreaMul : 1f);
 
     void OnDestroy() { if (Current == this) Current = null; }
 
@@ -43,7 +44,7 @@ public abstract class CompanionBase : MonoBehaviour
         head.rotation = Quaternion.Slerp(head.rotation, Quaternion.LookRotation(to), 4f * Time.deltaTime);
 
         var s = GameManager.I.Stats;
-        if ((timer += Time.deltaTime) < s.companionInterval || Enemy.Active.Count == 0) return;
+        if ((timer += Time.deltaTime) < s.companionInterval || Enemy.Active.Count == 0 || Enemy.Routed) return;
         timer = 0f;
         StartCoroutine(Run(s));
     }

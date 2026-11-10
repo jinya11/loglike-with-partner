@@ -28,7 +28,7 @@ public static partial class PrototypeBuilder
         var jumpHint = Txt("JumpHint", t, "[Space] 점프", 22, TextAlignmentOptions.Left, Gold, TL, TL, new Vector2(580, -112), new Vector2(300, 32), TL);
         var bonusBadge = Txt("BonusBadge", t, "보너스 스테이지", 22, TextAlignmentOptions.Left, new Color(1f, 0.7f, 0.85f), TL, TL, new Vector2(460, -20), new Vector2(400, 32), TL);
         jumpHint.gameObject.SetActive(false); bonusBadge.gameObject.SetActive(false);
-        var portal = Txt("PortalMessage", t, "포털이 열렸습니다. 중앙에서 F로 이동하세요", 38, TextAlignmentOptions.Center, Gold, TC, TC, new Vector2(0, -170), new Vector2(1400, 60));
+        var portal = Txt("PortalMessage", t, "포털이 열렸습니다! 남은 적은 도망칩니다 — 생명체를 포털로 데려가세요 (F)", 38, TextAlignmentOptions.Center, Gold, TC, TC, new Vector2(0, -170), new Vector2(1400, 60));
 
         var stagePrompt = Txt("PromptText", t, "", 30, TextAlignmentOptions.Center, Color.white, BC, BC, new Vector2(0, 90), new Vector2(1500, 56));
 

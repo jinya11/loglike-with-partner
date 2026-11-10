@@ -10,14 +10,22 @@ public class Enemy : Ticked<Enemy>
     const float ContactSq = 1f, WardContactSq = 0.75f, ChargeContactSq = 1.2f;
     /// <summary>StageDirector가 설정 (GameConfig.enemyAggroRadius 제곱).</summary>
     public static float AggroSq = 12.25f;
+    /// <summary>포털이 열린 뒤: 남은 적은 플레이어에게서 도망치고 무적 (StageDirector가 설정, 스테이지마다 초기화).</summary>
+    public static bool Routed;
+    public static float RoutSpeedMul = 1.25f;
+    /// <summary>전체 이동속도 배율 (제한 시간 초과 광폭화 등).</summary>
+    public static float SpeedMul = 1f;
+    static readonly Color ImmuneColor = new Color(0.75f, 0.75f, 0.8f);
     [SerializeField] Transform visual;
     Rigidbody rb;
     EnemyDef def;
-    float hp, speed, damage, abilityReadyAt, chargeLeft, punch;
+    float hp, speed, damage, abilityReadyAt, chargeLeft, punch, scaleMul = 1f;
     Vector3 knock, chargeDir, visualScale;
     Color bodyColor = Color.white;
+    bool elite;
 
     public EnemyDef Def => def;
+    public bool Elite => elite;
     Vector3 HitPoint => rb.position + Vector3.up * 0.4f;
 
     void Awake()
@@ -35,13 +43,52 @@ public class Enemy : Ticked<Enemy>
         this.hp = hp * hm; this.speed = speed * sm * Random.Range(0.85f, 1.15f); this.damage = damage * dm;
         knock = Vector3.zero;
         chargeLeft = 0f; punch = 0f;
+        elite = false; scaleMul = 1f;
         visual.localScale = visualScale;
         abilityReadyAt = Time.time + Random.Range(0.5f, 2f); // 동시에 몰려서 쓰지 않도록
         rb.linearVelocity = Vector3.zero;
     }
 
+    /// <summary>엘리트 (스테이지 특징): 체력/피해 증가, 크게.</summary>
+    public void MakeElite(float hpMul, float damageMul, float scale)
+    {
+        elite = true;
+        hp *= hpMul; damage *= damageMul; scaleMul = scale;
+        visual.localScale = visualScale * scale;
+        Vfx.Pillar(rb.position, new Color(1f, 0.75f, 0.25f));
+    }
+
+    /// <summary>포털이 열려 도망치기 시작할 때.</summary>
+    public void OnRouted() { chargeLeft = 0f; }
+
+    /// <summary>지면 높이 따라가기 (고저차). Y 위치는 물리 대신 직접 맞춤 (Rigidbody Y 고정 유지).</summary>
+    void FollowGround()
+    {
+        if (!Ground.HasHills) return;
+        Vector3 p = rb.position;
+        float gy = Ground.HeightAt(p.x, p.z);
+        if (Mathf.Abs(gy - p.y) > 0.005f) { p.y = gy; rb.position = p; transform.position = p; }
+    }
+
+    /// <summary>도망: 플레이어(조준점)에게서 멀어짐. 접촉 피해/능력 없음.</summary>
+    void TickRouted(float dt)
+    {
+        Vector3 pos = rb.position;
+        Vector3 away = pos - PlayerController.I.Position; away.y = 0f;
+        if (away.sqrMagnitude < 0.01f) away = Random.insideUnitSphere;
+        away.y = 0f;
+        // 경계에 몰리면 경계를 따라 미끄러지도록 중심 쪽 성분을 섞음
+        if (Arena.EdgeDistance(pos) < 4f) { Vector3 c = Arena.Center - pos; c.y = 0f; away = away.normalized + c.normalized * 0.8f; }
+        Vector3 dir = away.normalized;
+        rb.linearVelocity = knock + dir * speed * RoutSpeedMul;
+        visual.rotation = Quaternion.LookRotation(dir);
+        knock = Vector3.MoveTowards(knock, Vector3.zero, 30f * dt);
+        FollowGround();
+    }
+
     public override void Tick(float dt)
     {
+        if (Routed) { TickRouted(dt); return; }
         var player = PlayerController.I;
         var ward = Ward.I;
         Vector3 pos = rb.position;
@@ -50,13 +97,13 @@ public class Enemy : Ticked<Enemy>
         float sq = to.sqrMagnitude;
         if (!player.Formless && sq < ContactSq && !player.Airborne) player.TakeDamage(damage);
 
-        float moveSpeed = speed;
+        float moveSpeed = speed * SpeedMul;
         if (ward != null && ward.Alive)
         {
             Vector3 tw = ward.Position - pos; tw.y = 0f;
             float wsq = tw.sqrMagnitude;
             if (player.Formless || sq > AggroSq) { to = tw; sq = wsq; } // 생명체를 노림
-            moveSpeed = UseAbility(ward, tw, wsq, dt);
+            moveSpeed = UseAbility(ward, tw, wsq, dt) * SpeedMul;
             if (wsq < WardContactSq)
             {
                 ward.TakeDamage(damage);
@@ -77,8 +124,9 @@ public class Enemy : Ticked<Enemy>
         if (punch > 0f) // 피격 시 부풀었다 돌아옴
         {
             punch = Mathf.Max(0f, punch - dt);
-            visual.localScale = visualScale * (1f + punch * 2.5f);
+            visual.localScale = visualScale * (scaleMul * (1f + punch * 2.5f));
         }
+        FollowGround();
     }
 
     /// <summary>종류별 능력. 이번 프레임 이동 속도를 반환.</summary>
@@ -139,6 +187,7 @@ public class Enemy : Ticked<Enemy>
 
     public void Hit(float dmg, Vector3 from)
     {
+        if (Routed) { Vfx.Hit(HitPoint, ImmuneColor); return; } // 포털이 열린 뒤에는 처치 불가
         hp -= dmg;
         Vector3 k = rb.position - from; k.y = 0f;
         knock = k.normalized * 8f;
@@ -146,7 +195,7 @@ public class Enemy : Ticked<Enemy>
         if (hp <= 0f)
         {
             Vfx.Death(rb.position, bodyColor);
-            StageDirector.I.OnEnemyKilled(rb.position);
+            StageDirector.I.OnEnemyKilled(rb.position, elite);
             Despawn();
         }
         else Vfx.Hit(HitPoint, bodyColor);

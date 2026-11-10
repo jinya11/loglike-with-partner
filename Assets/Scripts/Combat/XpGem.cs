@@ -24,6 +24,6 @@ public class XpGem : Ticked<XpGem>
             Despawn();
             return;
         }
-        transform.position = pos + to * (16f * dt / Mathf.Sqrt(sq));
+        transform.position = Ground.Snap(pos + to * (16f * dt / Mathf.Sqrt(sq)));
     }
 }

@@ -44,7 +44,7 @@ public sealed class GridNav
             for (int x = 0; x < size; x++)
             {
                 int i = z * size + x;
-                Vector3 c = Center(i);
+                Vector3 c = Center(i); c.y = Ground.HeightAt(c); // 고저차: 지면 높이 기준으로 장애물 검사
                 blocked[i] = (square ? !Arena.Contains(c, clearance + 0.3f) : c.x * c.x + c.z * c.z > inner * inner)
                     || Physics.CheckCapsule(c + Vector3.up * 0.3f, c + Vector3.up * 1.2f, clearance, obstacleMask, QueryTriggerInteraction.Ignore);
             }
@@ -54,6 +54,11 @@ public sealed class GridNav
             for (int i = 0; i < count; i++)
                 if (!blocked[i] && zone.Contains(Center(i)))
                     staticCost[i] += zone.type == ZoneType.Damage ? 25f : zone.type == ZoneType.Heal ? 0f : 1.5f;
+
+        // 경사 비용: 언덕을 오르내리는 길은 약간 돌아가도 평지를 선호 (완전히 막지는 않음)
+        if (Ground.HasHills)
+            for (int i = 0; i < count; i++)
+                if (!blocked[i]) { Vector3 c = Center(i); staticCost[i] += Ground.Slope(c.x, c.z) * 1.5f; }
     }
 
     bool Free(int i) => !blocked[i];

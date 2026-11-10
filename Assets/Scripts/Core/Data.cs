@@ -6,7 +6,8 @@ public enum StatType
     Damage, MoveSpeed, AttackSpeed, MaxHp, Pickup, Cooldown, Heal,
     ProjectileCount, Area, CompanionDamage, CompanionRate, CompanionStrikes, Jump,
     WardMaxHp, WardHeal, WardPulseDamage, WardPulseRate,
-    AttackRange, ProjectileSpeed, WardRegen, WardSpeed
+    AttackRange, ProjectileSpeed, WardRegen, WardSpeed,
+    BombardArea // 폭격 범위 배율 +value (레벨업 자동 보상)
 }
 
 /// <summary>레벨업 순환: 1번째 탄환 → 2번째 생명체 생존력 → 3번째 동반자.</summary>
@@ -38,6 +39,7 @@ public class PlayerStats
     [HideInInspector] public float wardPulseDamage = 3f, wardPulseRadius = 2.2f, wardPulseInterval = 6f;
     [HideInInspector] public float companionDamage = 15f, companionInterval = 6f, companionRadius = 3f;
     [HideInInspector] public int companionStrikes = 1;
+    [Tooltip("폭격(R) 범위 배율 (레벨업 자동 보상으로 성장)")] public float bombardAreaMul = 1f;
 
     [NonSerialized] public float hp, wardHp;
     [NonSerialized] public int level = 1, xp;
@@ -75,6 +77,7 @@ public class PlayerStats
             case StatType.ProjectileSpeed: projectileSpeed += v; break;
             case StatType.WardRegen: wardRegen += v; break;
             case StatType.WardSpeed: wardSpeed += v; break;
+            case StatType.BombardArea: bombardAreaMul += v; break;
         }
     }
 }
@@ -180,4 +183,50 @@ public class PresetEntry
     [Tooltip("다른 배치물과의 최소 간격")] public float spacing = 3f;
     public Vector2 scaleRange = Vector2.one;
     public bool randomRotation = true;
+}
+
+/// <summary>레벨업 자동 보상 하나 (증강 선택 대신 레벨업마다 랜덤 획득). PlayerConfig.autoRewards.</summary>
+[Serializable]
+public class LevelRewardDef
+{
+    public string name;
+    [Tooltip("획득 알림 문구 (예: 공격력 +1.5)")] public string desc;
+    public StatType stat;
+    public float value;
+    [Tooltip("등장 가중치")] public float weight = 1f;
+    [Tooltip("최대 획득 횟수 (0 = 무제한)")] public int maxStacks;
+    [Tooltip("하단 아이콘 색")] public Color color = Color.white;
+
+    public LevelRewardDef() { }
+    public LevelRewardDef(string name, string desc, StatType stat, float value, float weight, Color color, int maxStacks = 0)
+    { this.name = name; this.desc = desc; this.stat = stat; this.value = value; this.weight = weight; this.color = color; this.maxStacks = maxStacks; }
+}
+
+/// <summary>다음 스테이지 특징 종류 (심연 외 스테이지, 포털 진입 전 카드로 선택).</summary>
+public enum StageTraitType
+{
+    [Tooltip("적 밀도 ×(1+value), 경험치 ×(1+value2)")] Horde,
+    [Tooltip("엘리트 출현 확률 value, 엘리트 체력 배율 value2")] Elite,
+    [Tooltip("언덕 수 ×value, 높이 ×value2")] Highlands,
+    [Tooltip("독 웅덩이 value개 (초당 피해 value2) + 위험 장판")] Toxic,
+    [Tooltip("자원 드롭 확률 ×value")] Riches,
+    [Tooltip("제한 시간 value초, 시간 안에는 경험치 ×value2, 넘으면 적 광폭화")] TimeLimit,
+    [Tooltip("적 이동속도 +value(비율), 경험치 +value2(비율)")] Swift,
+    [Tooltip("회복 샘 value개 (초당 회복 value2)")] Sanctuary,
+}
+
+/// <summary>다음 스테이지 특징 하나 (카드). StageConfig.stageTraits.</summary>
+[Serializable]
+public class StageTraitDef
+{
+    public string name;
+    [TextArea(1, 3)] public string desc;
+    public StageTraitType type;
+    public float value, value2;
+    [Tooltip("선택지 등장 가중치")] public float weight = 1f;
+    public Color color = Color.white;
+
+    public StageTraitDef() { }
+    public StageTraitDef(string name, string desc, StageTraitType type, float value, float value2, Color color, float weight = 1f)
+    { this.name = name; this.desc = desc; this.type = type; this.value = value; this.value2 = value2; this.color = color; this.weight = weight; }
 }

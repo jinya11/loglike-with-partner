@@ -53,7 +53,7 @@ public class WindCompanion : CompanionBase
     protected override IEnumerator Bombard(Vector3 target, PlayerStats s)
     {
         var stage = StageDirector.I;
-        float R = bombardRadius * s.areaMul, D = R * 2f;
+        float R = bombardRadius * s.areaMul * s.bombardAreaMul, D = R * 2f;
         var tick = new WaitForSeconds(0.25f);
         stage.SpawnFx(target + Vector3.up * 0.03f, new Vector3(D, 0.02f, D), new Vector3(D * 0.9f, 0.02f, D * 0.9f), 0.6f, Warn);
         yield return new WaitForSeconds(0.6f);

@@ -43,7 +43,7 @@ public class Companion : CompanionBase
     protected override IEnumerator Bombard(Vector3 target, PlayerStats s)
     {
         var stage = StageDirector.I;
-        float R = bombardRadius * s.areaMul, D = R * 2f;
+        float R = bombardRadius * s.areaMul * s.bombardAreaMul, D = R * 2f;
         stage.SpawnFx(target + Vector3.up * 0.03f, new Vector3(D, 0.02f, D), new Vector3(D * 0.9f, 0.02f, D * 0.9f), 1f, Telegraph);
         yield return new WaitForSeconds(1f);
 
@@ -52,7 +52,7 @@ public class Companion : CompanionBase
         for (int i = 0; i < 12; i++)
         {
             Vector2 o = Random.insideUnitCircle * R;
-            Vector3 p = target + new Vector3(o.x, 0f, o.y);
+            Vector3 p = Ground.Snap(target + new Vector3(o.x, 0f, o.y));
             stage.DamageArea(p, r, s.companionDamage * 1.5f);
             stage.SpawnFx(p + Vector3.up * 8f, new Vector3(r * 0.4f, 8f, r * 0.4f), new Vector3(0.05f, 8f, 0.05f), 0.18f, Strike);
             stage.SpawnFx(p + Vector3.up * 0.04f, new Vector3(d, 0.02f, d), new Vector3(d * 1.3f, 0.02f, d * 1.3f), 0.2f, Strike);

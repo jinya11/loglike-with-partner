@@ -126,7 +126,8 @@ public class PlayerController : Singleton<PlayerController>
         for (int i = 0; i <= LeashSeg; i++)
         {
             float a = i * (Mathf.PI * 2f / LeashSeg);
-            leashBuf[i] = new Vector3(c.x + Mathf.Cos(a) * r, 0.08f, c.z + Mathf.Sin(a) * r);
+            float lx = c.x + Mathf.Cos(a) * r, lz = c.z + Mathf.Sin(a) * r;
+            leashBuf[i] = new Vector3(lx, Ground.HeightAt(lx, lz) + 0.08f, lz);
         }
         leashRing.SetPositions(leashBuf);
         Color col = pc.leashColor; col.a *= k; // 한계에 가까울수록 진하게
@@ -169,7 +170,7 @@ public class PlayerController : Singleton<PlayerController>
         if (ward != null && ward.Order == Ward.Command.Auto && ward.Controls == Ward.Control.CreatureOnly) move = Vector3.zero;
         // 지형/적과 충돌 없이 전장 위를 떠다님. 고리 연결 중엔 생명체에서 일정 거리 이상은 못 감 (생명체가 움직이면 같이 끌려감)
         Vector3 p = Arena.Clamp(transform.position + move * (stats.moveSpeed * presenceSpeedMul * dt));
-        transform.position = ward == null || ward.Order == Ward.Command.Linked ? Leash(p) : p;
+        transform.position = Ground.Snap(ward == null || ward.Order == Ward.Command.Linked ? Leash(p) : p); // 고저차: 지면 높이를 따라 떠다님
         if (ward == null || ward.Order != Ward.Command.Linked) ShowLeash(false, Vector3.zero, 0f, 0f, null);
         if (kb == null) return;
         if (kb.qKey.wasPressedThisFrame && Time.time >= qReady) CastQ();
@@ -204,7 +205,7 @@ public class PlayerController : Singleton<PlayerController>
         // 생명체에서 너무 멀어지지 않게
         Vector3 off = p - w; off.y = 0f;
         if (off.magnitude > W.autoStayNearWard + W.autoPickupRadius) p = w + off.normalized * (W.autoStayNearWard + W.autoPickupRadius);
-        transform.position = Arena.Clamp(p);
+        transform.position = Ground.Snap(Arena.Clamp(p));
         ShowLeash(false, Vector3.zero, 0f, 0f, null);
 
         // 스킬 자동 사용
@@ -279,7 +280,7 @@ public class PlayerController : Singleton<PlayerController>
     {
         qReady = Time.time + qCooldown * stats.cooldownMul;
         float r = qRadius * stats.areaMul;
-        Vector3 p = transform.position; p.y = 0f;
+        Vector3 p = Ground.Snap(transform.position);
         stage.DamageArea(p, r, stats.damage * qDamageMul);
         stage.SpawnFx(p + Vector3.up * 0.05f, new Vector3(0.5f, 0.02f, 0.5f), new Vector3(r * 2f, 0.02f, r * 2f), 0.25f, QColor);
         Vfx.Nova(p, r, QColor);
