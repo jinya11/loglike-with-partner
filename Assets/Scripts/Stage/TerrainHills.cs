@@ -75,5 +75,8 @@ public class GroundSettings
     [Header("바닥 장판 (독 웅덩이/용암/물/진흙 등)")]
     [Tooltip("장판은 평지에만: 장판 범위 안 높이 편차가 이 값(m) 이하")] public float zoneFlatTolerance = 0.2f;
     [Tooltip("장판은 평지에만: 경사가 이 각도(도) 이하")] [Range(0, 45)] public float zoneMaxSlope = 6f;
+    [Header("장애물/소품 (바위, 나무, 선인장 등)")]
+    [Tooltip("소품 발자국 아래 지면 높이 차가 이보다 크면 배치 안 함 (경사에 크게 파묻히지 않게). 소품은 발자국 최저 지면에 앉아 뜨는 귀퉁이가 없음")]
+    public float propMaxUnevenness = 0.8f;
     [Tooltip("언덕 생성 설정 (에디터 메뉴 기본 지형 + 런타임 랜덤 생성)")] public TerrainHillSettings hills = new TerrainHillSettings();
 }

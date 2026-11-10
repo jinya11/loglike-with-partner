@@ -165,18 +165,49 @@ public class StageDirector : Singleton<StageDirector>
         if ((d = Get(StageTraitType.Sanctuary)) != null) SpawnPools(Mathf.RoundToInt(d.value), ZoneType.Heal, d.value2, new Color(0.4f, 1f, 0.7f), "Trait_HealSpring");
         if ((d = Get(StageTraitType.Mire)) != null) SpawnPools(Mathf.RoundToInt(d.value), ZoneType.Slow, d.value2, new Color(0.45f, 0.32f, 0.2f), "Trait_Mire");
         if (!Ground.HasTerrain) return;
-        LiftToGround(generator.transform);
-        LiftToGround(transform);
+        SettleProps(transform); // 생성기(StageGenerator)도 이 오브젝트에 있음 → 한 번만
+        var outside = GameObject.Find("Arena/Outside"); // 보더 밖 풍경도 지형 위에 (치우지는 않음)
+        if (outside) SettleProps(outside.transform, false);
     }
 
-    /// <summary>자식 배치물을 지형 높이로 올림 (장애물/장판이 언덕에 묻히지 않게).</summary>
-    static void LiftToGround(Transform root)
+    /// <summary>
+    /// 배치물(장애물/소품/장판)을 땅에 맞춤 — 각 오브젝트가 자기 발밑 지면을 감지:
+    /// 렌더러 발자국의 네 귀퉁이 + 변 중점 + 중심 지면 높이를 재서 가장 낮은 곳에 앉힘 (어느 귀퉁이도 뜨지 않음).
+    /// 발자국 아래 높이 차가 propMaxUnevenness를 넘으면 경사에 크게 파묻히므로 치움. 바닥 장판은 평지가 아니면 치움.
+    /// (생성기와 StageDirector가 같은 오브젝트에 있으므로 한 번만 호출)
+    /// </summary>
+    void SettleProps(Transform root, bool removeUneven = true)
     {
+        var g = cfg.stage.ground;
         foreach (Transform t in root)
         {
-            var p = t.position;
-            p.y += Ground.HeightAt(p.x, p.z);
-            t.position = p;
+            if (!t.gameObject.activeSelf) continue;
+            var zone = t.GetComponentInChildren<StageZone>();
+            if (zone)
+            {
+                var s = zone.transform.lossyScale;
+                float r = Mathf.Max(s.x, s.z) * 0.5f * (zone.box ? 1.42f : 1f); // 상자는 대각선까지
+                if (r <= 20f && !Ground.IsFlat(t.position, r + 0.3f, g.zoneFlatTolerance * 1.25f, g.zoneMaxSlope + 2f)) { t.gameObject.SetActive(false); continue; }
+                var zp = t.position; zp.y += Ground.HeightAt(zp.x, zp.z); t.position = zp;
+                continue;
+            }
+            var rs = t.GetComponentsInChildren<Renderer>();
+            if (rs.Length == 0) continue;
+            var b = rs[0].bounds;
+            for (int i = 1; i < rs.Length; i++) b.Encapsulate(rs[i].bounds);
+            // 발자국 (조금 안쪽): 3x3 표본
+            float hx = b.extents.x * 0.85f, hz = b.extents.z * 0.85f;
+            float min = float.MaxValue, max = float.MinValue;
+            for (int iz = -1; iz <= 1; iz++)
+                for (int ix = -1; ix <= 1; ix++)
+                {
+                    float h = Ground.HeightAt(b.center.x + ix * hx, b.center.z + iz * hz);
+                    if (h < min) min = h;
+                    if (h > max) max = h;
+                }
+            if (removeUneven && max - min > g.propMaxUnevenness) { t.gameObject.SetActive(false); continue; } // 경사가 심하면 지형에 파묻히므로 배치 안 함
+            // 평지(높이 0) 기준으로 만든 프리셋 → 발자국 최저 지면만큼 올림 (원래 의도한 묻힘 정도는 유지)
+            var p = t.position; p.y += min; t.position = p;
         }
     }
 
@@ -523,7 +554,7 @@ public class StageDirector : Singleton<StageDirector>
         {
             var p = Arena.RandomPoint(0.8f);
             if (Nav != null) p = Nav.NearestFree(p);
-            if (!Arena.Contains(p, 3f) || InDamageZone(p)) continue;
+            if (!Arena.Contains(p, 3f) || InDamageZone(p) || !Ground.IsFlat(p, 1.6f, 0.35f, 18f)) continue; // 포털 발밑이 평평한 곳 (뜨거나 묻히지 않게)
             p = Ground.Snap(p);
             float sq = Mathf.Min(Flat(p - w).sqrMagnitude, Flat(p - pp).sqrMagnitude);
             if (sq >= min * min) return p;

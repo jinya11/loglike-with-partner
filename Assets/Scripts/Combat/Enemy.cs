@@ -72,6 +72,16 @@ public class Enemy : Ticked<Enemy>
     /// <summary>포털이 열려 도망치기 시작할 때.</summary>
     public void OnRouted() { chargeLeft = 0f; }
 
+    /// <summary>바라볼 방향 + 지면 경사에 맞춰 기울임 (경사에서 한쪽이 뜨지 않게). 최대 35도.</summary>
+    Quaternion Face(Vector3 dir)
+    {
+        var look = Quaternion.LookRotation(dir);
+        if (!Ground.HasTerrain) return look;
+        Vector3 n = Ground.NormalAt(rb.position.x, rb.position.z);
+        var tilt = Quaternion.FromToRotation(Vector3.up, n);
+        return Quaternion.Slerp(Quaternion.identity, tilt, Mathf.Min(1f, 35f / Mathf.Max(35f, Vector3.Angle(Vector3.up, n)))) * look;
+    }
+
     /// <summary>크기 배율 (거대화 변이).</summary>
     public void SetScale(float scale) { scaleMul = scale; visual.localScale = visualScale * scale; }
 
@@ -101,7 +111,7 @@ public class Enemy : Ticked<Enemy>
         if (Arena.EdgeDistance(pos) < 4f) { Vector3 c = Arena.Center - pos; c.y = 0f; away = away.normalized + c.normalized * 0.8f; }
         Vector3 dir = away.normalized;
         rb.linearVelocity = Climb(pos, knock + dir * speed, dt);
-        visual.rotation = Quaternion.LookRotation(dir);
+        visual.rotation = Face(dir);
         knock = Vector3.MoveTowards(knock, Vector3.zero, 30f * dt);
         FollowGround();
     }
@@ -139,7 +149,7 @@ public class Enemy : Ticked<Enemy>
         if (Arena.EdgeDistance(pos) < 4f) { Vector3 c = Arena.Center - pos; c.y = 0f; away = away.normalized + c.normalized * 0.8f; }
         Vector3 dir = away.normalized;
         rb.linearVelocity = Climb(pos, knock + dir * speed * RoutSpeedMul, dt);
-        visual.rotation = Quaternion.LookRotation(dir);
+        visual.rotation = Face(dir);
         knock = Vector3.MoveTowards(knock, Vector3.zero, 30f * dt);
         FollowGround();
     }
@@ -179,7 +189,7 @@ public class Enemy : Ticked<Enemy>
             // 지형: 가파른 비탈을 돌아가도록 흐름장을 따라감 (가까우면 직진)
             if (Ground.HasTerrain && sq > 9f && StageDirector.I.Nav != null && StageDirector.I.Nav.FlowDir(pos, out var fd)) dir = fd;
             v += dir * moveSpeed;
-            visual.rotation = Quaternion.LookRotation(dir);
+            visual.rotation = Face(dir);
         }
         rb.linearVelocity = Climb(pos, v, dt);
         knock = Vector3.MoveTowards(knock, Vector3.zero, 30f * dt);
@@ -215,7 +225,7 @@ public class Enemy : Ticked<Enemy>
                     abilityReadyAt = Time.time + def.abilityCooldown;
                     chargeLeft = def.abilityDuration;
                     chargeDir = toWard.normalized;
-                    visual.rotation = Quaternion.LookRotation(chargeDir);
+                    visual.rotation = Face(chargeDir);
                     Vfx.Hit(HitPoint, new Color(1f, 0.6f, 0.2f)); // 돌진 개시 신호
                 }
                 return chargeLeft > 0f ? speed * 3.5f : speed;

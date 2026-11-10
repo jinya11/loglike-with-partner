@@ -28,6 +28,7 @@ public static class Ground
         origin = t.transform.position;
         size = data.size;
         MaxSlope = Mathf.Clamp(maxSlopeDeg, 5f, 85f);
+        t.heightmapPixelError = 1f; // 렌더된 지형과 계산 높이가 어긋나 멀리 있는 오브젝트가 떠 보이지 않게 (정밀 렌더)
         maxSlopeTan = Mathf.Tan(MaxSlope * Mathf.Deg2Rad);
     }
 
@@ -80,6 +81,15 @@ public static class Ground
 
     /// <summary>XZ는 그대로, Y만 지면 높이 + offset.</summary>
     public static Vector3 Snap(Vector3 p, float offset = 0f) { p.y = HeightAt(p.x, p.z) + offset; return p; }
+
+    /// <summary>지면 법선 (지형 밖/평지는 위쪽).</summary>
+    public static Vector3 NormalAt(float x, float z)
+    {
+        if (!terrain) return Vector3.up;
+        float nx = (x - origin.x) / size.x, nz = (z - origin.z) / size.z;
+        if (nx < 0f || nz < 0f || nx > 1f || nz > 1f) return Vector3.up;
+        return data.GetInterpolatedNormal(nx, nz);
+    }
 
     /// <summary>경사 (도). 지형 밖/평지는 0.</summary>
     public static float SteepnessAt(float x, float z)
