@@ -76,6 +76,8 @@ public class Hud : Singleton<Hud>
     Canvas canvas;
     bool shown = true;
     HudExtras extras;
+    StageDirector lastStage;
+    int lastKillTarget = -1;
 
     protected override void Awake()
     {
@@ -200,9 +202,9 @@ public class Hud : Singleton<Hud>
         float xp = (float)s.xp / gm.XpToNext;
         if (!Mathf.Approximately(xp, lastXp)) { lastXp = xp; SetFill(xpFill, xp); }
 
-        if (s.level != lastLevel || stage.Kills != lastKills)
+        if (s.level != lastLevel || stage.Kills != lastKills || stage != lastStage || stage.KillTarget != lastKillTarget) // 스테이지가 바뀌면 바로 갱신
         {
-            lastLevel = s.level; lastKills = stage.Kills;
+            lastLevel = s.level; lastKills = stage.Kills; lastStage = stage; lastKillTarget = stage.KillTarget;
             infoText.text = UiText.Format(infoFmt, s.level, gm.StageIndex + 1, gm.Config.stage.stageCount,
                 stage.Theme ? stage.Theme.displayName : "", stage.Kills, stage.KillTarget);
             if (bonusBadge) bonusBadge.SetActive(gm.InBonus);

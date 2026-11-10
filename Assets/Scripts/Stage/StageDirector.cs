@@ -89,7 +89,7 @@ public class StageDirector : Singleton<StageDirector>
 
         int s = gm.StageIndex;
         spawnInterval = Mathf.Max(cfg.stage.minSpawnInterval, cfg.stage.spawnInterval + cfg.stage.spawnIntervalPerStage * s);
-        enemyHp = (cfg.enemy.enemyHp + cfg.enemy.enemyHpPerStage * s) * (1f + gm.ModValue(ModifierType.EnemyHp));
+        enemyHp = (cfg.enemy.enemyHp + cfg.enemy.enemyHpPerStage * s) * cfg.enemy.HpStageMul(s) * (1f + gm.ModValue(ModifierType.EnemyHp)); // 스테이지가 높을수록 체력 증가
         enemySpeed = (cfg.enemy.enemySpeed + cfg.enemy.enemySpeedPerStage * s) * (1f + gm.ModValue(ModifierType.EnemySpeed));
         enemyDamage = cfg.enemy.enemyDamage * (1f + gm.ModValue(ModifierType.EnemyDamage));
         spawnBatch = cfg.stage.spawnBatch + (int)gm.ModValue(ModifierType.MoreEnemies);
