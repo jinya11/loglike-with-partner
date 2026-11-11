@@ -202,7 +202,7 @@ public static partial class PrototypeBuilder
         PB(ShapeGenerator.GenerateCylinder(PivotLocation.Center, 64, outer, 0.5f, 0), "Floor", arena, new Vector3(0, -0.25f, 0), Mat("Floor_" + t.scene, t.floor), false);
         PB(ShapeGenerator.GeneratePipe(PivotLocation.Center, outer, WallHeight, WallThickness, 64, 0), "Wall", arena, new Vector3(0, WallHeight * 0.5f, 0), Mat("Wall_" + t.scene, t.wall), true);
 
-        var layout = Asset<StageLayout>($"{Root}/Data/Layout_{t.scene}.asset");
+        var layout = Asset<StageLayout>($"{Root}/Resources/Data/Layout_{t.scene}.asset");
         layout.entries = t.entries;
         layout.centerSafeRadius = t.centerSafe;
         EditorUtility.SetDirty(layout);

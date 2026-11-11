@@ -361,7 +361,7 @@ public static partial class PrototypeBuilder
             }
         }
 
-        var layout = Asset<StageLayout>($"{Root}/Data/Layout_Region_{t.id}.asset");
+        var layout = Asset<StageLayout>($"{Root}/Resources/Data/Layout_Region_{t.id}.asset"); // 사용자가 폴더 정리로 옮긴 위치
         layout.entries = t.entries;
         layout.centerSafeRadius = t.centerSafe;
         EditorUtility.SetDirty(layout);

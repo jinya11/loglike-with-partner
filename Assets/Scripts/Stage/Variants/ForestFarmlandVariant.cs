@@ -23,7 +23,9 @@ public class ForestFarmlandVariant : MonoBehaviour
     float[] heights, yaws, sizes;
     bool[] alive, gold;
     int gridW, gridH;
-    float cell;
+    float cellX, cellZ; // 줄 안 포기 간격 / 줄 간격
+
+    static float Hash01(int n) { unchecked { n = (n << 13) ^ n; return ((n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) / 2147483647f; } }
     Vector2 gridOrigin;
     // 재질별 인스턴스 묶음 (0 = 황금, 1 = 연두)
     readonly RenderParams[] rps = new RenderParams[2];
@@ -77,7 +79,7 @@ public class ForestFarmlandVariant : MonoBehaviour
     }
 
     /// <summary>
-    /// 논 바닥: 벼 사이로 보이는 땅을 벼 색(어두운 황금빛)으로 칠함. 런타임 지형 복제본의 레이어만 바꿈
+    /// 논 바닥: 줄 사이로 보이는 땅을 물 댄 논(짙은 물빛, 약한 반사)으로 칠함. 런타임 지형 복제본의 레이어만 바꿈
     /// (자연 농지는 지형을 평평하게 만들 때 이미 복제본을 씀 → 원본 TerrainData/레이어 에셋은 그대로).
     /// </summary>
     void PaintPaddyGround()
@@ -89,11 +91,11 @@ public class ForestFarmlandVariant : MonoBehaviour
         for (int y = 0; y < 64; y++)
             for (int x = 0; x < 64; x++)
             {
-                float n = (Mathf.PerlinNoise(x * 0.2f, y * 0.2f) - 0.5f) * 0.35f + (Random.value - 0.5f) * 0.15f;
+                float n = (Mathf.PerlinNoise(x * 0.12f, y * 0.12f) - 0.5f) * 0.2f; // 물빛이라 얼룩은 약하게
                 tex.SetPixel(x, y, new Color(c.r * (1f + n), c.g * (1f + n), c.b * (1f + n), 1f));
             }
         tex.Apply(true);
-        var layer = new TerrainLayer { diffuseTexture = tex, tileSize = new Vector2(3f, 3f), smoothness = 0.05f };
+        var layer = new TerrainLayer { diffuseTexture = tex, tileSize = new Vector2(3f, 3f), smoothness = s.paddyWaterSmoothness }; // 물 댄 논: 약한 반사
         var td = t.terrainData;
         int count = Mathf.Max(1, td.alphamapLayers);
         var layers = new TerrainLayer[count];
@@ -101,23 +103,24 @@ public class ForestFarmlandVariant : MonoBehaviour
         td.terrainLayers = layers;
     }
 
-    // ---- 벼 심기 (빈틈 없이 촘촘하게) ----
+    // ---- 벼 심기 (모내기 논처럼 곧은 줄로 가지런히) ----
     void PlantRice()
     {
         Rect b = Arena.Bounds;
-        cell = Mathf.Max(0.3f, s.clumpSize * s.overlap);
+        cellX = Mathf.Max(0.2f, s.plantSpacing);  // 줄 안 포기 간격 (줄은 X 방향)
+        cellZ = Mathf.Max(0.3f, s.rowSpacing);    // 줄 간격 (줄 사이로 물 댄 논바닥이 보임)
         gridOrigin = new Vector2(b.xMin, b.yMin);
-        gridW = Mathf.CeilToInt(b.width / cell); gridH = Mathf.CeilToInt(b.height / cell);
+        gridW = Mathf.CeilToInt(b.width / cellX); gridH = Mathf.CeilToInt(b.height / cellZ);
         int n = gridW * gridH;
         pos = new Vector3[n]; heights = new float[n]; yaws = new float[n]; sizes = new float[n]; alive = new bool[n]; gold = new bool[n];
         var zones = StageZone.All;
-        float seedX = Random.value * 100f, seedZ = Random.value * 100f;
+        int seed = Random.Range(0, 100000);
         for (int z = 0; z < gridH; z++)
             for (int x = 0; x < gridW; x++)
             {
                 int i = z * gridW + x;
-                float wx = gridOrigin.x + (x + 0.5f) * cell + Random.Range(-0.25f, 0.25f) * cell;
-                float wz = gridOrigin.y + (z + 0.5f) * cell + Random.Range(-0.25f, 0.25f) * cell;
+                float wx = gridOrigin.x + (x + 0.5f) * cellX + Random.Range(-1f, 1f) * s.jitter;
+                float wz = gridOrigin.y + (z + 0.5f) * cellZ + Random.Range(-1f, 1f) * s.jitter;
                 var p = new Vector3(wx, 0f, wz);
                 // 논두렁(길), 경계 밖, 시작 지점, 장애물 칸, 바닥 장판(물 등)은 비움
                 float px = Mathf.Repeat(wx, s.pathEvery), pz = Mathf.Repeat(wz, s.pathEvery);
@@ -129,11 +132,13 @@ public class ForestFarmlandVariant : MonoBehaviour
                 if (inZone) continue;
                 p.y = Ground.HeightAt(wx, wz) - 0.03f;
                 pos[i] = p;
-                heights[i] = Random.Range(s.height.x, s.height.y);
-                yaws[i] = Random.Range(0, 4) * 90f + Random.Range(-20f, 20f);
-                sizes[i] = Random.Range(0.9f, 1.15f);
-                // 색 변주: 논 단위로 뭉쳐서 황금/연두 (사진처럼 층층이)
-                gold[i] = Mathf.PerlinNoise(seedX + wx * 0.05f, seedZ + wz * 0.05f) < s.goldRatio + 0.15f * (Random.value - 0.5f);
+                // 논 구획(논두렁으로 나뉜 칸)마다 높이와 색을 하나로 → 구획 안은 가지런함
+                int paddy = Mathf.FloorToInt(wx / s.pathEvery) * 7919 + Mathf.FloorToInt(wz / s.pathEvery) * 104729 + seed;
+                float pr = Hash01(paddy), pr2 = Hash01(paddy * 31 + 17);
+                heights[i] = Mathf.Lerp(s.height.x, s.height.y, pr2) * (1f + Random.Range(-1f, 1f) * s.sizeJitter);
+                yaws[i] = Random.Range(-1f, 1f) * s.yawJitter;
+                sizes[i] = 1f + Random.Range(-1f, 1f) * s.sizeJitter;
+                gold[i] = pr < s.goldRatio;
                 alive[i] = true;
             }
     }
@@ -146,7 +151,7 @@ public class ForestFarmlandVariant : MonoBehaviour
     void RebuildChunks()
     {
         batches.Clear();
-        int tilesX = Mathf.Max(1, Mathf.CeilToInt(gridW * cell / TileSize));
+        int tilesX = Mathf.Max(1, Mathf.CeilToInt(gridW * cellX / TileSize));
         var open = new Dictionary<int, Batch>(512);
         for (int i = 0; i < alive.Length; i++)
         {
@@ -269,8 +274,8 @@ public class ForestFarmlandVariant : MonoBehaviour
     void OnBombard(Vector3 center, float radius)
     {
         float r = radius * s.cutRadiusMul, r2 = r * r;
-        int x0 = Mathf.Max(0, Mathf.FloorToInt((center.x - r - gridOrigin.x) / cell)), x1 = Mathf.Min(gridW - 1, Mathf.CeilToInt((center.x + r - gridOrigin.x) / cell));
-        int z0 = Mathf.Max(0, Mathf.FloorToInt((center.z - r - gridOrigin.y) / cell)), z1 = Mathf.Min(gridH - 1, Mathf.CeilToInt((center.z + r - gridOrigin.y) / cell));
+        int x0 = Mathf.Max(0, Mathf.FloorToInt((center.x - r - gridOrigin.x) / cellX)), x1 = Mathf.Min(gridW - 1, Mathf.CeilToInt((center.x + r - gridOrigin.x) / cellX));
+        int z0 = Mathf.Max(0, Mathf.FloorToInt((center.z - r - gridOrigin.y) / cellZ)), z1 = Mathf.Min(gridH - 1, Mathf.CeilToInt((center.z + r - gridOrigin.y) / cellZ));
         int cut = 0;
         for (int z = z0; z <= z1; z++)
             for (int x = x0; x <= x1; x++)

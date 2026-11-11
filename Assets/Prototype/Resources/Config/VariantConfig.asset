@@ -63,14 +63,19 @@ MonoBehaviour:
     riceMaterialGreen: {fileID: 2100000, guid: f6eb3c804c4cc934c84acfe9b1c8cd4b, type: 2}
     riceMeshUpIsZ: 0
     clumpSize: 0.65
-    overlap: 0.62
+    rowSpacing: 0.8
+    plantSpacing: 0.45
+    jitter: 0.03
+    yawJitter: 10
+    sizeJitter: 0.05
     height: {x: 0.55, y: 0.72}
-    goldRatio: 0.7
+    goldRatio: 0.2
     pathEvery: 14
     pathWidth: 1.6
     riceColor: {r: 0.78, g: 0.72, b: 0.32, a: 1}
     riceTipColor: {r: 0.9, g: 0.82, b: 0.4, a: 1}
-    paddyGround: {r: 0.5, g: 0.45, b: 0.18, a: 1}
+    paddyGround: {r: 0.27, g: 0.33, b: 0.27, a: 1}
+    paddyWaterSmoothness: 0.8
     cutRadiusMul: 1
     pollenRate: 60
     pollenAlpha: 0.45
