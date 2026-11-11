@@ -17,6 +17,8 @@ public class Enemy : Ticked<Enemy>
     public static float SpeedMul = 1f;
     /// <summary>재생 변이: 초당 최대 체력의 이 비율만큼 회복 (스테이지마다 StageDirector가 설정).</summary>
     public static float RegenFrac;
+    /// <summary>움직이지 못함 (모래폭풍 직전~폭풍 동안): 스스로 이동/공격/능력 없음, 바람 등 외부 힘으로만 밀림. StageDirector가 스테이지마다 초기화.</summary>
+    public static bool Frozen;
     static readonly int ColorId = Shader.PropertyToID("_BaseColor");
     static readonly Color TreasureColor = new Color(1f, 0.82f, 0.2f);
     static MaterialPropertyBlock tintMpb;
@@ -174,6 +176,15 @@ public class Enemy : Ticked<Enemy>
         return ok * (m / 0.4f);
     }
 
+    /// <summary>정지 (Frozen): 제자리에서 버팀. 외부 힘(knock)으로만 움직임.</summary>
+    void TickFrozen(float dt)
+    {
+        rb.linearVelocity = Climb(rb.position, knock, dt);
+        knock = Vector3.MoveTowards(knock, Vector3.zero, 30f * dt);
+        chargeLeft = 0f;
+        FollowGround();
+    }
+
     /// <summary>도망: 플레이어(조준점)에게서 멀어짐. 접촉 피해/능력 없음 (맞으면 죽음).</summary>
     void TickRouted(float dt)
     {
@@ -193,6 +204,7 @@ public class Enemy : Ticked<Enemy>
     public override void Tick(float dt)
     {
         if (RegenFrac > 0f && hp < maxHp) hp = Mathf.Min(maxHp, hp + maxHp * RegenFrac * dt); // 재생 변이
+        if (Frozen) { TickFrozen(dt); return; }
         if (treasure) { TickTreasure(dt); return; }
         if (Routed) { TickRouted(dt); return; }
         var player = PlayerController.I;

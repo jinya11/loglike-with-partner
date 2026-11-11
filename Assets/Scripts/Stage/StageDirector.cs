@@ -46,7 +46,7 @@ public class StageDirector : Singleton<StageDirector>
         gm = GameManager.I;
         cfg = gm.Config;
         EnemyMask = LayerMask.GetMask("Enemy");
-        Enemy.Routed = false; Enemy.SpeedMul = 1f;
+        Enemy.Routed = false; Enemy.SpeedMul = 1f; Enemy.Frozen = false;
         Ground.Clear();
         Traits.Clear(); if (!gm.InBonus) Traits.AddRange(gm.ActiveTraits); // 누적 스테이지 증강 (보너스 스테이지는 없음)
         // 파생 스테이지 (지금 씬이 그 파생형의 지역일 때만)
@@ -119,7 +119,7 @@ public class StageDirector : Singleton<StageDirector>
     protected override void OnDestroy()
     {
         BorderUnlock.Unlocked -= OnUnlockStarted;
-        if (I == this) { Ground.Clear(); Enemy.Routed = false; Enemy.SpeedMul = 1f; if (GameManager.I) GameManager.I.XpMul = 1f; }
+        if (I == this) { Ground.Clear(); Enemy.Routed = false; Enemy.SpeedMul = 1f; Enemy.Frozen = false; if (GameManager.I) GameManager.I.XpMul = 1f; }
         base.OnDestroy();
     }
 
@@ -308,6 +308,7 @@ public class StageDirector : Singleton<StageDirector>
             // 규칙 컴포넌트는 전용 씬에 배치돼 있음 (없으면 경고 후 기본 생성)
             case StageVariantKind.ForestFirefly: SceneRule<ForestFireflyVariant>().Init(this, cfg.variant.firefly); break;
             case StageVariantKind.ForestFarmland: SceneRule<ForestFarmlandVariant>().Init(this, cfg.variant.farmland); break;
+            case StageVariantKind.DesertSandstorm: SceneRule<DesertSandstormVariant>().Init(this, cfg.variant.sandstorm); break;
         }
     }
 
@@ -522,7 +523,7 @@ public class StageDirector : Singleton<StageDirector>
         float dt = Time.deltaTime;
         if (dt <= 0f || gm.State != GameState.Playing || gm.Transitioning) return; // 씬 전환 중인 이전 스테이지는 멈춤
 
-        if (!PortalOpen && (spawnTimer -= dt) <= 0f)
+        if (!PortalOpen && !Enemy.Frozen && (spawnTimer -= dt) <= 0f) // 적 정지(모래폭풍) 중엔 새로 나오지 않음
         {
             spawnTimer = spawnInterval;
             for (int i = 0; i < spawnBatch && Enemy.Active.Count < maxAlive; i++) SpawnEnemy();
@@ -594,6 +595,21 @@ public class StageDirector : Singleton<StageDirector>
         float r = Random.value * enemyWeightTotal;
         for (int i = 0; i < enemyDefs.Count - 1; i++) { r -= enemyWeights[i]; if (r <= 0f) return i; }
         return enemyDefs.Count - 1;
+    }
+
+    /// <summary>보상 떨어뜨리기 (파생 스테이지의 유물 등): 경험치 보석 gemCount개 + (resource면) 이 지역 자원 하나.</summary>
+    public void DropReward(Vector3 pos, int gemCount, bool resource)
+    {
+        for (int i = 0; i < gemCount; i++)
+        {
+            Vector2 o = Random.insideUnitCircle * 1.5f;
+            gems.Get(Ground.Snap(pos + new Vector3(o.x, 0f, o.y)), Quaternion.Euler(45f, 0f, 45f));
+        }
+        if (resource && resourcePickups != null && Theme && Theme.resource != ResourceType.None)
+        {
+            var def = cfg.meta.Resource(Theme.resource);
+            resourcePickups.Get(Ground.Snap(pos) + Vector3.up * 0.1f, Quaternion.identity).Init(Theme.resource, def != null ? def.color : Color.white);
+        }
     }
 
     public void OnEnemyKilled(Enemy dead)

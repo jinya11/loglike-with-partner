@@ -50,6 +50,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Regions/Variants/Region_Forest_Farmland.unity
     guid: a2f88582f672512439085bd9c3e5a0f5
+  - enabled: 1
+    path: Assets/Scenes/Regions/Variants/Region_Desert_Sandstorm.unity
+    guid: 89466ff851e302d4494e65a1ddda118b
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

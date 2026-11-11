@@ -5,6 +5,7 @@ public enum StageVariantKind
 {
     [Tooltip("숲: 밤의 숲. 반딧불을 모아 등불을 켜면 그 구역이 밝아지고 안전지대")] ForestFirefly,
     [Tooltip("숲: 자연 농지. 스테이지 전체가 벼 논, 벼 속의 적은 가려짐, 폭격으로 벼를 베면 시야 확보")] ForestFarmland,
+    [Tooltip("사막: 모래폭풍 사막. 주기적 모래폭풍이 한 방향으로 밀어냄, 동굴 바위 뒤가 피난처, 폭풍 뒤 묻힌 유물이 드러남")] DesertSandstorm,
 }
 
 /// <summary>
@@ -77,4 +78,33 @@ public class FarmlandSettings
     [Tooltip("가림 얼룩 크기 (클수록 잘게)")] public float maskTiling = 2f;
     [Tooltip("화면 전체 벼가루 파티클: 초당 수, 투명도")] public float pollenRate = 60f, pollenAlpha = 0.45f;
     [Tooltip("벼가루 크기 (최소, 최대)")] public Vector2 pollenSize = new Vector2(0.1f, 0.22f);
+}
+
+/// <summary>모래폭풍 사막 수치 (VariantConfig.sandstorm).</summary>
+[System.Serializable]
+public class SandstormSettings
+{
+    [Header("폭풍 주기")]
+    [Tooltip("스테이지 시작 후 첫 폭풍 경보까지(초)")] public float firstDelay = 10f;
+    [Tooltip("폭풍이 끝나고 다음 경보까지 잔잔한 시간(초)")] public float calm = 18f;
+    [Tooltip("경보 시간(초): 모래가 일기 시작하고 남은 시간이 표시됨")] public float warning = 5f;
+    [Tooltip("폭풍 시작 몇 초 전부터 적이 움직이지 못함 (폭풍이 끝날 때까지). 경보 시간 이하")] public float freezeLead = 3f;
+    [Tooltip("폭풍 지속(초)")] public float duration = 7f;
+    [Header("바람")]
+    [Tooltip("바람이 생명체를 미는 속도")] public float windSpeed = 6.5f;
+    [Tooltip("적을 미는 속도 배율 (생명체 기준)")] public float enemyWindMul = 1.3f;
+    [Tooltip("피난처 밖 생명체가 폭풍 중 받는 초당 피해")] public float stormWardDps = 3f;
+    [Tooltip("바위 뒤(바람 반대쪽)로 바람이 막히는 길이(m)")] public float shelterLength = 7f;
+    [Header("유물 (폭풍 뒤 모래에서 드러남)")]
+    [Tooltip("폭풍 한 번에 드러나는 유물 수")] public int relicsPerStorm = 3;
+    [Tooltip("감시자나 생명체가 이 거리 안에 오면 유물을 주움")] public float relicCollectRadius = 2.2f;
+    [Tooltip("유물 하나의 경험치 보석 수")] public int relicGems = 5;
+    [Tooltip("유물에서 이 지역 자원도 반드시 나옴")] public bool relicResource = true;
+    [Tooltip("유물이 다시 묻히기까지(초)")] public float relicLifetime = 30f;
+    [Header("연출")]
+    [Tooltip("동굴 바위 수 (씬 빌더가 배치, 이후 씬에서 옮기면 됨)")] public int caveCount = 6;
+    [Tooltip("바람이 불어가는 방향(도, 0 = +Z). 씬 빌더가 규칙 컴포넌트에 넣고 동굴 입구를 이쪽으로 돌림")] public float windYaw = 90f;
+    public Color sandColor = new Color(0.93f, 0.78f, 0.52f);
+    [Tooltip("폭풍 중 모래 입자 초당 수")] public float sandRate = 1600f;
+    [Tooltip("폭풍 중 안개 끝 거리 (작을수록 시야가 좁음)")] public float stormFogEnd = 60f;
 }

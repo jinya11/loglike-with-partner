@@ -41,6 +41,20 @@ MonoBehaviour:
     autoProps: 0
     enemyBias: 2
     enemyBiasMul: 3
+  - id: desert_sandstorm
+    name: "\uBAA8\uB798\uD3ED\uD48D \uC0AC\uB9C9"
+    desc: "\uC8FC\uAE30\uC801\uC73C\uB85C \uBAA8\uB798\uD3ED\uD48D\uC774 \uC9C0\uB098\uAC00\uBA70
+      \uBAA8\uB450\uB97C \uD55C \uBC29\uD5A5\uC73C\uB85C \uBBFC\uB2E4. \uB3D9\uAD74
+      \uBC14\uC704 \uB4A4\uAC00 \uD53C\uB09C\uCC98, \uD3ED\uD48D \uB4A4\uC5D0 \uBB3B\uD78C
+      \uC720\uBB3C\uC774 \uB4DC\uB7EC\uB09C\uB2E4."
+    regionScene: Region_Desert
+    scene: Region_Desert_Sandstorm
+    requiredTrait: 11
+    kind: 2
+    color: {r: 1, g: 0.78, b: 0.45, a: 1}
+    autoProps: 0
+    enemyBias: 1
+    enemyBiasMul: 2
   stageDecrease: 1
   portalSpacing: 16
   firefly:
@@ -79,6 +93,28 @@ MonoBehaviour:
     paddyGround: {r: 0.27, g: 0.33, b: 0.27, a: 1}
     paddyWaterSmoothness: 0.8
     cutRadiusMul: 1
+    hiddenFraction: 0.5
+    maskTiling: 2
     pollenRate: 60
     pollenAlpha: 0.45
     pollenSize: {x: 0.1, y: 0.22}
+  sandstorm:
+    firstDelay: 10
+    calm: 18
+    warning: 5
+    freezeLead: 3
+    duration: 7
+    windSpeed: 6.5
+    enemyWindMul: 1.3
+    stormWardDps: 3
+    shelterLength: 7
+    relicsPerStorm: 3
+    relicCollectRadius: 2.2
+    relicGems: 5
+    relicResource: 1
+    relicLifetime: 30
+    caveCount: 6
+    windYaw: 90
+    sandColor: {r: 0.93, g: 0.78, b: 0.52, a: 1}
+    sandRate: 1600
+    stormFogEnd: 60

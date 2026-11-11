@@ -14,6 +14,7 @@ public class VariantConfig : ScriptableObject
     {
         new StageVariantDef("forest_firefly", "반딧불 숲", "밤의 숲. 흩어진 반딧불을 모아 등불을 켜면 그 구역이 밝아지고 안전지대가 된다.", "Region_Forest", "Region_Forest_Firefly", StageTraitType.Fog, StageVariantKind.ForestFirefly, new Color(0.65f, 1f, 0.45f), EnemyAbility.Fear, 3f),
         new StageVariantDef("forest_farmland", "자연 농지", "벼 농사가 이루어진 곳. 스테이지 전체가 벼로 둘러싸이고 벼가루가 휘날린다. 벼에 가려 적은 윗부분만 보인다 — 폭격으로 벼를 베면 드러난다.", "Region_Forest", "Region_Forest_Farmland", StageTraitType.Riches, StageVariantKind.ForestFarmland, new Color(1f, 0.85f, 0.35f), EnemyAbility.Slow, 3f),
+        new StageVariantDef("desert_sandstorm", "모래폭풍 사막", "주기적으로 모래폭풍이 지나가며 모두를 한 방향으로 민다. 동굴 바위 뒤가 피난처, 폭풍 뒤에 묻힌 유물이 드러난다.", "Region_Desert", "Region_Desert_Sandstorm", StageTraitType.Swift, StageVariantKind.DesertSandstorm, new Color(1f, 0.78f, 0.45f), EnemyAbility.Charge, 2f),
     };
 
     [Header("공통 규칙")]
@@ -25,4 +26,6 @@ public class VariantConfig : ScriptableObject
     public FireflyForestSettings firefly = new FireflyForestSettings();
     [Header("숲: 자연 농지")]
     public FarmlandSettings farmland = new FarmlandSettings();
+    [Header("사막: 모래폭풍 사막")]
+    public SandstormSettings sandstorm = new SandstormSettings();
 }
