@@ -20,6 +20,7 @@ public static partial class PrototypeBuilder
         var rule = root.AddComponent<DesertSandstormVariant>();
         rule.windYaw = s.windYaw;
         rule.relicPrefab = RelicPrefab();
+        PlaceSandstormAlert(rule);
         Vector3 wind = Quaternion.Euler(0f, s.windYaw, 0f) * Vector3.forward;
 
         // 동굴 바위: 입구(로컬 +Z)가 바람이 불어가는 쪽. 평평한 곳에, 서로 떨어지게

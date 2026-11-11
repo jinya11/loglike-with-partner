@@ -15,6 +15,7 @@ public class DesertSandstormVariant : MonoBehaviour
     [Tooltip("바람이 불어가는 방향(도, 0 = +Z). 동굴 바위 입구도 이쪽을 보게 두기")] public float windYaw = 90f;
     [Tooltip("폭풍 모래 입자 (씬 배치, 아레나 전체를 덮음)")] public ParticleSystem sand;
     [Tooltip("유물 프리팹 (모래 둔덕 + 유물). 자식 'Relic'이 빙글빙글 돎")] public GameObject relicPrefab;
+    [Tooltip("경보 UI (씬에 배치된 Canvas 프리팹 SandstormAlert)")] public SandstormAlertUI alert;
 
     enum Phase { Calm, Warning, Storm }
 
@@ -191,10 +192,22 @@ public class DesertSandstormVariant : MonoBehaviour
     // ---- HUD: 수치만 ----
     void UpdateStatus()
     {
+        if (alert)
+        {
+            if (phase == Phase.Calm) alert.Hide();
+            else alert.Show(phase == Phase.Storm, timer / Mathf.Max(0.01f, phase == Phase.Storm ? s.duration : s.warning), timer, WindScreenAngle());
+        }
         if (!HudExtras.I) return;
-        string storm = phase == Phase.Warning ? $"<color=#F0C878>모래폭풍 {Mathf.CeilToInt(timer)}</color>"
-                     : phase == Phase.Storm ? "<color=#F0C878>모래폭풍</color>" : null;
-        string relic = found > 0 || relics.Count > 0 ? $"유물 {found}" : null;
-        HudExtras.I.SetStatus(storm != null && relic != null ? storm + "   " + relic : storm ?? relic);
+        HudExtras.I.SetStatus(found > 0 || relics.Count > 0 ? $"유물 {found}" : null);
+    }
+
+    /// <summary>바람이 불어가는 방향을 화면 기준 각도로 (카메라가 돌아도 맞게).</summary>
+    float WindScreenAngle()
+    {
+        var cam = Camera.main;
+        if (!cam) return Mathf.Atan2(wind.z, wind.x) * Mathf.Rad2Deg;
+        Vector3 p = Ward.I != null ? Ward.I.Position : Vector3.zero;
+        Vector3 a = cam.WorldToScreenPoint(p), b = cam.WorldToScreenPoint(p + wind * 4f);
+        return Mathf.Atan2(b.y - a.y, b.x - a.x) * Mathf.Rad2Deg;
     }
 }
