@@ -18,3 +18,4 @@ MonoBehaviour:
   ward: {fileID: 11400000, guid: 89e93d6e14cc35645b3799d965a59806, type: 2}
   player: {fileID: 11400000, guid: a2bc9be2272bf1143bf60d5856e87b48, type: 2}
   meta: {fileID: 11400000, guid: a61cc9267ac8ae2429de4049e849d4e7, type: 2}
+  variant: {fileID: 11400000, guid: da8daa9b7e757794eb4de6c5d74cc475, type: 2}

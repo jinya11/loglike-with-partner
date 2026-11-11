@@ -130,67 +130,6 @@ MonoBehaviour:
       rockSlope: 24
   portalMinDistance: 22
   routSpeedMul: 1.25
-  stageVariants:
-  - id: forest_firefly
-    name: "\uBC18\uB527\uBD88 \uC232"
-    desc: "\uBC24\uC758 \uC232. \uD769\uC5B4\uC9C4 \uBC18\uB527\uBD88\uC744 \uBAA8\uC544
-      \uB4F1\uBD88\uC744 \uCF1C\uBA74 \uADF8 \uAD6C\uC5ED\uC774 \uBC1D\uC544\uC9C0\uACE0
-      \uC548\uC804\uC9C0\uB300\uAC00 \uB41C\uB2E4."
-    scene: Region_Forest
-    requiredTrait: 9
-    kind: 0
-    color: {r: 0.65, g: 1, b: 0.45, a: 1}
-    enemyBias: 3
-    enemyBiasMul: 3
-  - id: forest_farmland
-    name: "\uC790\uC5F0 \uB18D\uC9C0"
-    desc: "\uBCBC \uB18D\uC0AC\uAC00 \uC774\uB8E8\uC5B4\uC9C4 \uACF3. \uC2A4\uD14C\uC774\uC9C0
-      \uC804\uCCB4\uAC00 \uBCBC\uB85C \uB458\uB7EC\uC2F8\uC774\uACE0 \uBCBC\uAC00\uB8E8\uAC00
-      \uD718\uB0A0\uB9B0\uB2E4. \uD0A4 \uD070 \uBCBC \uC18D\uC758 \uC801\uC740 \uBCF4\uC774\uC9C0
-      \uC54A\uB294\uB2E4 \u2014 \uD3ED\uACA9\uC73C\uB85C \uBCBC\uB97C \uBCA0\uBA74
-      \uB4DC\uB7EC\uB09C\uB2E4."
-    scene: Region_Forest
-    requiredTrait: 8
-    kind: 1
-    color: {r: 1, g: 0.85, b: 0.35, a: 1}
-    enemyBias: 2
-    enemyBiasMul: 3
-  variantStageDecrease: 1
-  variantPortalSpacing: 16
-  firefly:
-    fireflyCount: 45
-    collectRadius: 2.2
-    lanternCount: 5
-    firefliesPerLantern: 6
-    lightRadius: 3
-    safeRadius: 9
-    repelSpeed: 9
-    safeDps: 6
-    wardRegen: 2
-    lanternIntensity: 7
-    lanternDuration: 5
-    fireflyRespawn: 2.5
-    sunMul: 0.12
-    ambient: {r: 0.05, g: 0.06, b: 0.1, a: 1}
-  farmland:
-    terrainHeightMul: 0.15
-    riceMesh: {fileID: -8524547844719368960, guid: 535eaa3d22fbaf6469a57b775303c047, type: 3}
-    riceMaterialGold: {fileID: 2100000, guid: 6adfb0bc8af369c4585d52dfe37f290a, type: 2}
-    riceMaterialGreen: {fileID: 2100000, guid: f6eb3c804c4cc934c84acfe9b1c8cd4b, type: 2}
-    riceMeshUpIsZ: 0
-    clumpSize: 0.65
-    overlap: 0.62
-    height: {x: 0.55, y: 0.72}
-    goldRatio: 0.7
-    pathEvery: 14
-    pathWidth: 1.6
-    riceColor: {r: 0.78, g: 0.72, b: 0.32, a: 1}
-    riceTipColor: {r: 0.9, g: 0.82, b: 0.4, a: 1}
-    paddyGround: {r: 0.5, g: 0.45, b: 0.18, a: 1}
-    cutRadiusMul: 1
-    pollenRate: 60
-    pollenAlpha: 0.45
-    pollenSize: {x: 0.1, y: 0.22}
   stageTraitsEnabled: 1
   traitChoiceCount: 3
   eliteScale: 1.5

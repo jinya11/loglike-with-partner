@@ -22,6 +22,8 @@ public class StageVariantDef
     [Tooltip("해금 조건 증강 (이 증강을 보유하면 파생 포털이 열림)")] public StageTraitType requiredTrait;
     public StageVariantKind kind;
     [Tooltip("파생 포털/이름 색")] public Color color = Color.white;
+    [Tooltip("켜면 지역 기본형의 자동 생성 모델(배치 소품: 나무·바위·장판, 보더 밖 풍경, 증강이 만드는 독 웅덩이·회복의 샘·진흙탕)을 그대로 씀. 끄면(기본) 파생 고유 오브젝트만")]
+    public bool autoProps = false;
     [Header("적 구성 (기본형과 다르게)")]
     [Tooltip("이 능력을 가진 적의 등장 가중치 배율")] public EnemyAbility enemyBias;
     public float enemyBiasMul = 1f;

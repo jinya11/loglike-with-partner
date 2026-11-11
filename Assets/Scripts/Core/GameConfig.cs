@@ -13,6 +13,7 @@ public class GameConfig : ScriptableObject
     [Tooltip("지켜야 할 작은 생명체 (능력치 + AI)")] public WardConfig ward;
     [Tooltip("플레이어 능력치 / 레벨업 / 강화")] public PlayerConfig player;
     [Tooltip("자원 / 거점 성장")] public MetaConfig meta;
+    [Tooltip("파생 스테이지 (목록, 조건 증강, 반딧불 숲/자연 농지 수치)")] public VariantConfig variant;
 
     /// <summary>런 시작 능력치: 플레이어 기본값 + 생명체/감시자 기본값.</summary>
     public PlayerStats CreateStats()
@@ -33,6 +34,7 @@ public class GameConfig : ScriptableObject
         stage = Section(stage, "StageConfig"); enemy = Section(enemy, "EnemyConfig");
         companion = Section(companion, "CompanionConfig"); ward = Section(ward, "WardConfig");
         player = Section(player, "PlayerConfig"); meta = Section(meta, "MetaConfig");
+        variant = Section(variant, "VariantConfig");
     }
 
     static T Section<T>(T cur, string name) where T : ScriptableObject
@@ -50,7 +52,7 @@ public class GameConfig : ScriptableObject
     /// <summary>에디터 빌더용: 이 설정과 모든 섹션을 저장 대상으로 표시.</summary>
     public void SetAllDirty()
     {
-        foreach (var o in new Object[] { this, stage, enemy, companion, ward, player, meta })
+        foreach (var o in new Object[] { this, stage, enemy, companion, ward, player, meta, variant })
             if (o) UnityEditor.EditorUtility.SetDirty(o);
     }
 #endif

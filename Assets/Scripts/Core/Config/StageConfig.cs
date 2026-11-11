@@ -53,17 +53,7 @@ public class StageConfig : ScriptableObject
     [Tooltip("포털은 이동 가능한 지면 위 임의 위치에 생성: 생명체/플레이어에서 최소 이 거리")] public float portalMinDistance = 22f;
     [Tooltip("포털이 열리면 남은 적이 플레이어에게서 도망 (처치는 가능). 도망 속도 배율")] public float routSpeedMul = 1.25f;
 
-    [Header("파생 스테이지 (지역마다 기본형 + 파생형)")]
-    [Tooltip("파생 스테이지 목록. 조건 증강을 보유하고 그 지역 포털이 열리면 파생 포털이 하나 더 열림")]
-    public StageVariantDef[] stageVariants =
-    {
-        new StageVariantDef("forest_firefly", "반딧불 숲", "밤의 숲. 흩어진 반딧불을 모아 등불을 켜면 그 구역이 밝아지고 안전지대가 된다.", "Region_Forest", StageTraitType.Fog, StageVariantKind.ForestFirefly, new Color(0.65f, 1f, 0.45f), EnemyAbility.Fear, 3f),
-        new StageVariantDef("forest_farmland", "자연 농지", "벼 농사가 이루어진 곳. 스테이지 전체가 벼로 둘러싸이고 벼가루가 휘날린다. 키 큰 벼 속의 적은 보이지 않는다 — 폭격으로 벼를 베면 드러난다.", "Region_Forest", StageTraitType.Riches, StageVariantKind.ForestFarmland, new Color(1f, 0.85f, 0.35f), EnemyAbility.Slow, 3f),
-    };
-    [Tooltip("파생 스테이지로 들어가면 스테이지 번호가 현재 번호에서 이만큼 줄어듦 (예: 4 → 3). 1 미만으로는 내려가지 않음. 번호 기반 스케일링(적 체력 등)과 HUD도 줄어든 번호를 따름")] [Min(0)] public int variantStageDecrease = 1;
-    [Tooltip("일반 포털에서 파생 포털까지 최소 거리")] public float variantPortalSpacing = 16f;
-    public FireflyForestSettings firefly = new FireflyForestSettings();
-    public FarmlandSettings farmland = new FarmlandSettings();
+    // 파생 스테이지 설정은 VariantConfig (GameConfig.variant, Resources/Config/VariantConfig.asset)로 옮김
 
     [Header("다음 스테이지 특징 (카드 선택, 심연 외)")]
     [Tooltip("포털로 이동하기 전에 다음 스테이지 특징을 카드로 고름")] public bool stageTraitsEnabled = true;

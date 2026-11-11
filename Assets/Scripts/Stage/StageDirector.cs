@@ -69,7 +69,7 @@ public class StageDirector : Singleton<StageDirector>
             FitRegionToCells();
         }
         else Arena.SetCircle(generator.Radius);
-        generator.Build();
+        if (!NoAutoProps) generator.Build(); // 파생 스테이지는 지역 기본 배치물(나무/바위/장판) 없음 (StageVariantDef.autoProps)
         if (!Expandable && !gm.InBonus) BuildLevelDesign();
         Nav = new GridNav(ArenaRadius, 1.2f, 0.4f, LayerMask.GetMask("Default"), border);
         Theme = GetComponent<StageTheme>();
@@ -153,7 +153,7 @@ public class StageDirector : Singleton<StageDirector>
             var td = Instantiate(t.terrainData);
             if (g.randomizeAtRuntime) TerrainHills.Generate(td, t.transform.position, g.hills, Random.Range(1, int.MaxValue));
             if (high != null) { var sz = td.size; sz.y *= Mathf.Max(0.1f, high.value); td.size = sz; }
-            if (farm) { var sz = td.size; sz.y *= cfg.stage.farmland.terrainHeightMul; td.size = sz; } // 자연 농지: 평평한 논
+            if (farm) { var sz = td.size; sz.y *= cfg.variant.farmland.terrainHeightMul; td.size = sz; } // 자연 농지: 평평한 논
             t.terrainData = td;
             if (t.TryGetComponent(out TerrainCollider tcd)) tcd.terrainData = td;
         }
@@ -166,13 +166,21 @@ public class StageDirector : Singleton<StageDirector>
     void BuildLevelDesign()
     {
         StageTraitDef d;
-        if ((d = Get(StageTraitType.Toxic)) != null) SpawnPools(Mathf.RoundToInt(d.value), ZoneType.Damage, d.value2, new Color(0.45f, 0.75f, 0.15f), "Trait_PoisonPool");
-        if ((d = Get(StageTraitType.Sanctuary)) != null) SpawnPools(Mathf.RoundToInt(d.value), ZoneType.Heal, d.value2, new Color(0.4f, 1f, 0.7f), "Trait_HealSpring");
-        if ((d = Get(StageTraitType.Mire)) != null) SpawnPools(Mathf.RoundToInt(d.value), ZoneType.Slow, d.value2, new Color(0.45f, 0.32f, 0.2f), "Trait_Mire");
+        var outside = GameObject.Find("Arena/Outside");
+        if (NoAutoProps)
+        {
+            // 파생 스테이지: 자동 생성 모델 없음 — 증강 장판(독 웅덩이/회복의 샘/진흙탕)과 보더 밖 풍경도 끔 (증강 수치 효과는 그대로)
+            if (outside) outside.SetActive(false);
+        }
+        else
+        {
+            if ((d = Get(StageTraitType.Toxic)) != null) SpawnPools(Mathf.RoundToInt(d.value), ZoneType.Damage, d.value2, new Color(0.45f, 0.75f, 0.15f), "Trait_PoisonPool");
+            if ((d = Get(StageTraitType.Sanctuary)) != null) SpawnPools(Mathf.RoundToInt(d.value), ZoneType.Heal, d.value2, new Color(0.4f, 1f, 0.7f), "Trait_HealSpring");
+            if ((d = Get(StageTraitType.Mire)) != null) SpawnPools(Mathf.RoundToInt(d.value), ZoneType.Slow, d.value2, new Color(0.45f, 0.32f, 0.2f), "Trait_Mire");
+        }
         if (!Ground.HasTerrain) return;
         SettleProps(transform); // 생성기(StageGenerator)도 이 오브젝트에 있음 → 한 번만
-        var outside = GameObject.Find("Arena/Outside"); // 보더 밖 풍경도 지형 위에 (치우지는 않음)
-        if (outside) SettleProps(outside.transform, false);
+        if (outside && outside.activeSelf) SettleProps(outside.transform, false); // 보더 밖 풍경도 지형 위에 (치우지는 않음)
     }
 
     /// <summary>
@@ -251,6 +259,8 @@ public class StageDirector : Singleton<StageDirector>
     // ---- 파생 스테이지 ----
     /// <summary>이번 스테이지가 파생형이면 그 정의 (기본형이면 null).</summary>
     public StageVariantDef Variant { get; private set; }
+    /// <summary>파생 스테이지에서 자동 생성 모델(배치 소품, 보더 밖 풍경, 증강 장판)을 끄는지 (StageVariantDef.autoProps가 꺼져 있으면).</summary>
+    bool NoAutoProps => Variant != null && !Variant.autoProps;
     /// <summary>HUD에 표시할 스테이지 이름 (파생형이면 파생 이름).</summary>
     public string DisplayName => Variant != null ? Variant.name : Theme ? Theme.displayName : "";
     readonly List<float> enemyWeights = new List<float>(8);
@@ -285,8 +295,8 @@ public class StageDirector : Singleton<StageDirector>
         if (Variant == null) return;
         switch (Variant.kind)
         {
-            case StageVariantKind.ForestFirefly: gameObject.AddComponent<ForestFireflyVariant>().Init(this, cfg.stage.firefly); break;
-            case StageVariantKind.ForestFarmland: gameObject.AddComponent<ForestFarmlandVariant>().Init(this, cfg.stage.farmland); break;
+            case StageVariantKind.ForestFirefly: gameObject.AddComponent<ForestFireflyVariant>().Init(this, cfg.variant.firefly); break;
+            case StageVariantKind.ForestFarmland: gameObject.AddComponent<ForestFarmlandVariant>().Init(this, cfg.variant.farmland); break;
         }
     }
 
@@ -300,7 +310,7 @@ public class StageDirector : Singleton<StageDirector>
         {
             Vector3 p = PortalSpot();
             float sq = Flat(p - PortalPosition).sqrMagnitude;
-            if (sq >= cfg.stage.variantPortalSpacing * cfg.stage.variantPortalSpacing) { at = p; bestSq = sq; break; }
+            if (sq >= cfg.variant.portalSpacing * cfg.variant.portalSpacing) { at = p; bestSq = sq; break; }
             if (sq > bestSq) { bestSq = sq; at = p; }
         }
         var go = Instantiate(cfg.stage.portalPrefab, at, Quaternion.identity, transform);

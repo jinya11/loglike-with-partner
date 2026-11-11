@@ -1,0 +1,28 @@
+using UnityEngine;
+
+/// <summary>
+/// 파생 스테이지 설정 (Assets/Prototype/Resources/Config/VariantConfig.asset, GameConfig.variant).
+/// 지역마다 기본형 + 파생형. 파생형 목록(조건 증강, 종류, 색, 적 구성), 공통 규칙, 파생형별 수치를 여기서 편집.
+/// 새 파생형 추가: stageVariants에 행 추가 + StageVariantKind에 종류 추가 + 규칙 스크립트(Stage/Variants) 하나.
+/// </summary>
+[CreateAssetMenu(menuName = "Roguelike/Config/Variant")]
+public class VariantConfig : ScriptableObject
+{
+    [Header("파생 스테이지 목록")]
+    [Tooltip("조건 증강을 보유하고 그 지역 포털이 열리면 파생 포털이 하나 더 열림 (같은 파생형은 런에 한 번)")]
+    public StageVariantDef[] stageVariants =
+    {
+        new StageVariantDef("forest_firefly", "반딧불 숲", "밤의 숲. 흩어진 반딧불을 모아 등불을 켜면 그 구역이 밝아지고 안전지대가 된다.", "Region_Forest", StageTraitType.Fog, StageVariantKind.ForestFirefly, new Color(0.65f, 1f, 0.45f), EnemyAbility.Fear, 3f),
+        new StageVariantDef("forest_farmland", "자연 농지", "벼 농사가 이루어진 곳. 스테이지 전체가 벼로 둘러싸이고 벼가루가 휘날린다. 벼에 가려 적은 윗부분만 보인다 — 폭격으로 벼를 베면 드러난다.", "Region_Forest", StageTraitType.Riches, StageVariantKind.ForestFarmland, new Color(1f, 0.85f, 0.35f), EnemyAbility.Slow, 3f),
+    };
+
+    [Header("공통 규칙")]
+    [Tooltip("파생 스테이지로 들어가면 스테이지 번호가 현재 번호에서 이만큼 줄어듦 (예: 4 → 3). 1 미만으로는 내려가지 않음. 번호 기반 스케일링(적 체력 등)과 HUD도 줄어든 번호를 따름")]
+    [Min(0)] public int stageDecrease = 1;
+    [Tooltip("일반 포털에서 파생 포털까지 최소 거리")] public float portalSpacing = 16f;
+
+    [Header("숲: 반딧불 숲")]
+    public FireflyForestSettings firefly = new FireflyForestSettings();
+    [Header("숲: 자연 농지")]
+    public FarmlandSettings farmland = new FarmlandSettings();
+}

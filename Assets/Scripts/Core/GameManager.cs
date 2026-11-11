@@ -347,7 +347,7 @@ public class GameManager : Singleton<GameManager>
     /// <summary>이 지역(씬)에서 지금 열 수 있는 파생형: 조건 증강 보유 + 아직 안 들어감 + 지금이 기본형일 때.</summary>
     public StageVariantDef AvailableVariant(string scene)
     {
-        var list = Config.stage.stageVariants;
+        var list = Config.variant.stageVariants;
         if (list == null || ActiveVariant != null || InBonus) return null;
         foreach (var v in list)
         {
@@ -365,7 +365,7 @@ public class GameManager : Singleton<GameManager>
             var v = pendingVariant; pendingVariant = null;
             UsedVariants.Add(v);
             InBonus = false;
-            StageIndex = Mathf.Max(0, StageIndex - Config.stage.variantStageDecrease);
+            StageIndex = Mathf.Max(0, StageIndex - Config.variant.stageDecrease);
             if (StageIndex >= Config.stage.stageCount) { State = GameState.Victory; Time.timeScale = 0f; return; }
             ActiveVariant = v;
             Load(v.scene);

@@ -33,12 +33,12 @@ public static partial class PrototypeBuilder
         var green = RiceMat("Rice_Green", basecolor, new Color(0.9f, 1f, 0.82f)); // 덜 익은 벼 (살짝 연두)
 
         var cfg = AssetDatabase.LoadAssetAtPath<GameConfig>(Root + "/Resources/GameConfig.asset");
-        var f = cfg.stage.farmland;
+        var f = cfg.variant.farmland;
         f.riceMesh = mesh; f.riceMaterialGold = gold; f.riceMaterialGreen = green;
         f.riceMeshUpIsZ = mesh.bounds.size.z > mesh.bounds.size.y * 1.2f; // 축 자동 판정 (식물은 위로 긴 모양)
         // 한 포기 기준 배치 수치 (포기 폭 0.6m, 촘촘히 겹쳐 빈틈 없이, 높이는 적 키 0.5~0.9m보다 낮게)
         f.clumpSize = 0.65f; f.overlap = 0.62f; f.height = new Vector2(0.55f, 0.72f);
-        EditorUtility.SetDirty(cfg.stage);
+        EditorUtility.SetDirty(cfg.variant);
         AssetDatabase.SaveAssets();
         Debug.Log($"[PrototypeBuilder] 벼 모델 연결: {mesh.name} (삼각형 {mesh.triangles.Length / 3})");
     }
