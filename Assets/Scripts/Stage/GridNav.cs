@@ -13,7 +13,7 @@ public sealed class GridNav
     readonly int size;
     readonly Vector3 origin;
     readonly bool[] blocked;
-    readonly float[] staticCost, danger, g, f;
+    readonly float[] staticCost, danger, extraCost, g, f;
     readonly int[] parent, heap, heapPos, visit;
     int visitId, heapCount;
 
@@ -34,7 +34,7 @@ public sealed class GridNav
         size = Mathf.CeilToInt(half * 2f / cell) + 1;
         origin = center - new Vector3(half, 0f, half);
         int count = size * size;
-        blocked = new bool[count]; staticCost = new float[count]; danger = new float[count];
+        blocked = new bool[count]; staticCost = new float[count]; danger = new float[count]; extraCost = new float[count];
         g = new float[count]; f = new float[count];
         parent = new int[count]; heap = new int[count]; heapPos = new int[count]; visit = new int[count];
 
@@ -63,6 +63,14 @@ public sealed class GridNav
     }
 
     bool Free(int i) => !blocked[i];
+
+    /// <summary>바뀌는 바닥 비용 (얼어붙은 호수의 구멍/금 간 얼음 등): 중심 center, 반폭 half인 정사각형 칸들에 cost를 설정 (0이면 해제).</summary>
+    public void SetExtraCost(Vector3 center, float half, float cost)
+    {
+        int a = Index(center - new Vector3(half, 0f, half)), b = Index(center + new Vector3(half, 0f, half));
+        for (int z = a / size; z <= b / size; z++)
+            for (int x = a % size; x <= b % size; x++) extraCost[z * size + x] = cost;
+    }
 
     public Vector3 Center(int i) => origin + new Vector3((i % size + 0.5f) * cell, 0f, (i / size + 0.5f) * cell);
 
@@ -133,7 +141,7 @@ public sealed class GridNav
                 int n = nz * size + nx;
                 if (!Free(n)) continue;
                 if (d >= 4 && (!Free(cz * size + nx) || !Free(nz * size + cx))) continue; // 모서리 끼임 방지
-                float ng = g[cur] + STEP[d] * (1f + staticCost[n] + danger[n]);
+                float ng = g[cur] + STEP[d] * (1f + staticCost[n] + danger[n] + extraCost[n]);
                 if (visit[n] == visitId && ng >= g[n]) continue;
                 Open(n, ng, cur, goal);
             }

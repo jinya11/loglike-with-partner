@@ -252,6 +252,7 @@ public class Ward : Singleton<Ward>
             if (live) visual.SetMoveSpeed(Feared ? 0f : mv.magnitude / dt, dt);
         }
         if (GameManager.I.State != GameState.Playing || !Alive) return; // 죽은 뒤에는 아무것도 하지 않음
+        if (Trapped) { TickTrapped(dt); return; }
         var stage = StageDirector.I;
         Vector3 pos = transform.position;
         if (ability) ability.Tick(dt);
@@ -558,7 +559,8 @@ public class Ward : Singleton<Ward>
         return mul;
     }
 
-    void Drain(float amount)
+    /// <summary>무적 시간과 상관없이 체력을 깎음 (지속 피해, 물에 빠짐 등). 보호막 중엔 무시.</summary>
+    public void Drain(float amount)
     {
         if (Shielded || !Alive) return;
         stats.wardHp -= amount;
@@ -587,6 +589,43 @@ public class Ward : Singleton<Ward>
         Vfx.Hit(transform.position + Vector3.up * 0.5f, hurtColor);
         if (ability) ability.OnDamaged(dmg);
         if (stats.wardHp <= 0f) Die();
+    }
+
+    // ---- 빠짐 (얼어붙은 호수: 깨진 얼음 구멍) ----
+    /// <summary>물에 빠져 움직이지 못함 (이동/공격 없음, 몸이 반쯤 잠김). 빠져나오는 건 규칙 컴포넌트가 처리 (스페이스 연타).</summary>
+    public bool Trapped { get; private set; }
+    float bodyBaseY = float.NaN;
+
+    public void SetTrapped(bool on, float sink = 0.35f)
+    {
+        if (Trapped == on) return;
+        Trapped = on;
+        knockVel = Vector3.zero; path.Clear(); replanLeft = 0f; hasFleeGoal = false;
+        if (body)
+        {
+            if (float.IsNaN(bodyBaseY)) bodyBaseY = body.localPosition.y;
+            var lp = body.localPosition; lp.y = bodyBaseY - (on ? sink : 0f); body.localPosition = lp;
+            if (!on) body.localRotation = Quaternion.Euler(0f, body.localEulerAngles.y, 0f);
+        }
+    }
+
+    /// <summary>순간 이동 (빠져나온 뒤 가까운 얼음 위로).</summary>
+    public void Teleport(Vector3 p)
+    {
+        if (cc) cc.enabled = false;
+        transform.position = Ground.Snap(p);
+        if (cc) cc.enabled = true;
+        lastPos = transform.position; path.Clear(); replanLeft = 0f;
+    }
+
+    void TickTrapped(float dt)
+    {
+        TickDebuffs(dt);
+        if (iframe > 0f) iframe -= dt;
+        if (shieldLeft > 0f) shieldLeft -= dt;
+        if (hurtFlash > 0f) hurtFlash -= dt;
+        UpdateTint();
+        if (body) body.localRotation = Quaternion.Euler(Mathf.Sin(Time.time * 7f) * 8f, body.localEulerAngles.y, Mathf.Cos(Time.time * 6f) * 8f); // 허우적
     }
 
     // ---- 디버프 (보호막 중에는 무시) ----

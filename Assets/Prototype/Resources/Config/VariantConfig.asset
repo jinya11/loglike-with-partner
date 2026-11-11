@@ -55,6 +55,19 @@ MonoBehaviour:
     autoProps: 0
     enemyBias: 1
     enemyBiasMul: 2
+  - id: snow_frozenlake
+    name: "\uC5BC\uC5B4\uBD99\uC740 \uD638\uC218"
+    desc: "\uC5BC\uC74C\uD310 \uC704\uC758 \uC804\uC7A5. \uAE08 \uAC04 \uC5BC\uC74C\uC740
+      \uAE68\uC9C0\uACE0, \uBB3C\uC5D0 \uBE60\uC9C4 \uC801\uC740 \uC989\uC0AC\uD55C\uB2E4.
+      \uC791\uC740 \uC0DD\uBA85\uCCB4\uB3C4 \uBE60\uC9C8 \uC218 \uC788\uB2E4."
+    regionScene: Region_Snow
+    scene: Region_Snow_FrozenLake
+    requiredTrait: 20
+    kind: 3
+    color: {r: 0.6, g: 0.88, b: 1, a: 1}
+    autoProps: 0
+    enemyBias: 1
+    enemyBiasMul: 2
   stageDecrease: 1
   portalSpacing: 16
   firefly:
@@ -118,3 +131,21 @@ MonoBehaviour:
     sandColor: {r: 0.93, g: 0.78, b: 0.52, a: 1}
     sandRate: 1600
     stormFogEnd: 60
+  frozenLake:
+    lakeRadius: 36
+    tileSize: 3
+    crackedRatio: 0.15
+    safeRadius: 7
+    crackInterval: 3
+    maxCracked: 45
+    wardBreakTime: 0.9
+    enemyBreakTime: 1.2
+    breakDelay: 0.4
+    refreezeTime: 35
+    escapePresses: 12
+    escapeTime: 5
+    failDamageFrac: 0.25
+    inWaterDps: 2
+    iceColor: {r: 0.78, g: 0.92, b: 1, a: 1}
+    crackColor: {r: 0.32, g: 0.5, b: 0.72, a: 1}
+    waterColor: {r: 0.16, g: 0.3, b: 0.48, a: 1}

@@ -6,6 +6,7 @@ public enum StageVariantKind
     [Tooltip("숲: 밤의 숲. 반딧불을 모아 등불을 켜면 그 구역이 밝아지고 안전지대")] ForestFirefly,
     [Tooltip("숲: 자연 농지. 스테이지 전체가 벼 논, 벼 속의 적은 가려짐, 폭격으로 벼를 베면 시야 확보")] ForestFarmland,
     [Tooltip("사막: 모래폭풍 사막. 주기적 모래폭풍이 한 방향으로 밀어냄, 동굴 바위 뒤가 피난처, 폭풍 뒤 묻힌 유물이 드러남")] DesertSandstorm,
+    [Tooltip("설원: 얼어붙은 호수. 얼음판 전장, 금 간 얼음은 밟으면 깨져 구멍 — 적은 빠지면 즉사, 생명체는 빠지면 스페이스 연타로 탈출")] SnowFrozenLake,
 }
 
 /// <summary>
@@ -107,4 +108,31 @@ public class SandstormSettings
     public Color sandColor = new Color(0.93f, 0.78f, 0.52f);
     [Tooltip("폭풍 중 모래 입자 초당 수")] public float sandRate = 1600f;
     [Tooltip("폭풍 중 안개 끝 거리 (작을수록 시야가 좁음)")] public float stormFogEnd = 60f;
+}
+
+/// <summary>얼어붙은 호수 수치 (VariantConfig.frozenLake).</summary>
+[System.Serializable]
+public class FrozenLakeSettings
+{
+    [Header("호수 (씬 빌더가 얼음판을 깖 — 이후 씬에서 얼음판을 지우거나 금 간 상태를 바꿔도 됨)")]
+    [Tooltip("호수 반경(m)")] public float lakeRadius = 36f;
+    [Tooltip("얼음판 한 칸 크기(m)")] public float tileSize = 3f;
+    [Tooltip("시작 시 금 간 얼음 비율")] [Range(0, 1)] public float crackedRatio = 0.15f;
+    [Tooltip("시작 지점 주변 이 반경은 처음엔 금 가지 않음")] public float safeRadius = 7f;
+    [Header("균열")]
+    [Tooltip("새 균열이 생기는 간격(초)")] public float crackInterval = 3f;
+    [Tooltip("금 간 얼음 최대 수 (구멍 제외)")] public int maxCracked = 45;
+    [Tooltip("생명체가 금 간 얼음 위에 이만큼 있으면 깨짐(초)")] public float wardBreakTime = 0.9f;
+    [Tooltip("적이 금 간 얼음 위에 이만큼 있으면 깨짐(초, 여럿이면 합산)")] public float enemyBreakTime = 1.2f;
+    [Tooltip("깨지기 시작해서 구멍이 될 때까지(초) — 흔들리며 경고")] public float breakDelay = 0.4f;
+    [Tooltip("구멍이 다시 얼기까지(초, 0 = 안 얼음)")] public float refreezeTime = 35f;
+    [Header("빠짐 (생명체)")]
+    [Tooltip("빠져나오는 데 필요한 스페이스 연타 수")] public int escapePresses = 12;
+    [Tooltip("제한 시간(초): 넘기면 큰 피해를 입고 끌려 나옴")] public float escapeTime = 5f;
+    [Tooltip("제한 시간을 넘기면 받는 피해 (최대 체력 비율)")] [Range(0, 1)] public float failDamageFrac = 0.25f;
+    [Tooltip("빠진 동안 초당 피해 (차가운 물)")] public float inWaterDps = 2f;
+    [Header("색 (무광 파스텔)")]
+    public Color iceColor = new Color(0.78f, 0.92f, 1f);
+    public Color crackColor = new Color(0.32f, 0.5f, 0.72f);
+    public Color waterColor = new Color(0.16f, 0.3f, 0.48f);
 }

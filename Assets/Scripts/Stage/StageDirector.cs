@@ -309,6 +309,7 @@ public class StageDirector : Singleton<StageDirector>
             case StageVariantKind.ForestFirefly: SceneRule<ForestFireflyVariant>().Init(this, cfg.variant.firefly); break;
             case StageVariantKind.ForestFarmland: SceneRule<ForestFarmlandVariant>().Init(this, cfg.variant.farmland); break;
             case StageVariantKind.DesertSandstorm: SceneRule<DesertSandstormVariant>().Init(this, cfg.variant.sandstorm); break;
+            case StageVariantKind.SnowFrozenLake: SceneRule<FrozenLakeVariant>().Init(this, cfg.variant.frozenLake); break;
         }
     }
 

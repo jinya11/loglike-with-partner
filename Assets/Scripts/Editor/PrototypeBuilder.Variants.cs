@@ -30,6 +30,7 @@ public static partial class PrototypeBuilder
     [MenuItem("Roguelike/QA/파생 씬: 반딧불 숲 열기")] static void OpenFirefly() => OpenVariantScene("Region_Forest_Firefly");
     [MenuItem("Roguelike/QA/파생 씬: 자연 농지 열기")] static void OpenFarmland() => OpenVariantScene("Region_Forest_Farmland");
     [MenuItem("Roguelike/QA/파생 씬: 모래폭풍 사막 열기")] static void OpenSandstorm() => OpenVariantScene("Region_Desert_Sandstorm");
+    [MenuItem("Roguelike/QA/파생 씬: 얼어붙은 호수 열기")] static void OpenFrozenLake() => OpenVariantScene("Region_Snow_FrozenLake");
 
     static void OpenVariantScene(string name)
     {
@@ -70,6 +71,7 @@ public static partial class PrototypeBuilder
                 case StageVariantKind.ForestFirefly: BuildFirefly(root, vc.firefly); break;
                 case StageVariantKind.ForestFarmland: BuildFarmland(root, vc.farmland, v.scene); break;
                 case StageVariantKind.DesertSandstorm: BuildSandstorm(root, vc.sandstorm); break;
+                case StageVariantKind.SnowFrozenLake: BuildFrozenLake(root, vc.frozenLake, v.scene); break;
             }
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
