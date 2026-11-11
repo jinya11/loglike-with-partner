@@ -2,10 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 숲 파생형 "자연 농지": 벼 농사가 이루어진 곳. 평평해진 땅 전체가 벼 논(GPU 인스턴싱)으로 둘러싸이고, 화면 전체에 벼가루가 은은하게 휘날림.
-/// 고유 규칙: 키 큰 벼 속의 적은 모습이 가려짐 (생명체/감시자 가까이 오면 보임). 폭격하면 그 범위의 벼가 베여 시야가 트임.
-/// 기본형과 다른 점: 지형(평평한 논, 높이 ×terrainHeightMul) / 적 구성(감속형 증가) / 규칙(벼 은폐 + 폭격 벼 베기).
-/// StageDirector가 파생형일 때 붙임. 수치는 StageConfig.farmland.
+/// 숲 파생형 "자연 농지": 벼 농사가 이루어진 곳. 평평해진 땅 전체가 빽빽한 벼 논(Meshy 벼 덤불 모델, GPU 인스턴싱)으로 덮이고,
+/// 화면 전체에 벼가루가 은은하게 휘날림. 벼는 허리 높이라 적은 아래쪽이 벼에 묻혀 윗부분만 보임 (실제 깊이 가림).
+/// 고유 규칙: 폭격하면 그 범위의 벼가 베여 적이 전부 드러남.
+/// 기본형과 다른 점: 지형(평평한 논, 높이 ×terrainHeightMul) / 적 구성(감속형 증가) / 규칙(벼에 반쯤 가림 + 폭격 벼 베기).
+/// StageDirector가 파생형일 때 붙임. 수치/모델은 StageConfig.farmland.
 /// </summary>
 public class ForestFarmlandVariant : MonoBehaviour
 {
@@ -14,56 +15,111 @@ public class ForestFarmlandVariant : MonoBehaviour
     StageDirector stage;
     FarmlandSettings s;
     Mesh riceMesh;
-    Material riceMat;
-    // 벼 포기: 격자 칸마다 하나 (살아 있으면 그림)
+    bool ownMesh;
+    Vector3 meshScale = Vector3.one, meshPivot; // 모델을 clumpSize×높이 1로 맞추는 배율, 바닥 중심 보정
+    Quaternion meshFix = Quaternion.identity;   // 모델 축 보정 (Z-up → Y-up)
+    // 벼 덤불: 격자 칸마다 하나 (살아 있으면 그림)
     Vector3[] pos;
-    float[] heights, yaws;
-    bool[] alive;
+    float[] heights, yaws, sizes;
+    bool[] alive, gold;
     int gridW, gridH;
+    float cell;
     Vector2 gridOrigin;
-    readonly List<Matrix4x4[]> chunks = new List<Matrix4x4[]>(64);
-    readonly List<int> chunkCounts = new List<int>(64);
-    RenderParams rp;
+    // 재질별 인스턴스 묶음 (0 = 황금, 1 = 연두)
+    readonly List<Matrix4x4[]>[] chunks = { new List<Matrix4x4[]>(32), new List<Matrix4x4[]>(32) };
+    readonly List<int>[] chunkCounts = { new List<int>(32), new List<int>(32) };
+    readonly RenderParams[] rps = new RenderParams[2];
     ParticleSystem pollen;
-    float hideTick;
     int cutCount;
 
     public void Init(StageDirector st, FarmlandSettings settings)
     {
         stage = st; s = settings;
-        riceMesh = BuildRiceMesh();
-        riceMat = BuildRiceMaterial();
-        rp = new RenderParams(riceMat) { shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off, receiveShadows = true, worldBounds = new Bounds(Vector3.zero, Vector3.one * 2000f) };
+        Material goldMat = s.riceMaterialGold, greenMat = s.riceMaterialGreen;
+        if (s.riceMesh)
+        {
+            riceMesh = s.riceMesh;
+            // 모델 크기 정규화: 가로 clumpSize, 높이 1 (인스턴스마다 높이 배율), 바닥 중심이 원점.
+            // Meshy FBX는 위쪽이 Z축으로 들어옴(riceMeshUpIsZ) → X축 -90도로 세운 뒤 정규화
+            var b = riceMesh.bounds;
+            const float eps = 1e-6f;
+            if (s.riceMeshUpIsZ)
+            {
+                meshFix = Quaternion.Euler(-90f, 0f, 0f);
+                meshScale = new Vector3(s.clumpSize / Mathf.Max(eps, b.size.x), 1f / Mathf.Max(eps, b.size.z), s.clumpSize / Mathf.Max(eps, b.size.y));
+                meshPivot = new Vector3(-b.center.x, -b.center.y, -b.min.z);
+            }
+            else
+            {
+                float w = Mathf.Max(eps, Mathf.Max(b.size.x, b.size.z));
+                meshScale = new Vector3(s.clumpSize / w, 1f / Mathf.Max(eps, b.size.y), s.clumpSize / w);
+                meshPivot = new Vector3(-b.center.x, -b.min.y, -b.center.z);
+            }
+        }
+        else { riceMesh = BuildRiceMesh(); ownMesh = true; meshScale = new Vector3(s.clumpSize / 0.6f, 1f, s.clumpSize / 0.6f); }
+        if (!goldMat) goldMat = BuildRiceMaterial();
+        if (!greenMat) greenMat = goldMat;
+        foreach (var m in new[] { goldMat, greenMat }) m.enableInstancing = true;
+        var bounds = new Bounds(Vector3.zero, Vector3.one * 2000f);
+        rps[0] = new RenderParams(goldMat) { shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off, receiveShadows = true, worldBounds = bounds };
+        rps[1] = new RenderParams(greenMat) { shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off, receiveShadows = true, worldBounds = bounds };
+        PaintPaddyGround();
         PlantRice();
         RebuildChunks();
         MakePollen();
         CompanionBase.Bombarded += OnBombard;
-        if (HudExtras.I) HudExtras.I.SetStatus("벼 속의 적은 보이지 않습니다 — 폭격(R)으로 벼를 베어 시야를 확보하세요");
+        if (HudExtras.I) HudExtras.I.SetStatus("벼에 가려 적은 윗부분만 보입니다 — 폭격(R)으로 벼를 베면 드러납니다");
     }
 
     void OnDestroy()
     {
         CompanionBase.Bombarded -= OnBombard;
         if (HudExtras.I) HudExtras.I.SetStatus(null);
-        if (riceMesh) Destroy(riceMesh);
+        if (ownMesh && riceMesh) Destroy(riceMesh);
     }
 
-    // ---- 벼 심기 ----
+    /// <summary>
+    /// 논 바닥: 벼 사이로 보이는 땅을 벼 색(어두운 황금빛)으로 칠함. 런타임 지형 복제본의 레이어만 바꿈
+    /// (자연 농지는 지형을 평평하게 만들 때 이미 복제본을 씀 → 원본 TerrainData/레이어 에셋은 그대로).
+    /// </summary>
+    void PaintPaddyGround()
+    {
+        var t = Ground.Terrain;
+        if (!t || !t.terrainData) return;
+        var tex = new Texture2D(64, 64, TextureFormat.RGBA32, true) { name = "PaddyGround", wrapMode = TextureWrapMode.Repeat };
+        var c = s.paddyGround;
+        for (int y = 0; y < 64; y++)
+            for (int x = 0; x < 64; x++)
+            {
+                float n = (Mathf.PerlinNoise(x * 0.2f, y * 0.2f) - 0.5f) * 0.35f + (Random.value - 0.5f) * 0.15f;
+                tex.SetPixel(x, y, new Color(c.r * (1f + n), c.g * (1f + n), c.b * (1f + n), 1f));
+            }
+        tex.Apply(true);
+        var layer = new TerrainLayer { diffuseTexture = tex, tileSize = new Vector2(3f, 3f), smoothness = 0.05f };
+        var td = t.terrainData;
+        int count = Mathf.Max(1, td.alphamapLayers);
+        var layers = new TerrainLayer[count];
+        for (int i = 0; i < count; i++) layers[i] = layer; // 풀/바위 모두 논 바닥색으로
+        td.terrainLayers = layers;
+    }
+
+    // ---- 벼 심기 (빈틈 없이 촘촘하게) ----
     void PlantRice()
     {
         Rect b = Arena.Bounds;
-        float sp = Mathf.Max(0.4f, s.spacing);
+        cell = Mathf.Max(0.3f, s.clumpSize * s.overlap);
         gridOrigin = new Vector2(b.xMin, b.yMin);
-        gridW = Mathf.CeilToInt(b.width / sp); gridH = Mathf.CeilToInt(b.height / sp);
+        gridW = Mathf.CeilToInt(b.width / cell); gridH = Mathf.CeilToInt(b.height / cell);
         int n = gridW * gridH;
-        pos = new Vector3[n]; heights = new float[n]; yaws = new float[n]; alive = new bool[n];
+        pos = new Vector3[n]; heights = new float[n]; yaws = new float[n]; sizes = new float[n]; alive = new bool[n]; gold = new bool[n];
         var zones = StageZone.All;
+        float seedX = Random.value * 100f, seedZ = Random.value * 100f;
         for (int z = 0; z < gridH; z++)
             for (int x = 0; x < gridW; x++)
             {
                 int i = z * gridW + x;
-                float wx = gridOrigin.x + (x + 0.5f) * sp + Random.Range(-0.2f, 0.2f) * sp;
-                float wz = gridOrigin.y + (z + 0.5f) * sp + Random.Range(-0.2f, 0.2f) * sp;
+                float wx = gridOrigin.x + (x + 0.5f) * cell + Random.Range(-0.25f, 0.25f) * cell;
+                float wz = gridOrigin.y + (z + 0.5f) * cell + Random.Range(-0.25f, 0.25f) * cell;
                 var p = new Vector3(wx, 0f, wz);
                 // 논두렁(길), 경계 밖, 시작 지점, 장애물 칸, 바닥 장판(물 등)은 비움
                 float px = Mathf.Repeat(wx, s.pathEvery), pz = Mathf.Repeat(wz, s.pathEvery);
@@ -73,25 +129,30 @@ public class ForestFarmlandVariant : MonoBehaviour
                 bool inZone = false;
                 for (int k = 0; k < zones.Count; k++) if (zones[k].Contains(p)) { inZone = true; break; }
                 if (inZone) continue;
-                p.y = Ground.HeightAt(wx, wz) - 0.05f;
+                p.y = Ground.HeightAt(wx, wz) - 0.03f;
                 pos[i] = p;
                 heights[i] = Random.Range(s.height.x, s.height.y);
-                yaws[i] = Random.value * 360f;
+                yaws[i] = Random.Range(0, 4) * 90f + Random.Range(-20f, 20f);
+                sizes[i] = Random.Range(0.9f, 1.15f);
+                // 색 변주: 논 단위로 뭉쳐서 황금/연두 (사진처럼 층층이)
+                gold[i] = Mathf.PerlinNoise(seedX + wx * 0.05f, seedZ + wz * 0.05f) < s.goldRatio + 0.15f * (Random.value - 0.5f);
                 alive[i] = true;
             }
     }
 
     void RebuildChunks()
     {
-        chunks.Clear(); chunkCounts.Clear();
-        Matrix4x4[] cur = null; int c = 0;
+        for (int m = 0; m < 2; m++) { chunks[m].Clear(); chunkCounts[m].Clear(); }
+        var cur = new Matrix4x4[2][]; var c = new int[2];
         for (int i = 0; i < alive.Length; i++)
         {
             if (!alive[i]) continue;
-            if (cur == null || c == Chunk) { if (cur != null) { chunks.Add(cur); chunkCounts.Add(c); } cur = new Matrix4x4[Chunk]; c = 0; }
-            cur[c++] = Matrix4x4.TRS(pos[i], Quaternion.Euler(0f, yaws[i], 0f), new Vector3(1f, heights[i], 1f));
+            int m = gold[i] ? 0 : 1;
+            if (cur[m] == null || c[m] == Chunk) { if (cur[m] != null) { chunks[m].Add(cur[m]); chunkCounts[m].Add(c[m]); } cur[m] = new Matrix4x4[Chunk]; c[m] = 0; }
+            var scale = new Vector3(meshScale.x * sizes[i], meshScale.y * heights[i], meshScale.z * sizes[i]);
+            cur[m][c[m]++] = Matrix4x4.TRS(pos[i], Quaternion.Euler(0f, yaws[i], 0f), scale) * Matrix4x4.Rotate(meshFix) * Matrix4x4.Translate(meshPivot);
         }
-        if (cur != null && c > 0) { chunks.Add(cur); chunkCounts.Add(c); }
+        for (int m = 0; m < 2; m++) if (cur[m] != null && c[m] > 0) { chunks[m].Add(cur[m]); chunkCounts[m].Add(c[m]); }
     }
 
     /// <summary>벼 포기 하나: 엇갈린 잎 3장 (아래 초록 → 위 황금빛, 텍스처 그라데이션).</summary>
@@ -195,9 +256,8 @@ public class ForestFarmlandVariant : MonoBehaviour
     void OnBombard(Vector3 center, float radius)
     {
         float r = radius * s.cutRadiusMul, r2 = r * r;
-        float sp = Mathf.Max(0.4f, s.spacing);
-        int x0 = Mathf.Max(0, Mathf.FloorToInt((center.x - r - gridOrigin.x) / sp)), x1 = Mathf.Min(gridW - 1, Mathf.CeilToInt((center.x + r - gridOrigin.x) / sp));
-        int z0 = Mathf.Max(0, Mathf.FloorToInt((center.z - r - gridOrigin.y) / sp)), z1 = Mathf.Min(gridH - 1, Mathf.CeilToInt((center.z + r - gridOrigin.y) / sp));
+        int x0 = Mathf.Max(0, Mathf.FloorToInt((center.x - r - gridOrigin.x) / cell)), x1 = Mathf.Min(gridW - 1, Mathf.CeilToInt((center.x + r - gridOrigin.x) / cell));
+        int z0 = Mathf.Max(0, Mathf.FloorToInt((center.z - r - gridOrigin.y) / cell)), z1 = Mathf.Min(gridH - 1, Mathf.CeilToInt((center.z + r - gridOrigin.y) / cell));
         int cut = 0;
         for (int z = z0; z <= z1; z++)
             for (int x = x0; x <= x1; x++)
@@ -214,42 +274,13 @@ public class ForestFarmlandVariant : MonoBehaviour
         Vfx.Pickup(center + Vector3.up, s.riceTipColor, 20);
     }
 
-    /// <summary>이 위치가 (베이지 않은) 벼 속인지.</summary>
-    bool InRice(Vector3 p)
-    {
-        float sp = Mathf.Max(0.4f, s.spacing);
-        int x = Mathf.FloorToInt((p.x - gridOrigin.x) / sp), z = Mathf.FloorToInt((p.z - gridOrigin.y) / sp);
-        int hits = 0;
-        for (int dz = -1; dz <= 1; dz++)
-            for (int dx = -1; dx <= 1; dx++)
-            {
-                int xx = x + dx, zz = z + dz;
-                if (xx < 0 || zz < 0 || xx >= gridW || zz >= gridH) continue;
-                if (alive[zz * gridW + xx]) hits++;
-            }
-        return hits >= 4; // 주변 대부분이 벼
-    }
-
     void Update()
     {
-        for (int i = 0; i < chunks.Count; i++)
-            Graphics.RenderMeshInstanced(rp, riceMesh, 0, chunks[i], chunkCounts[i]);
+        for (int m = 0; m < 2; m++)
+            for (int i = 0; i < chunks[m].Count; i++)
+                Graphics.RenderMeshInstanced(rps[m], riceMesh, 0, chunks[m][i], chunkCounts[m][i]);
 
         var pc = PlayerController.I;
         if (pollen && pc) pollen.transform.position = pc.Position + Vector3.up * 3f;
-
-        // 벼 속의 적 숨기기 (0.15초마다)
-        if ((hideTick -= Time.deltaTime) > 0f) return;
-        hideTick = 0.15f;
-        Vector3 w = Ward.I != null ? Ward.I.Position : (pc ? pc.Position : Vector3.zero);
-        Vector3 p = pc ? pc.Position : w;
-        float rr = s.revealRadius * s.revealRadius;
-        foreach (var e in Enemy.Active)
-        {
-            Vector3 ep = e.transform.position;
-            Vector3 dw = ep - w, dp = ep - p; dw.y = 0f; dp.y = 0f;
-            bool near = dw.sqrMagnitude < rr || dp.sqrMagnitude < rr;
-            e.SetHidden(!near && InRice(ep));
-        }
     }
 }

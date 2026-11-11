@@ -18,7 +18,7 @@ public class ForestFireflyVariant : MonoBehaviour
         public Renderer glass;
         public LineRenderer ring;
         public bool lit;
-        public float pulse;
+        public float pulse, left; // left = 남은 점등 시간
     }
 
     StageDirector stage;
@@ -28,7 +28,7 @@ public class ForestFireflyVariant : MonoBehaviour
     readonly List<Lantern> lanterns = new List<Lantern>(8);
     Material flyMat, onMat, offMat, postMat;
     Light playerLight, wardLight;
-    float tick;
+    float tick, respawnTimer;
     int shownCarried = -1, shownLit = -1;
 
     /// <summary>감시자가 들고 있는 반딧불 수.</summary>
@@ -82,13 +82,13 @@ public class ForestFireflyVariant : MonoBehaviour
     }
 
     // ---- 반딧불 ----
-    void SpawnFireflies()
+    void SpawnFireflies() { for (int i = 0; i < s.fireflyCount; i++) SpawnFirefly(); }
+
+    void SpawnFirefly()
     {
-        for (int i = 0; i < s.fireflyCount; i++)
         {
-            var p = Arena.RandomPoint(0.9f);
-            if (stage.Nav != null) p = stage.Nav.NearestFree(p);
-            if (p.magnitude < 6f) { i--; continue; }
+            Vector3 p = Vector3.zero;
+            for (int a = 0; a < 10; a++) { p = Arena.RandomPoint(0.9f); if (stage.Nav != null) p = stage.Nav.NearestFree(p); if (p.magnitude >= 6f) break; }
             p = Ground.Snap(p, Random.Range(0.9f, 1.8f));
             var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             go.name = "Firefly";
@@ -168,6 +168,9 @@ public class ForestFireflyVariant : MonoBehaviour
         if (gm.State != GameState.Playing) return;
         float dt = Time.deltaTime;
 
+        // 반딧불 다시 나타남 (등불이 꺼져도 다시 켤 수 있게)
+        if (flies.Count < s.fireflyCount && (respawnTimer -= dt) <= 0f) { respawnTimer = s.fireflyRespawn; SpawnFirefly(); }
+
         // 반딧불: 둥실둥실 + 감시자가 다가가면 모음
         Vector3 w = pc.Position;
         float cr2 = s.collectRadius * s.collectRadius;
@@ -188,11 +191,25 @@ public class ForestFireflyVariant : MonoBehaviour
         float lr2 = s.lightRadius * s.lightRadius;
         foreach (var l in lanterns)
         {
-            if (l.lit) { l.pulse += dt; l.light.intensity = s.lanternIntensity + Mathf.Sin(l.pulse * 3f) * 0.5f; continue; }
+            if (l.lit)
+            {
+                l.pulse += dt;
+                l.left -= dt;
+                float fade = Mathf.Clamp01(l.left / 1f); // 꺼지기 직전 1초 동안 흐려짐
+                l.light.intensity = (s.lanternIntensity + Mathf.Sin(l.pulse * 3f) * 0.5f) * fade;
+                if (l.left <= 0f) // 지속 시간 끝: 꺼짐 → 반딧불을 다시 모아 켤 수 있음
+                {
+                    l.lit = false; LitCount--;
+                    l.light.intensity = 0f;
+                    l.glass.sharedMaterial = offMat;
+                    l.ring.startColor = l.ring.endColor = new Color(0.6f, 0.55f, 0.4f, 0.35f);
+                }
+                continue;
+            }
             Vector3 d = l.root.position - w; d.y = 0f;
             if (d.sqrMagnitude > lr2 || Carried < s.firefliesPerLantern) continue;
             Carried -= s.firefliesPerLantern;
-            l.lit = true; LitCount++;
+            l.lit = true; LitCount++; l.left = s.lanternDuration;
             l.glass.sharedMaterial = onMat;
             l.ring.startColor = l.ring.endColor = new Color(1f, 0.85f, 0.45f, 0.8f);
             Vfx.Pillar(l.root.position, LanternOn);
@@ -229,7 +246,7 @@ public class ForestFireflyVariant : MonoBehaviour
     {
         if (!HudExtras.I || (Carried == shownCarried && LitCount == shownLit)) return;
         shownCarried = Carried; shownLit = LitCount;
-        HudExtras.I.SetStatus($"<color=#C0FF70>반딧불 {Carried}</color> / 등불 하나에 {s.firefliesPerLantern}   ·   켜진 등불 {LitCount}/{lanterns.Count}  (등불 근처는 안전지대)");
+        HudExtras.I.SetStatus($"<color=#C0FF70>반딧불 {Carried}</color> / 등불 하나에 {s.firefliesPerLantern}   ·   켜진 등불 {LitCount}/{lanterns.Count}  (켜진 등불 근처는 {s.lanternDuration:0}초 동안 안전지대)");
     }
 
     void OnDestroy() { if (HudExtras.I) HudExtras.I.SetStatus(null); }

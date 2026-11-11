@@ -45,6 +45,8 @@ public class FireflyForestSettings
     [Tooltip("안전지대 안 적이 받는 초당 피해")] public float safeDps = 6f;
     [Tooltip("안전지대 안 생명체 초당 회복")] public float wardRegen = 2f;
     [Tooltip("켜진 등불 밝기")] public float lanternIntensity = 7f;
+    [Tooltip("등불이 켜져 있는 시간(초). 지나면 꺼지고, 반딧불을 다시 모아 켤 수 있음")] public float lanternDuration = 5f;
+    [Tooltip("반딧불이 다시 나타나는 간격(초) — 최대 fireflyCount까지")] public float fireflyRespawn = 2.5f;
     [Tooltip("밤: 해 밝기 배율 / 주변광")] public float sunMul = 0.12f;
     public Color ambient = new Color(0.05f, 0.06f, 0.1f);
 }
@@ -54,11 +56,16 @@ public class FireflyForestSettings
 public class FarmlandSettings
 {
     [Tooltip("지형 높이 배율 (논은 평평하게)")] public float terrainHeightMul = 0.15f;
-    [Tooltip("벼 포기 간격 (m)")] public float spacing = 0.85f;
-    [Tooltip("벼 높이 (최소, 최대)")] public Vector2 height = new Vector2(1.1f, 1.5f);
+    [Tooltip("벼 모델 (Meshy로 만든 벼 포기 덤불). 비우면 코드로 만든 잎으로 대체")] public Mesh riceMesh;
+    [Tooltip("벼 재질 2종 (황금 / 연두) — 섞어서 깔아 색 변주. 비우면 기본 재질")] public Material riceMaterialGold, riceMaterialGreen;
+    [Tooltip("벼 모델의 위쪽이 Z축 (Meshy FBX). 켜면 세워서 씀")] public bool riceMeshUpIsZ = true;
+    [Tooltip("벼 덤불 하나가 덮는 폭 (m) — 모델을 이 크기로 맞춤")] public float clumpSize = 2.4f;
+    [Tooltip("벼 덤불 간격 = clumpSize × 이 값 (1보다 작으면 겹쳐서 빈틈 없음)")] [Range(0.3f, 1.2f)] public float overlap = 0.5f;
+    [Tooltip("벼 높이 (최소, 최대). 적 키가 0.5~0.9m라 이 높이면 아래쪽만 묻히고 윗부분이 보임")] public Vector2 height = new Vector2(0.55f, 0.72f);
+    [Tooltip("황금색 벼 비율 (나머지는 연두)")] [Range(0, 1)] public float goldRatio = 0.7f;
     [Tooltip("논두렁(길) 간격 / 폭")] public float pathEvery = 14f, pathWidth = 1.6f;
     public Color riceColor = new Color(0.78f, 0.72f, 0.32f), riceTipColor = new Color(0.9f, 0.82f, 0.4f);
-    [Tooltip("벼 속의 적은 가려짐: 생명체/감시자에게서 이 거리 안이면 보임")] public float revealRadius = 5f;
+    [Tooltip("논 바닥 색 (벼 사이로 보이는 땅을 벼 색으로 칠해 빈틈이 안 보이게)")] public Color paddyGround = new Color(0.5f, 0.45f, 0.18f);
     [Tooltip("폭격이 벼를 베는 반경 배율 (폭격 반경 기준)")] public float cutRadiusMul = 1f;
     [Tooltip("화면 전체 벼가루 파티클: 초당 수, 투명도")] public float pollenRate = 60f, pollenAlpha = 0.45f;
     [Tooltip("벼가루 크기 (최소, 최대)")] public Vector2 pollenSize = new Vector2(0.1f, 0.22f);
