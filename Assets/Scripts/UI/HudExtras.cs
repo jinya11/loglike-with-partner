@@ -25,9 +25,23 @@ public class HudExtras : MonoBehaviour
     int shownTime = int.MinValue;
     bool shownEnraged;
 
+    public static HudExtras I { get; private set; }
+
+    /// <summary>하단 알림 한 줄 (파생 포털 열림 등).</summary>
+    public void Notice(string text) { toastQueue.Enqueue(text); }
+
+    TMP_Text statusLabel;
+    /// <summary>파생 스테이지 상태 한 줄 (하단, 아이콘 목록 위). null이면 숨김.</summary>
+    public void SetStatus(string text)
+    {
+        if (!statusLabel) return;
+        statusLabel.gameObject.SetActive(!string.IsNullOrEmpty(text));
+        if (!string.IsNullOrEmpty(text)) statusLabel.text = text;
+    }
+
     public void Init(TMP_FontAsset f)
     {
-        font = f;
+        font = f; I = this;
         root = (RectTransform)new GameObject("HudExtras", typeof(RectTransform)).transform;
         root.SetParent(transform, false);
         root.anchorMin = Vector2.zero; root.anchorMax = Vector2.one; root.offsetMin = root.offsetMax = Vector2.zero;
@@ -46,6 +60,9 @@ public class HudExtras : MonoBehaviour
         traitLabel = Text("StageTraitLabel", root, 21, Color.white, new Vector2(0.5f, 1f), new Vector2(0f, -14f), new Vector2(1200f, 90f));
         traitLabel.textWrappingMode = TextWrappingModes.Normal; traitLabel.verticalAlignment = VerticalAlignmentOptions.Top;
         traitLabel.gameObject.SetActive(false);
+
+        statusLabel = Text("VariantStatus", root, 22, Color.white, new Vector2(0.5f, 0f), new Vector2(0f, 56f), new Vector2(1400f, 34f));
+        statusLabel.gameObject.SetActive(false);
 
         var gm = GameManager.I;
         if (gm) gm.RewardGained += OnReward;

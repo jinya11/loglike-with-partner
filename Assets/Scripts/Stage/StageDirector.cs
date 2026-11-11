@@ -49,6 +49,8 @@ public class StageDirector : Singleton<StageDirector>
         Enemy.Routed = false; Enemy.SpeedMul = 1f;
         Ground.Clear();
         Traits.Clear(); if (!gm.InBonus) Traits.AddRange(gm.ActiveTraits); // 누적 스테이지 증강 (보너스 스테이지는 없음)
+        // 파생 스테이지 (지금 씬이 그 파생형의 지역일 때만)
+        Variant = !gm.InBonus && gm.ActiveVariant != null && gm.ActiveVariant.scene == gameObject.scene.name ? gm.ActiveVariant : null;
         if (!cfg.stage.IsExpandable(gameObject.scene.name) && !gm.InBonus) SetupTerrain(); // 심연 외: 씬의 Terrain이 지면
         gm.XpMul = 1f;
         var border = generator.Border;
@@ -107,6 +109,7 @@ public class StageDirector : Singleton<StageDirector>
         fx = new Pool<Fx>(cfg.stage.fxPrefab, transform, 16);
         if (cfg.meta.resourcePickupPrefab) resourcePickups = new Pool<ResourcePickup>(cfg.meta.resourcePickupPrefab, transform, 4);
         ResourcePickup.Active.Clear();
+        AttachVariant();
     }
 
     protected override void OnDestroy()
@@ -144,17 +147,19 @@ public class StageDirector : Singleton<StageDirector>
         if (!t || !t.terrainData) return;
         var g = cfg.stage.ground;
         var high = Get(StageTraitType.Highlands);
-        if (g.randomizeAtRuntime || high != null)
+        bool farm = Variant != null && Variant.kind == StageVariantKind.ForestFarmland;
+        if (g.randomizeAtRuntime || high != null || farm)
         {
             var td = Instantiate(t.terrainData);
             if (g.randomizeAtRuntime) TerrainHills.Generate(td, t.transform.position, g.hills, Random.Range(1, int.MaxValue));
             if (high != null) { var sz = td.size; sz.y *= Mathf.Max(0.1f, high.value); td.size = sz; }
+            if (farm) { var sz = td.size; sz.y *= cfg.stage.farmland.terrainHeightMul; td.size = sz; } // 자연 농지: 평평한 논
             t.terrainData = td;
             if (t.TryGetComponent(out TerrainCollider tcd)) tcd.terrainData = td;
         }
         if (t.TryGetComponent(out TerrainCollider tc)) tc.enabled = false;
         Ground.SetTerrain(t, g.maxWalkSlope);
-        if (g.randomizeAtRuntime || high != null) Ground.MarkRuntimeCopy();
+        if (g.randomizeAtRuntime || high != null || farm) Ground.MarkRuntimeCopy();
     }
 
     /// <summary>증강 장판(독/회복/진흙), 배치물을 지면 높이로. 길찾기 격자를 만들기 전에 호출 (장판 비용 반영).</summary>
@@ -241,6 +246,70 @@ public class StageDirector : Singleton<StageDirector>
             zone.type = type; zone.value = value; zone.box = false;
             i++;
         }
+    }
+
+    // ---- 파생 스테이지 ----
+    /// <summary>이번 스테이지가 파생형이면 그 정의 (기본형이면 null).</summary>
+    public StageVariantDef Variant { get; private set; }
+    /// <summary>HUD에 표시할 스테이지 이름 (파생형이면 파생 이름).</summary>
+    public string DisplayName => Variant != null ? Variant.name : Theme ? Theme.displayName : "";
+    readonly List<float> enemyWeights = new List<float>(8);
+    Transform variantPortal;
+    VariantPortal variantPortalComp;
+    /// <summary>파생 포털이 열려 있는지 (조건 증강 보유 시 일반 포털과 함께).</summary>
+    public bool VariantPortalOpen => variantPortal != null;
+    public Vector3 VariantPortalPosition => variantPortal ? variantPortal.position : Vector3.zero;
+    public StageVariantDef OfferedVariant => variantPortalComp ? variantPortalComp.Def : null;
+
+    /// <summary>
+    /// 생명체가 걸어갈 포털: 감시자가 더 가까이 있는 포털 (플레이어가 감시자를 움직여 고름). F로 바로 들어갈 수도 있음.
+    /// </summary>
+    public Vector3 WardPortalGoal
+    {
+        get
+        {
+            if (variantPortal && PlayerController.I)
+            {
+                // 감시자(조준점)가 더 가까이 있는 포털로 (감시자를 원하는 포털 쪽으로 움직이면 생명체가 따라감)
+                Vector3 w = PlayerController.I.Position;
+                Vector3 dv = w - variantPortal.position, dn = w - PortalPosition; dv.y = 0f; dn.y = 0f;
+                if (dv.sqrMagnitude < dn.sqrMagnitude) return variantPortal.position;
+            }
+            return PortalPosition;
+        }
+    }
+
+    /// <summary>파생형 고유 규칙 붙이기 (Awake 끝, 길찾기 격자가 만들어진 뒤).</summary>
+    void AttachVariant()
+    {
+        if (Variant == null) return;
+        switch (Variant.kind)
+        {
+            case StageVariantKind.ForestFirefly: gameObject.AddComponent<ForestFireflyVariant>().Init(this, cfg.stage.firefly); break;
+            case StageVariantKind.ForestFarmland: gameObject.AddComponent<ForestFarmlandVariant>().Init(this, cfg.stage.farmland); break;
+        }
+    }
+
+    /// <summary>조건 증강을 보유했으면 일반 포털과 떨어진 곳에 파생 포털을 하나 더 엶.</summary>
+    void OpenVariantPortal()
+    {
+        var v = gm.AvailableVariant(gameObject.scene.name);
+        if (v == null) return;
+        Vector3 at = Vector3.zero; float bestSq = -1f;
+        for (int i = 0; i < 30; i++)
+        {
+            Vector3 p = PortalSpot();
+            float sq = Flat(p - PortalPosition).sqrMagnitude;
+            if (sq >= cfg.stage.variantPortalSpacing * cfg.stage.variantPortalSpacing) { at = p; bestSq = sq; break; }
+            if (sq > bestSq) { bestSq = sq; at = p; }
+        }
+        var go = Instantiate(cfg.stage.portalPrefab, at, Quaternion.identity, transform);
+        go.name = "VariantPortal_" + v.id;
+        foreach (var sp in go.GetComponentsInChildren<StagePortal>()) DestroyImmediate(sp); // 일반 포털 동작 제거
+        variantPortalComp = go.AddComponent<VariantPortal>();
+        variantPortalComp.Init(v);
+        variantPortal = go.transform;
+        if (HudExtras.I) HudExtras.I.Notice($"파생 포털이 열렸습니다: <color=#{ColorUtility.ToHtmlStringRGB(v.color)}>{v.name}</color>  (감시자를 그쪽으로 옮기면 생명체가 따라감 / F로 바로 이동)");
     }
 
     /// <summary>누적 스테이지 증강 수치 적용 (스폰/능력치/보상 배율). 같은 종류 효과는 곱해서 쌓임.</summary>
@@ -488,9 +557,11 @@ public class StageDirector : Singleton<StageDirector>
             {
                 if (d == null || d.prefab == null || d.weight <= 0f || stageIndex < d.minStage) continue;
                 enemyDefs.Add(d);
-                enemyWeightTotal += d.weight;
+                float w = d.weight * (Variant != null && Variant.enemyBias != EnemyAbility.None && d.ability == Variant.enemyBias ? Variant.enemyBiasMul : 1f); // 파생형 적 구성
+                enemyWeights.Add(w);
+                enemyWeightTotal += w;
             }
-        if (enemyDefs.Count == 0) { enemyDefs.Add(null); enemyWeightTotal = 1f; } // 구버전: 기본 적만
+        if (enemyDefs.Count == 0) { enemyDefs.Add(null); enemyWeights.Add(1f); enemyWeightTotal = 1f; } // 구버전: 기본 적만
         int prewarm = Mathf.Max(8, cfg.stage.maxAlive / enemyDefs.Count);
         foreach (var d in enemyDefs)
             enemyPools.Add(new Pool<Enemy>(d != null ? d.prefab : cfg.enemy.enemyPrefab, transform, prewarm));
@@ -500,7 +571,7 @@ public class StageDirector : Singleton<StageDirector>
     {
         if (enemyDefs.Count == 1) return 0;
         float r = Random.value * enemyWeightTotal;
-        for (int i = 0; i < enemyDefs.Count - 1; i++) { r -= enemyDefs[i].weight; if (r <= 0f) return i; }
+        for (int i = 0; i < enemyDefs.Count - 1; i++) { r -= enemyWeights[i]; if (r <= 0f) return i; }
         return enemyDefs.Count - 1;
     }
 
@@ -538,6 +609,7 @@ public class StageDirector : Singleton<StageDirector>
         Enemy.Routed = true;
         Enemy.RoutSpeedMul = cfg.stage.routSpeedMul;
         foreach (var e in Enemy.Active) e.OnRouted();
+        OpenVariantPortal(); // 조건 증강 보유 시 파생 포털도
     }
 
     /// <summary>

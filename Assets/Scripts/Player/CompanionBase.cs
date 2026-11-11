@@ -60,7 +60,14 @@ public abstract class CompanionBase : MonoBehaviour
     protected abstract IEnumerator Act(PlayerStats s);
 
     /// <summary>플레이어가 지정한 위치에 폭격 (감시자마다 다른 연출/효과).</summary>
-    public void BeginBombard(Vector3 target) => StartCoroutine(RunBombard(target));
+    /// <summary>폭격 시작 (위치, 반경). 파생 스테이지 규칙 등이 구독 (예: 자연 농지에서 벼 베기).</summary>
+    public static event System.Action<Vector3, float> Bombarded;
+
+    public void BeginBombard(Vector3 target)
+    {
+        Bombarded?.Invoke(target, BombardRadius * GameManager.I.Stats.areaMul);
+        StartCoroutine(RunBombard(target));
+    }
 
     IEnumerator RunBombard(Vector3 target)
     {

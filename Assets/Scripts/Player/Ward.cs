@@ -273,6 +273,16 @@ public class Ward : Singleton<Ward>
                 if (!reachedPortal) { reachedPortal = true; GameManager.I.RequestNextStage(); }
                 return;
             }
+            // 파생 포털 도착 → 파생 스테이지로
+            if (stage.VariantPortalOpen)
+            {
+                Vector3 tv = stage.VariantPortalPosition - pos; tv.y = 0f;
+                if (tv.sqrMagnitude < portalReach * portalReach)
+                {
+                    if (!reachedPortal) { reachedPortal = true; GameManager.I.RequestNextStage(stage.OfferedVariant); }
+                    return;
+                }
+            }
         }
 
         // 목표 결정: 직접 조작 > 포털 귀환(정지 명령 제외) > 정지 > 도망 > 따라오기 > 배회
@@ -288,7 +298,7 @@ public class Ward : Singleton<Ward>
         }
         else if (stage.PortalOpen && Order != Command.Stay)
         {
-            goal = stage.PortalPosition;
+            goal = stage.WardPortalGoal; // 감시자가 파생 포털 가까이 있으면 그쪽으로
             Mode = AiMode.Portal;
         }
         else if (Order == Command.Stay)

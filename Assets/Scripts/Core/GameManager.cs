@@ -133,6 +133,7 @@ public class GameManager : Singleton<GameManager>
         Kind = ChoiceKind.Upgrade;
         RewardOrder.Clear(); RewardStacks.Clear();
         ActiveTraits.Clear(); TraitPoolExhausted = false;
+        UsedVariants.Clear(); ActiveVariant = null; pendingVariant = null;
         XpMul = 1f; xpCarry = 0f;
     }
 
@@ -239,9 +240,10 @@ public class GameManager : Singleton<GameManager>
     /// <summary>
     /// 포털 진입: 다음 일반 스테이지가 있으면 먼저 특징 카드를 고르게 하고(선택 후 이동), 아니면 바로 이동.
     /// </summary>
-    public void RequestNextStage()
+    public void RequestNextStage(StageVariantDef variant = null)
     {
         if (State != GameState.Playing || transitioning) return;
+        pendingVariant = variant; // 파생 포털로 들어가면 다음 스테이지 = 그 파생형
         var st = Config.stage;
         if (!st.stageTraitsEnabled || st.stageTraits == null || st.stageTraits.Length == 0 || StageIndex + 1 >= st.stageCount)
         {
@@ -335,8 +337,41 @@ public class GameManager : Singleton<GameManager>
         Time.timeScale = 0f;
     }
 
+    // ---- 파생 스테이지 ----
+    /// <summary>현재 스테이지가 파생형이면 그 정의 (기본형이면 null).</summary>
+    public StageVariantDef ActiveVariant { get; private set; }
+    /// <summary>이번 런에 이미 들어간 파생형 (같은 파생형은 한 번만).</summary>
+    public readonly List<StageVariantDef> UsedVariants = new List<StageVariantDef>(8);
+    StageVariantDef pendingVariant;
+
+    /// <summary>이 지역(씬)에서 지금 열 수 있는 파생형: 조건 증강 보유 + 아직 안 들어감 + 지금이 기본형일 때.</summary>
+    public StageVariantDef AvailableVariant(string scene)
+    {
+        var list = Config.stage.stageVariants;
+        if (list == null || ActiveVariant != null || InBonus) return null;
+        foreach (var v in list)
+        {
+            if (v == null || v.scene != scene || UsedVariants.Contains(v)) continue;
+            foreach (var t in ActiveTraits) if (t.type == v.requiredTrait) return v;
+        }
+        return null;
+    }
+
     public void NextStage()
     {
+        if (pendingVariant != null)
+        {
+            // 파생 스테이지: 보너스 없이 바로. 스테이지 번호는 현재에서 variantStageDecrease만큼 감소 (최소 1번 = 인덱스 0)
+            var v = pendingVariant; pendingVariant = null;
+            UsedVariants.Add(v);
+            InBonus = false;
+            StageIndex = Mathf.Max(0, StageIndex - Config.stage.variantStageDecrease);
+            if (StageIndex >= Config.stage.stageCount) { State = GameState.Victory; Time.timeScale = 0f; return; }
+            ActiveVariant = v;
+            Load(v.scene);
+            return;
+        }
+        ActiveVariant = null;
         if (!InBonus && Config.stage.bonusScenes.Length > 0 && StageIndex + 1 < Config.stage.stageCount && Random.value < Config.stage.bonusChance)
         {
             InBonus = true;

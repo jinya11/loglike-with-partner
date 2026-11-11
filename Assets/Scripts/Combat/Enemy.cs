@@ -54,6 +54,7 @@ public class Enemy : Ticked<Enemy>
         knock = Vector3.zero;
         chargeLeft = 0f; punch = 0f;
         elite = treasure = splitling = false; scaleMul = 1f; maxHp = this.hp;
+        SetHidden(false);
         if (renderers != null) foreach (var rr in renderers) rr.SetPropertyBlock(null); // 보물 색 초기화 (풀 재사용)
         visual.localScale = visualScale;
         abilityReadyAt = Time.time + Random.Range(0.5f, 2f); // 동시에 몰려서 쓰지 않도록
@@ -94,6 +95,15 @@ public class Enemy : Ticked<Enemy>
         tintMpb ??= new MaterialPropertyBlock();
         tintMpb.SetColor(ColorId, TreasureColor);
         foreach (var r in renderers) r.SetPropertyBlock(tintMpb);
+    }
+
+    bool hidden;
+    /// <summary>모습 숨김/보임 (자연 농지: 벼 속에 숨은 적). 숨어도 공격/피격은 그대로.</summary>
+    public void SetHidden(bool on)
+    {
+        if (hidden == on || renderers == null) return;
+        hidden = on;
+        foreach (var r in renderers) r.enabled = !on;
     }
 
     /// <summary>분열로 생긴 작은 적 (분열 변이). 다시 분열하지 않음.</summary>

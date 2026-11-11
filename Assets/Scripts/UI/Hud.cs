@@ -206,7 +206,7 @@ public class Hud : Singleton<Hud>
         {
             lastLevel = s.level; lastKills = stage.Kills; lastStage = stage; lastKillTarget = stage.KillTarget;
             infoText.text = UiText.Format(infoFmt, s.level, gm.StageIndex + 1, gm.Config.stage.stageCount,
-                stage.Theme ? stage.Theme.displayName : "", stage.Kills, stage.KillTarget);
+                stage.DisplayName, stage.Kills, stage.KillTarget);
             if (bonusBadge) bonusBadge.SetActive(gm.InBonus);
         }
 
