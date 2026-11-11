@@ -174,11 +174,12 @@ MonoBehaviour:
     ambient: {r: 0.05, g: 0.06, b: 0.1, a: 1}
   farmland:
     terrainHeightMul: 0.15
-    riceMesh: {fileID: 5461320835613783329, guid: 5bc0a00ef943ede49af14438420a12aa, type: 3}
+    riceMesh: {fileID: -8524547844719368960, guid: 535eaa3d22fbaf6469a57b775303c047, type: 3}
     riceMaterialGold: {fileID: 2100000, guid: 6adfb0bc8af369c4585d52dfe37f290a, type: 2}
     riceMaterialGreen: {fileID: 2100000, guid: f6eb3c804c4cc934c84acfe9b1c8cd4b, type: 2}
-    clumpSize: 2.4
-    overlap: 0.5
+    riceMeshUpIsZ: 0
+    clumpSize: 0.65
+    overlap: 0.62
     height: {x: 0.55, y: 0.72}
     goldRatio: 0.7
     pathEvery: 14

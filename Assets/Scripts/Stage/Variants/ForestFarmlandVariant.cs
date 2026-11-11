@@ -26,8 +26,6 @@ public class ForestFarmlandVariant : MonoBehaviour
     float cell;
     Vector2 gridOrigin;
     // 재질별 인스턴스 묶음 (0 = 황금, 1 = 연두)
-    readonly List<Matrix4x4[]>[] chunks = { new List<Matrix4x4[]>(32), new List<Matrix4x4[]>(32) };
-    readonly List<int>[] chunkCounts = { new List<int>(32), new List<int>(32) };
     readonly RenderParams[] rps = new RenderParams[2];
     ParticleSystem pollen;
     int cutCount;
@@ -140,20 +138,35 @@ public class ForestFarmlandVariant : MonoBehaviour
             }
     }
 
+    /// <summary>인스턴스 묶음 하나: 공간 타일(tileSize m) × 재질. 타일마다 경계가 있어 화면 밖 타일은 그리지 않음(절두체 컬링).</summary>
+    class Batch { public Matrix4x4[] m; public int count; public int mat; public Bounds bounds; }
+    readonly List<Batch> batches = new List<Batch>(256);
+    const float TileSize = 12f;
+
     void RebuildChunks()
     {
-        for (int m = 0; m < 2; m++) { chunks[m].Clear(); chunkCounts[m].Clear(); }
-        var cur = new Matrix4x4[2][]; var c = new int[2];
+        batches.Clear();
+        int tilesX = Mathf.Max(1, Mathf.CeilToInt(gridW * cell / TileSize));
+        var open = new Dictionary<int, Batch>(512);
         for (int i = 0; i < alive.Length; i++)
         {
             if (!alive[i]) continue;
             int m = gold[i] ? 0 : 1;
-            if (cur[m] == null || c[m] == Chunk) { if (cur[m] != null) { chunks[m].Add(cur[m]); chunkCounts[m].Add(c[m]); } cur[m] = new Matrix4x4[Chunk]; c[m] = 0; }
+            int tx = (int)((pos[i].x - gridOrigin.x) / TileSize), tz = (int)((pos[i].z - gridOrigin.y) / TileSize);
+            int key = ((tz * tilesX + tx) << 1) | m;
+            if (!open.TryGetValue(key, out var b) || b.count == Chunk)
+            {
+                b = new Batch { m = new Matrix4x4[Chunk], mat = m, bounds = new Bounds(pos[i], Vector3.one) };
+                open[key] = b; batches.Add(b);
+            }
             var scale = new Vector3(meshScale.x * sizes[i], meshScale.y * heights[i], meshScale.z * sizes[i]);
-            cur[m][c[m]++] = Matrix4x4.TRS(pos[i], Quaternion.Euler(0f, yaws[i], 0f), scale) * Matrix4x4.Rotate(meshFix) * Matrix4x4.Translate(meshPivot);
+            b.m[b.count++] = Matrix4x4.TRS(pos[i], Quaternion.Euler(0f, yaws[i], 0f), scale) * Matrix4x4.Rotate(meshFix) * Matrix4x4.Translate(meshPivot);
+            b.bounds.Encapsulate(new Bounds(pos[i] + Vector3.up * heights[i] * 0.5f, new Vector3(s.clumpSize * 1.3f, heights[i], s.clumpSize * 1.3f)));
         }
-        for (int m = 0; m < 2; m++) if (cur[m] != null && c[m] > 0) { chunks[m].Add(cur[m]); chunkCounts[m].Add(c[m]); }
     }
+
+    /// <summary>지금 그리는 벼 포기 수 (디버그/확인용).</summary>
+    public int AliveCount { get { int n = 0; foreach (var b in batches) n += b.count; return n; } }
 
     /// <summary>벼 포기 하나: 엇갈린 잎 3장 (아래 초록 → 위 황금빛, 텍스처 그라데이션).</summary>
     static Mesh BuildRiceMesh()
@@ -276,9 +289,12 @@ public class ForestFarmlandVariant : MonoBehaviour
 
     void Update()
     {
-        for (int m = 0; m < 2; m++)
-            for (int i = 0; i < chunks[m].Count; i++)
-                Graphics.RenderMeshInstanced(rps[m], riceMesh, 0, chunks[m][i], chunkCounts[m][i]);
+        foreach (var b in batches)
+        {
+            var rp = rps[b.mat];
+            rp.worldBounds = b.bounds; // 타일 경계로 컬링
+            Graphics.RenderMeshInstanced(rp, riceMesh, 0, b.m, b.count);
+        }
 
         var pc = PlayerController.I;
         if (pollen && pc) pollen.transform.position = pc.Position + Vector3.up * 3f;
