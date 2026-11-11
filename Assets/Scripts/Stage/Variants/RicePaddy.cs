@@ -33,6 +33,7 @@ public class RicePaddy : MonoBehaviour
     readonly List<Vector3> plantPos = new List<Vector3>(512);
     readonly List<bool> alive = new List<bool>(512);
     Bounds bounds;
+    int gridNx, gridNz; float gridSx, gridSz; // 포기 격자 (가림 판정용)
     bool dirty = true;
     int cutCount;
     Vector3 lastPos; Quaternion lastRot; Vector3 lastScale;
@@ -60,6 +61,32 @@ public class RicePaddy : MonoBehaviour
         int n = 0;
         foreach (var p in All) n += p.Cut(center, radius);
         return n;
+    }
+
+    /// <summary>이 위치가 어느 구획의 베이지 않은 벼 속인지 (논두렁/벤 자리면 false).</summary>
+    public static bool AnyCovers(Vector3 p)
+    {
+        foreach (var q in All) if (q.Covers(p)) return true;
+        return false;
+    }
+
+    public bool Covers(Vector3 p)
+    {
+        if (dirty || plantPos.Count == 0) return false;
+        var l = Quaternion.Inverse(transform.rotation) * (p - transform.position);
+        float hx = gridNx * gridSx * 0.5f, hz = gridNz * gridSz * 0.5f;
+        if (Mathf.Abs(l.x) > hx || Mathf.Abs(l.z) > hz) return false;
+        int x = Mathf.Clamp((int)((l.x + hx) / gridSx), 0, gridNx - 1), z = Mathf.Clamp((int)((l.z + hz) / gridSz), 0, gridNz - 1);
+        // 가까운 포기 몇 개 중 하나라도 살아 있으면 벼 속 (줄 사이 틈은 벼 속으로 침)
+        for (int dz = -1; dz <= 1; dz++)
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                int xx = x + dx, zz = z + dz;
+                if (xx < 0 || zz < 0 || xx >= gridNx || zz >= gridNz) continue;
+                int i = zz * gridNx + xx;
+                if (i < alive.Count && alive[i]) return true;
+            }
+        return false;
     }
 
     int Cut(Vector3 center, float r)
@@ -94,6 +121,7 @@ public class RicePaddy : MonoBehaviour
         var rng = new System.Random(seed);
         float sx = Mathf.Max(0.2f, plantSpacing), sz = Mathf.Max(0.3f, rowSpacing);
         int nx = Mathf.Max(1, Mathf.FloorToInt(size.x / sx)), nz = Mathf.Max(1, Mathf.FloorToInt(size.y / sz));
+        gridNx = nx; gridNz = nz; gridSx = sx; gridSz = sz;
         for (int z = 0; z < nz; z++)
             for (int x = 0; x < nx; x++)
             {

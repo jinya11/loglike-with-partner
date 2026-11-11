@@ -330,7 +330,7 @@ public class StageDirector : Singleton<StageDirector>
         variantPortalComp = go.AddComponent<VariantPortal>();
         variantPortalComp.Init(v);
         variantPortal = go.transform;
-        if (HudExtras.I) HudExtras.I.Notice($"파생 포털이 열렸습니다: <color=#{ColorUtility.ToHtmlStringRGB(v.color)}>{v.name}</color>  (감시자를 그쪽으로 옮기면 생명체가 따라감 / F로 바로 이동)");
+        if (HudExtras.I) HudExtras.I.Notice($"<color=#{ColorUtility.ToHtmlStringRGB(v.color)}>{v.name}</color>");
     }
 
     /// <summary>누적 스테이지 증강 수치 적용 (스폰/능력치/보상 배율). 같은 종류 효과는 곱해서 쌓임.</summary>

@@ -54,7 +54,7 @@ public class Enemy : Ticked<Enemy>
         knock = Vector3.zero;
         chargeLeft = 0f; punch = 0f;
         elite = treasure = splitling = false; scaleMul = 1f; maxHp = this.hp;
-        SetHidden(false);
+        SetHidden(false); SetMask(null);
         if (renderers != null) foreach (var rr in renderers) rr.SetPropertyBlock(null); // 보물 색 초기화 (풀 재사용)
         visual.localScale = visualScale;
         abilityReadyAt = Time.time + Random.Range(0.5f, 2f); // 동시에 몰려서 쓰지 않도록
@@ -95,6 +95,32 @@ public class Enemy : Ticked<Enemy>
         tintMpb ??= new MaterialPropertyBlock();
         tintMpb.SetColor(ColorId, TreasureColor);
         foreach (var r in renderers) r.SetPropertyBlock(tintMpb);
+    }
+
+    Material[][] originalMats;
+    bool masked;
+    /// <summary>
+    /// 몸 일부만 그리기 (자연 농지: 벼 속의 적). map이 원래 재질 → 조각조각 잘린(알파 컷아웃) 재질을 돌려줌. null이면 원래대로.
+    /// 재질 교체만 하고 공격/피격은 그대로. 풀 재사용 시 Init에서 원래대로 돌림.
+    /// </summary>
+    public void SetMask(System.Func<Material, Material> map)
+    {
+        if (renderers == null) return;
+        bool on = map != null;
+        if (on == masked) return;
+        if (originalMats == null)
+        {
+            originalMats = new Material[renderers.Length][];
+            for (int i = 0; i < renderers.Length; i++) originalMats[i] = renderers[i].sharedMaterials;
+        }
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            if (!on) { renderers[i].sharedMaterials = originalMats[i]; continue; }
+            var src = originalMats[i]; var dst = new Material[src.Length];
+            for (int k = 0; k < src.Length; k++) dst[k] = src[k] ? map(src[k]) : null;
+            renderers[i].sharedMaterials = dst;
+        }
+        masked = on;
     }
 
     bool hidden;

@@ -203,7 +203,7 @@ public class ForestFireflyVariant : MonoBehaviour
     {
         if (!HudExtras.I || (Carried == shownCarried && LitCount == shownLit)) return;
         shownCarried = Carried; shownLit = LitCount;
-        HudExtras.I.SetStatus($"<color=#C0FF70>반딧불 {Carried}</color> / 등불 하나에 {s.firefliesPerLantern}   ·   켜진 등불 {LitCount}/{lanterns.Count}  (켜진 등불 근처는 {s.lanternDuration:0}초 동안 안전지대)");
+        HudExtras.I.SetStatus($"<color=#C0FF70>반딧불 {Carried}/{s.firefliesPerLantern}</color>   등불 {LitCount}/{lanterns.Count}"); // 수치만 (설명 문구 없음)
     }
 
     void OnDestroy() { if (HudExtras.I) HudExtras.I.SetStatus(null); }

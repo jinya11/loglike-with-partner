@@ -73,6 +73,8 @@ public class FarmlandSettings
     [Tooltip("논 바닥 색 (줄 사이 물 댄 논: 짙은 물빛)")] public Color paddyGround = new Color(0.27f, 0.33f, 0.27f);
     [Tooltip("논 바닥 매끄러움 (물 반사 느낌)")] [Range(0, 1)] public float paddyWaterSmoothness = 0.8f;
     [Tooltip("폭격이 벼를 베는 반경 배율 (폭격 반경 기준)")] public float cutRadiusMul = 1f;
+    [Tooltip("베이지 않은 벼 속 적의 몸이 가려지는 비율 (0 = 다 보임, 1 = 다 가려짐)")] [Range(0, 1)] public float hiddenFraction = 0.5f;
+    [Tooltip("가림 얼룩 크기 (클수록 잘게)")] public float maskTiling = 2f;
     [Tooltip("화면 전체 벼가루 파티클: 초당 수, 투명도")] public float pollenRate = 60f, pollenAlpha = 0.45f;
     [Tooltip("벼가루 크기 (최소, 최대)")] public Vector2 pollenSize = new Vector2(0.1f, 0.22f);
 }
