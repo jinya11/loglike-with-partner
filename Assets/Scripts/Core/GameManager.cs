@@ -345,13 +345,16 @@ public class GameManager : Singleton<GameManager>
     StageVariantDef pendingVariant;
 
     /// <summary>이 지역(씬)에서 지금 열 수 있는 파생형: 조건 증강 보유 + 아직 안 들어감 + 지금이 기본형일 때.</summary>
+    /// <summary>QA: 파생 전용 씬을 에디터에서 바로 Play했을 때 그 파생형으로 시작.</summary>
+    public void ForceVariant(StageVariantDef v) { ActiveVariant = v; InBonus = false; }
+
     public StageVariantDef AvailableVariant(string scene)
     {
         var list = Config.variant.stageVariants;
         if (list == null || ActiveVariant != null || InBonus) return null;
         foreach (var v in list)
         {
-            if (v == null || v.scene != scene || UsedVariants.Contains(v)) continue;
+            if (v == null || v.regionScene != scene || UsedVariants.Contains(v)) continue;
             foreach (var t in ActiveTraits) if (t.type == v.requiredTrait) return v;
         }
         return null;

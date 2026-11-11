@@ -18,7 +18,8 @@ MonoBehaviour:
     desc: "\uBC24\uC758 \uC232. \uD769\uC5B4\uC9C4 \uBC18\uB527\uBD88\uC744 \uBAA8\uC544
       \uB4F1\uBD88\uC744 \uCF1C\uBA74 \uADF8 \uAD6C\uC5ED\uC774 \uBC1D\uC544\uC9C0\uACE0
       \uC548\uC804\uC9C0\uB300\uAC00 \uB41C\uB2E4."
-    scene: Region_Forest
+    regionScene: Region_Forest
+    scene: Region_Forest_Firefly
     requiredTrait: 9
     kind: 0
     color: {r: 0.65, g: 1, b: 0.45, a: 1}
@@ -32,7 +33,8 @@ MonoBehaviour:
       \uD718\uB0A0\uB9B0\uB2E4. \uD0A4 \uD070 \uBCBC \uC18D\uC758 \uC801\uC740 \uBCF4\uC774\uC9C0
       \uC54A\uB294\uB2E4 \u2014 \uD3ED\uACA9\uC73C\uB85C \uBCBC\uB97C \uBCA0\uBA74
       \uB4DC\uB7EC\uB09C\uB2E4."
-    scene: Region_Forest
+    regionScene: Region_Forest
+    scene: Region_Forest_Farmland
     requiredTrait: 8
     kind: 1
     color: {r: 1, g: 0.85, b: 0.35, a: 1}

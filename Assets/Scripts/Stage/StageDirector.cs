@@ -50,6 +50,10 @@ public class StageDirector : Singleton<StageDirector>
         Ground.Clear();
         Traits.Clear(); if (!gm.InBonus) Traits.AddRange(gm.ActiveTraits); // 누적 스테이지 증강 (보너스 스테이지는 없음)
         // 파생 스테이지 (지금 씬이 그 파생형의 지역일 때만)
+        // 파생 스테이지 전용 씬: 이 씬을 에디터에서 바로 Play해도 그 파생형으로 시작 (QA)
+        var vs = FindAnyObjectByType<VariantStage>();
+        if (vs && (gm.ActiveVariant == null || gm.ActiveVariant.scene != gameObject.scene.name) && cfg.variant != null)
+            foreach (var v in cfg.variant.stageVariants) if (v != null && v.id == vs.variantId) { gm.ForceVariant(v); break; }
         Variant = !gm.InBonus && gm.ActiveVariant != null && gm.ActiveVariant.scene == gameObject.scene.name ? gm.ActiveVariant : null;
         if (!cfg.stage.IsExpandable(gameObject.scene.name) && !gm.InBonus) SetupTerrain(); // 심연 외: 씬의 Terrain이 지면
         gm.XpMul = 1f;
@@ -147,19 +151,17 @@ public class StageDirector : Singleton<StageDirector>
         if (!t || !t.terrainData) return;
         var g = cfg.stage.ground;
         var high = Get(StageTraitType.Highlands);
-        bool farm = Variant != null && Variant.kind == StageVariantKind.ForestFarmland;
-        if (g.randomizeAtRuntime || high != null || farm)
+        if (g.randomizeAtRuntime || high != null)
         {
             var td = Instantiate(t.terrainData);
             if (g.randomizeAtRuntime) TerrainHills.Generate(td, t.transform.position, g.hills, Random.Range(1, int.MaxValue));
             if (high != null) { var sz = td.size; sz.y *= Mathf.Max(0.1f, high.value); td.size = sz; }
-            if (farm) { var sz = td.size; sz.y *= cfg.variant.farmland.terrainHeightMul; td.size = sz; } // 자연 농지: 평평한 논
             t.terrainData = td;
             if (t.TryGetComponent(out TerrainCollider tcd)) tcd.terrainData = td;
         }
         if (t.TryGetComponent(out TerrainCollider tc)) tc.enabled = false;
         Ground.SetTerrain(t, g.maxWalkSlope);
-        if (g.randomizeAtRuntime || high != null || farm) Ground.MarkRuntimeCopy();
+        if (g.randomizeAtRuntime || high != null) Ground.MarkRuntimeCopy();
     }
 
     /// <summary>증강 장판(독/회복/진흙), 배치물을 지면 높이로. 길찾기 격자를 만들기 전에 호출 (장판 비용 반영).</summary>
@@ -290,13 +292,22 @@ public class StageDirector : Singleton<StageDirector>
     }
 
     /// <summary>파생형 고유 규칙 붙이기 (Awake 끝, 길찾기 격자가 만들어진 뒤).</summary>
+    T SceneRule<T>() where T : MonoBehaviour
+    {
+        var c = FindAnyObjectByType<T>();
+        if (c) return c;
+        Debug.LogWarning($"[StageDirector] 파생 전용 씬에 {typeof(T).Name}이(가) 없습니다 — 메뉴 Roguelike/Build Variant Scenes로 씬을 만드세요");
+        return gameObject.AddComponent<T>();
+    }
+
     void AttachVariant()
     {
         if (Variant == null) return;
         switch (Variant.kind)
         {
-            case StageVariantKind.ForestFirefly: gameObject.AddComponent<ForestFireflyVariant>().Init(this, cfg.variant.firefly); break;
-            case StageVariantKind.ForestFarmland: gameObject.AddComponent<ForestFarmlandVariant>().Init(this, cfg.variant.farmland); break;
+            // 규칙 컴포넌트는 전용 씬에 배치돼 있음 (없으면 경고 후 기본 생성)
+            case StageVariantKind.ForestFirefly: SceneRule<ForestFireflyVariant>().Init(this, cfg.variant.firefly); break;
+            case StageVariantKind.ForestFarmland: SceneRule<ForestFarmlandVariant>().Init(this, cfg.variant.farmland); break;
         }
     }
 

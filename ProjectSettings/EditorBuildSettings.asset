@@ -44,6 +44,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Regions/Region_Graveyard.unity
     guid: cc0d3475a1e98b944934725cc44afed4
+  - enabled: 1
+    path: Assets/Scenes/Regions/Variants/Region_Forest_Firefly.unity
+    guid: bd6cd4d35befec6458733f79cd924b30
+  - enabled: 1
+    path: Assets/Scenes/Regions/Variants/Region_Forest_Farmland.unity
+    guid: a2f88582f672512439085bd9c3e5a0f5
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

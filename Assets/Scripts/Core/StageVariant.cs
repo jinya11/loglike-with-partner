@@ -18,7 +18,8 @@ public class StageVariantDef
     [Tooltip("고유 id")] public string id;
     public string name;
     [TextArea(1, 3)] public string desc;
-    [Tooltip("이 파생형이 나오는 지역 씬 (기본형 씬을 그대로 쓰고 런타임에 파생 규칙을 덧씌움)")] public string scene;
+    [Tooltip("파생 포털이 열리는 지역(기본형) 씬")] public string regionScene;
+    [Tooltip("파생 스테이지 전용 씬 (이 씬을 불러옴. Build Settings 등록 필요)")] public string scene;
     [Tooltip("해금 조건 증강 (이 증강을 보유하면 파생 포털이 열림)")] public StageTraitType requiredTrait;
     public StageVariantKind kind;
     [Tooltip("파생 포털/이름 색")] public Color color = Color.white;
@@ -29,8 +30,8 @@ public class StageVariantDef
     public float enemyBiasMul = 1f;
 
     public StageVariantDef() { }
-    public StageVariantDef(string id, string name, string desc, string scene, StageTraitType trait, StageVariantKind kind, Color color, EnemyAbility bias, float biasMul)
-    { this.id = id; this.name = name; this.desc = desc; this.scene = scene; requiredTrait = trait; this.kind = kind; this.color = color; enemyBias = bias; enemyBiasMul = biasMul; }
+    public StageVariantDef(string id, string name, string desc, string regionScene, string scene, StageTraitType trait, StageVariantKind kind, Color color, EnemyAbility bias, float biasMul)
+    { this.id = id; this.name = name; this.desc = desc; this.regionScene = regionScene; this.scene = scene; requiredTrait = trait; this.kind = kind; this.color = color; enemyBias = bias; enemyBiasMul = biasMul; }
 }
 
 /// <summary>반딧불 숲 수치 (StageConfig.firefly).</summary>

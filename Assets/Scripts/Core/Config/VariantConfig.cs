@@ -12,8 +12,8 @@ public class VariantConfig : ScriptableObject
     [Tooltip("조건 증강을 보유하고 그 지역 포털이 열리면 파생 포털이 하나 더 열림 (같은 파생형은 런에 한 번)")]
     public StageVariantDef[] stageVariants =
     {
-        new StageVariantDef("forest_firefly", "반딧불 숲", "밤의 숲. 흩어진 반딧불을 모아 등불을 켜면 그 구역이 밝아지고 안전지대가 된다.", "Region_Forest", StageTraitType.Fog, StageVariantKind.ForestFirefly, new Color(0.65f, 1f, 0.45f), EnemyAbility.Fear, 3f),
-        new StageVariantDef("forest_farmland", "자연 농지", "벼 농사가 이루어진 곳. 스테이지 전체가 벼로 둘러싸이고 벼가루가 휘날린다. 벼에 가려 적은 윗부분만 보인다 — 폭격으로 벼를 베면 드러난다.", "Region_Forest", StageTraitType.Riches, StageVariantKind.ForestFarmland, new Color(1f, 0.85f, 0.35f), EnemyAbility.Slow, 3f),
+        new StageVariantDef("forest_firefly", "반딧불 숲", "밤의 숲. 흩어진 반딧불을 모아 등불을 켜면 그 구역이 밝아지고 안전지대가 된다.", "Region_Forest", "Region_Forest_Firefly", StageTraitType.Fog, StageVariantKind.ForestFirefly, new Color(0.65f, 1f, 0.45f), EnemyAbility.Fear, 3f),
+        new StageVariantDef("forest_farmland", "자연 농지", "벼 농사가 이루어진 곳. 스테이지 전체가 벼로 둘러싸이고 벼가루가 휘날린다. 벼에 가려 적은 윗부분만 보인다 — 폭격으로 벼를 베면 드러난다.", "Region_Forest", "Region_Forest_Farmland", StageTraitType.Riches, StageVariantKind.ForestFarmland, new Color(1f, 0.85f, 0.35f), EnemyAbility.Slow, 3f),
     };
 
     [Header("공통 규칙")]
