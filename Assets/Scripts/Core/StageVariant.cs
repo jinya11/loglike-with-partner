@@ -7,6 +7,7 @@ public enum StageVariantKind
     [Tooltip("숲: 자연 농지. 스테이지 전체가 벼 논, 벼 속의 적은 가려짐, 폭격으로 벼를 베면 시야 확보")] ForestFarmland,
     [Tooltip("사막: 모래폭풍 사막. 주기적 모래폭풍이 한 방향으로 밀어냄, 동굴 바위 뒤가 피난처, 폭풍 뒤 묻힌 유물이 드러남")] DesertSandstorm,
     [Tooltip("설원: 얼어붙은 호수. 얼음판 전장, 금 간 얼음은 밟으면 깨져 구멍 — 적은 빠지면 즉사, 생명체는 빠지면 스페이스 연타로 탈출")] SnowFrozenLake,
+    [Tooltip("화산: 칼데라. 용암 호수를 둘러싼 고리 모양 플랫폼 전장(지형/보더 없음). 용암 수위가 주기적으로 오르내리고, 그때 가장자리 플랫폼이 가라앉아 고리 폭이 바뀜")] VolcanoCaldera,
 }
 
 /// <summary>
@@ -139,4 +140,34 @@ public class FrozenLakeSettings
     public Color iceColor = new Color(0.78f, 0.92f, 1f);
     public Color crackColor = new Color(0.32f, 0.5f, 0.72f);
     public Color waterColor = new Color(0.16f, 0.3f, 0.48f);
+}
+
+/// <summary>칼데라 수치 (VariantConfig.caldera).</summary>
+[System.Serializable]
+public class CalderaSettings
+{
+    public enum VanishAt { [Tooltip("수위가 낮아질 때 가라앉음 (오를 때 다시 떠오름)")] Low, [Tooltip("수위가 높아질 때 잠김 (내려갈 때 다시 드러남)")] High }
+
+    [Header("고리 (씬 빌더가 플랫폼을 깖 — 이후 씬에서 플랫폼을 옮기거나 지우거나 '가라앉음'을 바꿔도 됨)")]
+    [Tooltip("용암 호수(가운데) 반경 = 고리 안쪽 반경(m)")] public float innerRadius = 12f;
+    [Tooltip("고리 바깥 반경(m). 그 밖도 용암 (보더 없음)")] public float outerRadius = 42f;
+    [Tooltip("플랫폼 한 칸 크기(m)")] public float tileSize = 3f;
+    [Tooltip("안쪽 가장자리에서 가라앉는 띠 폭(m)")] public float innerBand = 7f;
+    [Tooltip("바깥 가장자리에서 가라앉는 띠 폭(m)")] public float outerBand = 8f;
+    [Tooltip("가라앉는 띠 경계의 들쭉날쭉함(m)")] public float bandJitter = 2f;
+    [Header("용암 수위 주기")]
+    [Tooltip("어느 쪽 수위에서 가장자리 플랫폼이 사라지는지")] public VanishAt vanishAt = VanishAt.Low;
+    [Tooltip("높은 수위 유지(초)")] public float highHold = 16f;
+    [Tooltip("낮은 수위 유지(초)")] public float lowHold = 12f;
+    [Tooltip("수위가 바뀌는 데 걸리는 시간(초)")] public float transition = 4f;
+    [Tooltip("사라지기 전에 플랫폼이 흔들리며 빛나는 경고 시간(초, 수위 변화 시작부터)")] public float warning = 2f;
+    [Tooltip("높은 수위 / 낮은 수위 (용암 표면 높이, 플랫폼 윗면 = 0)")] public float highLevel = -0.35f, lowLevel = -3f;
+    [Header("용암")]
+    [Tooltip("생명체가 용암에 빠지면 받는 피해 (최대 체력 비율). 이후 가까운 플랫폼으로 돌아옴")] [Range(0, 1)] public float wardLavaDamageFrac = 0.2f;
+    [Tooltip("생명체가 돌아온 뒤 보호막(초)")] public float wardShield = 1f;
+    [Header("색 (무광 파스텔 + 용암만 발광)")]
+    public Color rockColor = new Color(0.33f, 0.27f, 0.28f);
+    [Tooltip("가라앉는 플랫폼 (식은 껍질)")] public Color crustColor = new Color(0.45f, 0.3f, 0.27f);
+    public Color lavaColor = new Color(1f, 0.45f, 0.15f);
+    [Tooltip("용암 발광 세기")] public float lavaGlow = 1.6f;
 }

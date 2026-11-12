@@ -261,6 +261,11 @@ public class StageDirector : Singleton<StageDirector>
     // ---- 파생 스테이지 ----
     /// <summary>이번 스테이지가 파생형이면 그 정의 (기본형이면 null).</summary>
     public StageVariantDef Variant { get; private set; }
+    /// <summary>적이 길찾기 흐름장을 따라 움직이는지: 지형이 있거나, 파생 규칙이 바닥 일부를 막았을 때 (칼데라 용암).</summary>
+    public bool UseFlow => Nav != null && (Ground.HasTerrain || Nav.HasDynamicBlocks);
+    /// <summary>파생 규칙이 포털 자리를 거를 때 (칼데라: 사라지지 않는 플랫폼 위만). 후보가 하나도 없으면 PortalFallback.</summary>
+    public System.Func<Vector3, bool> PortalFilter;
+    public System.Func<Vector3> PortalFallback;
     /// <summary>파생 스테이지에서 자동 생성 모델(배치 소품, 보더 밖 풍경, 증강 장판)을 끄는지 (StageVariantDef.autoProps가 꺼져 있으면).</summary>
     bool NoAutoProps => Variant != null && !Variant.autoProps;
     /// <summary>HUD에 표시할 스테이지 이름 (파생형이면 파생 이름).</summary>
@@ -310,6 +315,7 @@ public class StageDirector : Singleton<StageDirector>
             case StageVariantKind.ForestFarmland: SceneRule<ForestFarmlandVariant>().Init(this, cfg.variant.farmland); break;
             case StageVariantKind.DesertSandstorm: SceneRule<DesertSandstormVariant>().Init(this, cfg.variant.sandstorm); break;
             case StageVariantKind.SnowFrozenLake: SceneRule<FrozenLakeVariant>().Init(this, cfg.variant.frozenLake); break;
+            case StageVariantKind.VolcanoCaldera: SceneRule<CalderaVariant>().Init(this, cfg.variant.caldera); break;
         }
     }
 
@@ -533,7 +539,7 @@ public class StageDirector : Singleton<StageDirector>
         TickTimeLimit(dt);
         TickEvents(dt);
         // 지형: 적이 가파른 비탈을 돌아오도록 생명체까지의 흐름장을 주기적으로 갱신
-        if (Ground.HasTerrain && Nav != null && (flowTimer -= dt) <= 0f)
+        if (UseFlow && (flowTimer -= dt) <= 0f)
         {
             flowTimer = 0.35f;
             Nav.BuildFlow(Ward.I != null ? Ward.I.Position : PlayerController.I.Position);
@@ -561,7 +567,7 @@ public class StageDirector : Singleton<StageDirector>
             var pos = Arena.Clamp(wide ? Arena.RandomPoint(0.95f) : new Vector3(p.x + d.x, 0f, p.z + d.y), 1.5f); // 경계(보더) 밖에는 생성하지 않음
             if ((pos - p).sqrMagnitude < 64f || (pos - pp).sqrMagnitude < 64f) continue; // 근처 스폰 방지
             int k = PickEnemyType();
-            if (Ground.HasTerrain && Nav != null && !Nav.IsFree(pos)) pos = Nav.NearestFree(pos); // 너무 가파른 칸에는 스폰하지 않음
+            if (UseFlow && !Nav.IsFree(pos)) pos = Nav.NearestFree(pos); // 너무 가파른 칸에는 스폰하지 않음
             pos.y = Ground.HeightAt(pos);
             var e = enemyPools[k].Get(pos, Quaternion.identity);
             e.Init(enemyHp, enemySpeed, enemyDamage, enemyDefs[k]);
@@ -664,13 +670,13 @@ public class StageDirector : Singleton<StageDirector>
         {
             var p = Arena.RandomPoint(0.8f);
             if (Nav != null) p = Nav.NearestFree(p);
-            if (!Arena.Contains(p, 3f) || InDamageZone(p) || !Ground.IsFlat(p, 1.6f, 0.35f, 18f)) continue; // 포털 발밑이 평평한 곳 (뜨거나 묻히지 않게)
+            if (!Arena.Contains(p, 3f) || InDamageZone(p) || !Ground.IsFlat(p, 1.6f, 0.35f, 18f) || (PortalFilter != null && !PortalFilter(p))) continue; // 포털 발밑이 평평한 곳 (뜨거나 묻히지 않게)
             p = Ground.Snap(p);
             float sq = Mathf.Min(Flat(p - w).sqrMagnitude, Flat(p - pp).sqrMagnitude);
             if (sq >= min * min) return p;
             if (sq > bestSq) { bestSq = sq; best = p; }
         }
-        return bestSq >= 0f ? best : Ground.Snap(Vector3.zero);
+        return bestSq >= 0f ? best : PortalFallback != null ? PortalFallback() : Ground.Snap(Vector3.zero);
     }
 
     static Vector3 Flat(Vector3 v) { v.y = 0f; return v; }

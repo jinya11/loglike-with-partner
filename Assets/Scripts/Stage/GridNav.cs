@@ -12,7 +12,7 @@ public sealed class GridNav
     readonly float cell;
     readonly int size;
     readonly Vector3 origin;
-    readonly bool[] blocked;
+    readonly bool[] blocked, dynBlocked;
     readonly float[] staticCost, danger, extraCost, g, f;
     readonly int[] parent, heap, heapPos, visit;
     int visitId, heapCount;
@@ -34,7 +34,7 @@ public sealed class GridNav
         size = Mathf.CeilToInt(half * 2f / cell) + 1;
         origin = center - new Vector3(half, 0f, half);
         int count = size * size;
-        blocked = new bool[count]; staticCost = new float[count]; danger = new float[count]; extraCost = new float[count];
+        blocked = new bool[count]; dynBlocked = new bool[count]; staticCost = new float[count]; danger = new float[count]; extraCost = new float[count];
         g = new float[count]; f = new float[count];
         parent = new int[count]; heap = new int[count]; heapPos = new int[count]; visit = new int[count];
 
@@ -62,7 +62,7 @@ public sealed class GridNav
                 if (!blocked[i]) { Vector3 c = Center(i); staticCost[i] += Ground.SteepnessAt(c.x, c.z) / Ground.MaxSlope * 1.5f; }
     }
 
-    bool Free(int i) => !blocked[i];
+    bool Free(int i) => !blocked[i] && !dynBlocked[i];
 
     /// <summary>바뀌는 바닥 비용 (얼어붙은 호수의 구멍/금 간 얼음 등): 중심 center, 반폭 half인 정사각형 칸들에 cost를 설정 (0이면 해제).</summary>
     public void SetExtraCost(Vector3 center, float half, float cost)
@@ -70,6 +70,25 @@ public sealed class GridNav
         int a = Index(center - new Vector3(half, 0f, half)), b = Index(center + new Vector3(half, 0f, half));
         for (int z = a / size; z <= b / size; z++)
             for (int x = a % size; x <= b % size; x++) extraCost[z * size + x] = cost;
+    }
+
+    /// <summary>바뀌는 바닥으로 막힌 칸이 있는지 (칼데라 용암 등). 있으면 적도 흐름장을 따라 돌아감.</summary>
+    public bool HasDynamicBlocks { get; private set; }
+
+    /// <summary>모든 칸을 바뀌는 바닥으로 막거나 풂 (칼데라: 전부 막은 뒤 서 있는 플랫폼만 풂).</summary>
+    public void SetAllBlocked(bool on)
+    {
+        System.Array.Fill(dynBlocked, on);
+        if (on) HasDynamicBlocks = true;
+    }
+
+    /// <summary>중심 center, 반폭 half인 정사각형에 걸친 칸을 바뀌는 바닥으로 막거나 풂.</summary>
+    public void SetBlocked(Vector3 center, float half, bool on)
+    {
+        int a = Index(center - new Vector3(half, 0f, half)), b = Index(center + new Vector3(half, 0f, half));
+        for (int z = a / size; z <= b / size; z++)
+            for (int x = a % size; x <= b % size; x++) dynBlocked[z * size + x] = on;
+        if (on) HasDynamicBlocks = true;
     }
 
     public Vector3 Center(int i) => origin + new Vector3((i % size + 0.5f) * cell, 0f, (i / size + 0.5f) * cell);

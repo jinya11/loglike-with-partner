@@ -68,6 +68,19 @@ MonoBehaviour:
     autoProps: 0
     enemyBias: 1
     enemyBiasMul: 2
+  - id: volcano_caldera
+    name: "\uCE7C\uB370\uB77C"
+    desc: "\uC6A9\uC554 \uD638\uC218\uB97C \uB458\uB7EC\uC2FC \uACE0\uB9AC \uBAA8\uC591
+      \uC804\uC7A5. \uC6A9\uC554 \uC218\uC704\uAC00 \uC624\uB974\uB0B4\uB9AC\uBA70
+      \uACE0\uB9AC\uC758 \uD3ED\uC774 \uBC14\uB010\uB2E4."
+    regionScene: Region_Volcano
+    scene: Region_Volcano_Caldera
+    requiredTrait: 14
+    kind: 4
+    color: {r: 1, g: 0.5, b: 0.25, a: 1}
+    autoProps: 0
+    enemyBias: 1
+    enemyBiasMul: 2
   stageDecrease: 1
   portalSpacing: 16
   firefly:
@@ -146,6 +159,29 @@ MonoBehaviour:
     escapeTime: 5
     failDamageFrac: 0.25
     inWaterDps: 2
+    relocateCrackOnEscape: 1
+    relocateMinDist: 6
+    relocateMaxDist: 18
     iceColor: {r: 0.78, g: 0.92, b: 1, a: 1}
     crackColor: {r: 0.32, g: 0.5, b: 0.72, a: 1}
     waterColor: {r: 0.16, g: 0.3, b: 0.48, a: 1}
+  caldera:
+    innerRadius: 12
+    outerRadius: 42
+    tileSize: 3
+    innerBand: 7
+    outerBand: 8
+    bandJitter: 2
+    vanishAt: 0
+    highHold: 16
+    lowHold: 12
+    transition: 4
+    warning: 2
+    highLevel: -0.35
+    lowLevel: -3
+    wardLavaDamageFrac: 0.2
+    wardShield: 1
+    rockColor: {r: 0.33, g: 0.27, b: 0.28, a: 1}
+    crustColor: {r: 0.45, g: 0.3, b: 0.27, a: 1}
+    lavaColor: {r: 1, g: 0.45, b: 0.15, a: 1}
+    lavaGlow: 1.6

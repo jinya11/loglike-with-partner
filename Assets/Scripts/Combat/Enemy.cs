@@ -235,7 +235,7 @@ public class Enemy : Ticked<Enemy>
         {
             Vector3 dir = to / Mathf.Sqrt(sq);
             // 지형: 가파른 비탈을 돌아가도록 흐름장을 따라감 (가까우면 직진)
-            if (Ground.HasTerrain && sq > 9f && StageDirector.I.Nav != null && StageDirector.I.Nav.FlowDir(pos, out var fd)) dir = fd;
+            if (StageDirector.I.UseFlow && sq > 9f && StageDirector.I.Nav.FlowDir(pos, out var fd)) dir = fd;
             v += dir * moveSpeed;
             visual.rotation = Face(dir);
         }
