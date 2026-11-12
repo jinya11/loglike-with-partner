@@ -22,6 +22,22 @@ public class SwampWispVariant : MonoBehaviour
         stage = st; s = settings;
         int i = 0;
         foreach (var w in SwampWisp.All) w.Begin(++i);
+        // 생명체는 도깨비불을 쫓지 않고 피해 다님: 켜진 도깨비불 둘레로는 걸어 들어가지 않음 (길찾기도 돌아감)
+        Ward.Hazard = p => NearWisp(p, s.wardAvoidRadius);
+    }
+
+    void OnDestroy() { Ward.Hazard = null; }
+
+    bool NearWisp(Vector3 p, float r)
+    {
+        float r2 = r * r;
+        foreach (var w in SwampWisp.All)
+        {
+            if (!w.Active) continue;
+            Vector3 d = w.transform.position - p; d.y = 0f;
+            if (d.sqrMagnitude <= r2) return true;
+        }
+        return false;
     }
 
     void Update()
@@ -33,6 +49,56 @@ public class SwampWispVariant : MonoBehaviour
         foreach (var w in SwampWisp.All) w.Drift(time, s.driftSpeed, s.wanderRadius, s.hoverHeight, dt);
         TouchWard();
         TouchEnemies();
+        TickDots(dt);
+        if ((navTick -= dt) <= 0f) { navTick = 0.25f; UpdateNavCost(); }
+    }
+
+    // ---- 길찾기: 도깨비불 둘레는 크게 돌아감 ----
+    float navTick;
+    readonly Dictionary<SwampWisp, Vector3> navMarked = new Dictionary<SwampWisp, Vector3>(16);
+    void UpdateNavCost()
+    {
+        var nav = stage.Nav;
+        if (nav == null) return;
+        float r = s.wardAvoidRadius + 1f;
+        foreach (var kv in navMarked) nav.SetExtraCost(kv.Value, r, 0f);
+        navMarked.Clear();
+        foreach (var w in SwampWisp.All)
+        {
+            if (!w.Active) continue;
+            nav.SetExtraCost(w.transform.position, r, 300f);
+            navMarked[w] = w.transform.position;
+        }
+    }
+
+    // ---- 순간이동 후 지속 피해 ----
+    class Dot { public Object target; public float left, tick; }
+    readonly List<Dot> dots = new List<Dot>(16);
+    const float DotStep = 0.5f;
+
+    void AddDot(Object target)
+    {
+        if (s.teleportDotTotal <= 0f || s.teleportDotDuration <= 0f) return;
+        foreach (var d in dots) if (d.target == target) { d.left = s.teleportDotDuration; d.tick = DotStep; return; } // 다시 걸리면 시간만 새로
+        dots.Add(new Dot { target = target, left = s.teleportDotDuration, tick = DotStep });
+    }
+
+    void TickDots(float dt)
+    {
+        float perTick = s.teleportDotTotal * DotStep / Mathf.Max(0.01f, s.teleportDotDuration);
+        for (int i = dots.Count - 1; i >= 0; i--)
+        {
+            var d = dots[i];
+            if (!d.target) { dots.RemoveAt(i); continue; }
+            d.left -= dt;
+            if ((d.tick -= dt) <= 0f)
+            {
+                d.tick += DotStep;
+                if (d.target is Ward w) { if (w.Alive) { w.Drain(perTick); Vfx.Pickup(w.Position + Vector3.up * 0.7f, s.wispColor, 2); } }
+                else if (d.target is Enemy e && e.isActiveAndEnabled) e.EnvironmentDamage(perTick); // 이 피해로 죽으면 환경사 (처치 수에 안 침)
+            }
+            if (d.left <= 0f) dots.RemoveAt(i);
+        }
     }
 
     bool Immune(Object o) => immuneUntil.TryGetValue(o, out var t) && t > time;
@@ -59,6 +125,7 @@ public class SwampWispVariant : MonoBehaviour
         Flash(from); Flash(to);
         ward.Teleport(to);
         Spend(w, ward);
+        if (s.dotWard) AddDot(ward);
     }
 
     void TouchEnemies()
@@ -75,6 +142,7 @@ public class SwampWispVariant : MonoBehaviour
             e.transform.position = to;
             if (e.TryGetComponent(out Rigidbody rb)) { rb.position = to; rb.linearVelocity = Vector3.zero; }
             Spend(w, e);
+            if (s.dotEnemies) AddDot(e);
         }
     }
 
@@ -91,14 +159,14 @@ public class SwampWispVariant : MonoBehaviour
     {
         var nav = stage.Nav;
         Vector3 best = Vector3.zero; float bestScore = float.MinValue;
-        float clear2 = s.wispClearance * s.wispClearance, safe = s.wardSafeDistance;
+        float clear = s.wanderRadius + s.wispClearance, clear2 = clear * clear, safe = s.wardSafeDistance;
         for (int i = 0; i < 40; i++)
         {
             Vector3 p = Arena.RandomPoint(0.85f);
             if (nav != null) p = nav.NearestFree(p);
             if (!Arena.Contains(p, 3f) || InDamageZone(p) || (Ward.Hazard != null && Ward.Hazard(p))) continue;
             bool nearWisp = false;
-            foreach (var w in SwampWisp.All) { Vector3 d = w.home - p; d.y = 0f; if (d.sqrMagnitude < clear2) { nearWisp = true; break; } }
+            foreach (var w in SwampWisp.All) { Vector3 d = w.home - p; d.y = 0f; if (d.sqrMagnitude < clear2) { nearWisp = true; break; } } // 도깨비불이 떠다니는 범위 전체 + 여유
             if (nearWisp) continue;
             if (!forWard) return p;
             float near = float.MaxValue;

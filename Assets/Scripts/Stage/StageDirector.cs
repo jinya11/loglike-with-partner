@@ -839,13 +839,13 @@ public class StageDirector : Singleton<StageDirector>
     void HitTargets(Vector3 center, float radius, float dmg)
     {
         if (dmg <= 0f || StageTarget.All.Count == 0) return;
-        float r2 = radius * radius;
         for (int i = StageTarget.All.Count - 1; i >= 0; i--)
         {
             var t = StageTarget.All[i];
             if (!t.Alive) continue;
             Vector3 d = t.transform.position - center; d.y = 0f;
-            if (d.sqrMagnitude <= r2) t.Hit(dmg, center);
+            float rr = radius + t.Radius; // 오브젝트 크기만큼 (가장자리에 떨어져도 맞음)
+            if (d.sqrMagnitude <= rr * rr) t.Hit(dmg, center);
         }
     }
 
@@ -853,17 +853,29 @@ public class StageDirector : Singleton<StageDirector>
     public bool NearestTarget(Vector3 p, float range, out Vector3 aim)
     {
         var e = NearestEnemy(p, range);
-        float bestSq = range * range; aim = default;
-        bool found = false;
-        if (e != null) { Vector3 d = e.transform.position - p; d.y = 0f; bestSq = d.sqrMagnitude; aim = e.transform.position; found = true; }
+        aim = default;
+        // 사거리 안 가장 가까운 부술 수 있는 오브젝트 (무덤 등)
+        StageTarget near = null; float tSq = range * range;
         foreach (var t in StageTarget.All)
         {
             if (!t.Alive) continue;
             Vector3 d = t.transform.position - p; d.y = 0f;
-            if (d.sqrMagnitude < bestSq) { bestSq = d.sqrMagnitude; aim = t.transform.position; found = true; }
+            if (d.sqrMagnitude < tSq) { tSq = d.sqrMagnitude; near = t; }
         }
-        return found;
+        if (near != null)
+        {
+            // 적보다 가깝거나, 적이 더 가까워도 TargetShare 확률로 오브젝트를 노림 (적에 둘러싸인 무덤도 부서지게)
+            float eSq = float.MaxValue;
+            if (e != null) { Vector3 d = e.transform.position - p; d.y = 0f; eSq = d.sqrMagnitude; }
+            if (tSq <= eSq || Random.value < TargetShare) { aim = near.AimPoint; return true; }
+        }
+        if (e == null) return false;
+        aim = e.transform.position;
+        return true;
     }
+
+    /// <summary>사거리 안에 부술 수 있는 오브젝트(무덤 등)가 있을 때, 적이 더 가까워도 그쪽을 노리는 확률 (파생 규칙이 정함, 기본 0).</summary>
+    [System.NonSerialized] public float TargetShare;
 
     public Enemy NearestEnemy(Vector3 p, float range)
     {

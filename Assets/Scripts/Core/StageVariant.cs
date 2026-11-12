@@ -199,6 +199,13 @@ public class WispSwampSettings
     [Tooltip("순간이동한 대상이 다시 순간이동되지 않는 시간(초)")] public float targetCooldown = 2f;
     [Tooltip("생명체 도착 지점: 적에게서 최소 이만큼 떨어진 곳을 우선(m)")] public float wardSafeDistance = 7f;
     [Tooltip("도착 지점: 도깨비불에서 최소 이만큼 떨어진 곳(m)")] public float wispClearance = 4f;
+    [Header("순간이동 후 지속 피해 (도깨비불의 대가)")]
+    [Tooltip("지속 피해 총량")] public float teleportDotTotal = 9f;
+    [Tooltip("지속 피해 시간(초)")] public float teleportDotDuration = 3f;
+    [Tooltip("작은 생명체에게 지속 피해")] public bool dotWard = true;
+    [Tooltip("적에게도 지속 피해 (이 피해로 죽으면 환경사: 처치 수에 안 침)")] public bool dotEnemies = false;
+    [Header("생명체는 도깨비불을 피해 다님")]
+    [Tooltip("생명체가 도깨비불 둘레 이 거리 안으로는 걸어 들어가지 않음(m, 닿는 거리보다 크게)")] public float wardAvoidRadius = 2.2f;
     [Header("색 (무광 파스텔 + 불빛만 발광)")]
     public Color wispColor = new Color(0.55f, 1f, 0.85f);
     [Tooltip("도깨비불 빛 세기 / 범위")] public float lightIntensity = 3.5f, lightRange = 8f;
@@ -223,6 +230,10 @@ public class AwakenedGraveyardSettings
     [Tooltip("무덤에서 이 반경 안에 일어남(m)")] public float riseRadius = 2.5f;
     [Tooltip("살아 있는 적이 이 수 이상이면 무덤에서 일어나지 않음")] public int riseCap = 70;
     [Tooltip("첫 기상까지 무덤마다 흩어지는 시간(초, 0~이 값)")] public float firstRiseJitter = 4f;
+    [Tooltip("땅에서 솟아오르는 시간(초). 그동안 움직이지도 공격하지도 않음 (맞을 수는 있음)")] public float riseDuration = 0.8f;
+    [Tooltip("솟아오르기 시작하는 깊이(m)")] public float riseDepth = 1.3f;
+    [Header("무덤 노리기")]
+    [Tooltip("생명체 사거리 안에 무덤이 있으면, 적이 더 가까워도 이 확률로 무덤을 노림 (무덤이 더 가까우면 항상 무덤)")] [Range(0, 1)] public float graveTargetShare = 0.5f;
     [Header("색 (무광 파스텔)")]
     public Color stoneColor = new Color(0.62f, 0.62f, 0.66f);
     public Color moundColor = new Color(0.36f, 0.3f, 0.27f);

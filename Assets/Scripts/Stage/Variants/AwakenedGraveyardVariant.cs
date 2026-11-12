@@ -31,13 +31,14 @@ public class AwakenedGraveyardVariant : MonoBehaviour
             g.riseTimer = s.riseInterval * 0.5f + Random.Range(0f, s.firstRiseJitter);
         }
         st.MulKillTarget(s.killTargetMul);
+        st.TargetShare = s.graveTargetShare; // 적에 둘러싸인 무덤도 노리게
         st.ExtraClearCondition = () => broken >= Goal;
         st.ExtraObjective = () => $"무덤 {broken}/{Goal}";
     }
 
     void OnDestroy()
     {
-        if (stage) { stage.ExtraClearCondition = null; stage.ExtraObjective = null; }
+        if (stage) { stage.ExtraClearCondition = null; stage.ExtraObjective = null; stage.TargetShare = 0f; }
     }
 
     void OnBroken(GraveMound g)
@@ -64,7 +65,7 @@ public class AwakenedGraveyardVariant : MonoBehaviour
         }
     }
 
-    /// <summary>무덤 둘레 흙에서 적 하나가 일어남.</summary>
+    /// <summary>무덤 둘레 흙에서 적 하나가 솟아오름 (땅속에서 튀어나옴 + 흙 튐 + 흙더미 자국).</summary>
     void Rise(GraveMound g)
     {
         Vector2 o = Random.insideUnitCircle.normalized * Random.Range(s.riseRadius * 0.5f, s.riseRadius);
@@ -73,8 +74,10 @@ public class AwakenedGraveyardVariant : MonoBehaviour
         if (stage.UseFlow && !stage.Nav.IsFree(p)) p = stage.Nav.NearestFree(p);
         var e = stage.SpawnEnemyAt(p);
         if (!e) return;
+        e.Emerge(s.riseDuration, s.riseDepth);
         Vector3 at = Ground.Snap(p);
-        Vfx.Pickup(at + Vector3.up * 0.2f, s.dustColor, 10);
-        Vfx.Death(at, s.dustColor);
+        Vfx.Pickup(at + Vector3.up * 0.2f, s.dustColor, 14); // 흙 튐
+        Vfx.Death(at + Vector3.up * 0.1f, s.dustColor);
+        stage.SpawnFx(at + Vector3.up * 0.03f, new Vector3(0.4f, 0.05f, 0.4f), new Vector3(2.2f, 0.05f, 2.2f), s.riseDuration, s.moundColor); // 갈라지는 흙 자국
     }
 }

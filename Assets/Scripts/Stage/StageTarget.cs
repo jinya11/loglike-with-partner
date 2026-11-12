@@ -27,6 +27,17 @@ public class StageTarget : MonoBehaviour
 
     public void Init(float hp) { MaxHp = Hp = Mathf.Max(1f, hp); }
 
+    /// <summary>수평 크기(반경). 범위 피해 판정에 더함 (가장자리에 떨어진 범위 공격도 맞게).</summary>
+    public float Radius
+    {
+        get
+        {
+            if (radius < 0f) { radius = 0f; foreach (var c in GetComponentsInChildren<Collider>()) radius = Mathf.Max(radius, c.bounds.extents.x, c.bounds.extents.z); }
+            return radius;
+        }
+    }
+    float radius = -1f;
+
     public void Hit(float dmg, Vector3 from)
     {
         if (!Alive || dmg <= 0f) return;

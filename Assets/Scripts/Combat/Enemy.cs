@@ -43,6 +43,7 @@ public class Enemy : Ticked<Enemy>
     {
         rb = GetComponent<Rigidbody>();
         visualScale = visual.localScale;
+        visualBase = visual.localPosition;
         var r = visual.GetComponentInChildren<Renderer>();
         if (r && r.sharedMaterial && r.sharedMaterial.HasColor("_BaseColor")) bodyColor = r.sharedMaterial.GetColor("_BaseColor");
         renderers = visual.GetComponentsInChildren<Renderer>(true);
@@ -59,6 +60,7 @@ public class Enemy : Ticked<Enemy>
         SetHidden(false); SetMask(null);
         if (renderers != null) foreach (var rr in renderers) rr.SetPropertyBlock(null); // 보물 색 초기화 (풀 재사용)
         visual.localScale = visualScale;
+        emergeLeft = 0f; visual.localPosition = visualBase;
         abilityReadyAt = Time.time + Random.Range(0.5f, 2f); // 동시에 몰려서 쓰지 않도록
         rb.linearVelocity = Vector3.zero;
     }
@@ -204,6 +206,7 @@ public class Enemy : Ticked<Enemy>
     public override void Tick(float dt)
     {
         if (RegenFrac > 0f && hp < maxHp) hp = Mathf.Min(maxHp, hp + maxHp * RegenFrac * dt); // 재생 변이
+        if (emergeLeft > 0f) { TickEmerge(dt); return; }
         if (Frozen) { TickFrozen(dt); return; }
         if (treasure) { TickTreasure(dt); return; }
         if (Routed) { TickRouted(dt); return; }
@@ -311,6 +314,43 @@ public class Enemy : Ticked<Enemy>
         Vfx.Death(rb.position, bodyColor);
         StageDirector.I.OnEnemyKilled(this, true);
         Despawn();
+    }
+
+    /// <summary>환경 피해 (도깨비불 지속 피해 등): 이 피해로 죽으면 환경사 (처치 수에 안 침).</summary>
+    public void EnvironmentDamage(float dmg)
+    {
+        if (dmg <= 0f || !isActiveAndEnabled) return;
+        hp -= dmg;
+        if (hp <= 0f) EnvironmentKill();
+        else Vfx.Hit(HitPoint, bodyColor);
+    }
+
+    // ---- 땅에서 솟아오름 (깨어난 묘지 무덤에서 일어나는 적) ----
+    Vector3 visualBase;
+    float emergeLeft, emergeDur, emergeDepth;
+    /// <summary>솟아오르는 중: 움직이지 않고 공격(접촉 피해/능력)도 안 함. 맞을 수는 있음.</summary>
+    public bool Emerging => emergeLeft > 0f;
+
+    /// <summary>땅속(depth m 아래)에서 duration초 동안 솟아오름.</summary>
+    public void Emerge(float duration, float depth)
+    {
+        emergeDur = emergeLeft = Mathf.Max(0.05f, duration);
+        emergeDepth = depth;
+        visual.localPosition = visualBase - Vector3.up * depth;
+    }
+
+    void TickEmerge(float dt)
+    {
+        emergeLeft -= dt;
+        rb.linearVelocity = Vector3.zero;
+        float k = Mathf.Clamp01(1f - emergeLeft / emergeDur);
+        // 빠르게 튀어나와 살짝 넘쳤다가 자리 잡음 + 흙을 털듯 좌우 흔들림
+        float rise = 1f - (1f - k) * (1f - k) * (1f - k);
+        float over = Mathf.Sin(k * Mathf.PI) * 0.18f;
+        float shake = (1f - k) * 0.06f;
+        visual.localPosition = visualBase + new Vector3(Random.Range(-shake, shake), -emergeDepth * (1f - rise) + over * emergeDepth * 0.3f, Random.Range(-shake, shake));
+        if (emergeLeft <= 0f) visual.localPosition = visualBase;
+        FollowGround();
     }
 
     /// <summary>흔적 없이 제거 (처치 수·보상 없음). 스테이지 클리어 후 도망치던 적 정리 등.</summary>
