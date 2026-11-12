@@ -15,10 +15,10 @@ public class ThrowAttack : CreatureAttack
     [Tooltip("손 높이")] public float handHeight = 0.7f;
     public Color splashColor = new Color(1f, 0.55f, 0.15f);
 
-    protected override void Fire(Enemy target, PlayerStats s)
+    protected override void Fire(Vector3 target, PlayerStats s)
     {
         Vector3 from = Ctx.Position + Vector3.up * handHeight;
-        Vector3 to = target.transform.position; to.y = 0f;
+        Vector3 to = target; to.y = 0f;
         Vector3 d = to - Ctx.Position; d.y = 0f;
         float dist = Mathf.Max(1f, d.magnitude);
         Vector3 dir = d / dist;

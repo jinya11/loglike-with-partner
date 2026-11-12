@@ -348,6 +348,19 @@ public class GameManager : Singleton<GameManager>
     /// <summary>QA: 파생 전용 씬을 에디터에서 바로 Play했을 때 그 파생형으로 시작.</summary>
     public void ForceVariant(StageVariantDef v) { ActiveVariant = v; InBonus = false; }
 
+    bool HasTrait(StageTraitType type)
+    {
+        foreach (var t in ActiveTraits) if (t.type == type) return true;
+        return false;
+    }
+
+    bool AllTraits(StageTraitType[] types)
+    {
+        if (types == null) return true;
+        foreach (var t in types) if (!HasTrait(t)) return false;
+        return true;
+    }
+
     public StageVariantDef AvailableVariant(string scene)
     {
         var list = Config.variant.stageVariants;
@@ -355,7 +368,7 @@ public class GameManager : Singleton<GameManager>
         foreach (var v in list)
         {
             if (v == null || v.regionScene != scene || UsedVariants.Contains(v)) continue;
-            foreach (var t in ActiveTraits) if (t.type == v.requiredTrait) return v;
+            if (HasTrait(v.requiredTrait) && AllTraits(v.alsoRequired)) return v; // 조건 증강을 모두 보유
         }
         return null;
     }

@@ -26,6 +26,12 @@ public class Projectile : Ticked<Projectile>
                 Despawn();
                 return;
             }
+            if (hits[i].TryGetComponent(out StageTarget st) && st.Alive) // 부술 수 있는 오브젝트 (무덤 등)
+            {
+                st.Hit(damage, pos - velocity);
+                Despawn();
+                return;
+            }
         }
         if ((life -= dt) <= 0f) Despawn();
     }

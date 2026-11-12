@@ -266,6 +266,24 @@ public class StageDirector : Singleton<StageDirector>
     /// <summary>파생 규칙이 포털 자리를 거를 때 (칼데라: 사라지지 않는 플랫폼 위만). 후보가 하나도 없으면 PortalFallback.</summary>
     public System.Func<Vector3, bool> PortalFilter;
     public System.Func<Vector3> PortalFallback;
+    /// <summary>파생 규칙의 추가 클리어 조건 (깨어난 묘지: 무덤 N개 파괴). 처치 목표와 함께 둘 다 채워야 포털이 열림. 바뀌면 규칙이 CheckClear 호출.</summary>
+    public System.Func<bool> ExtraClearCondition;
+    /// <summary>HUD 정보 줄에 덧붙는 추가 목표 수치 (예: "무덤 2/5"). 비우면 없음.</summary>
+    public System.Func<string> ExtraObjective;
+    /// <summary>현재 스테이지 적 기본 체력 (무덤 체력 등 기준).</summary>
+    public float EnemyHp => enemyHp;
+
+    /// <summary>처치 목표 배율 (파생 규칙용, 곱해 누적).</summary>
+    public void MulKillTarget(float m) { killTargetMul *= m; UpdateKillTarget(); }
+
+    /// <summary>클리어 조건(처치 목표 + 추가 조건)을 채웠으면 포털을 엶. 심연은 포털 없음.</summary>
+    public void CheckClear()
+    {
+        if (PortalOpen || Expandable || Kills < KillTarget) return;
+        if (ExtraClearCondition != null && !ExtraClearCondition()) return;
+        OpenPortal();
+    }
+
     /// <summary>파생 스테이지에서 자동 생성 모델(배치 소품, 보더 밖 풍경, 증강 장판)을 끄는지 (StageVariantDef.autoProps가 꺼져 있으면).</summary>
     bool NoAutoProps => Variant != null && !Variant.autoProps;
     /// <summary>HUD에 표시할 스테이지 이름 (파생형이면 파생 이름).</summary>
@@ -317,6 +335,7 @@ public class StageDirector : Singleton<StageDirector>
             case StageVariantKind.SnowFrozenLake: SceneRule<FrozenLakeVariant>().Init(this, cfg.variant.frozenLake); break;
             case StageVariantKind.VolcanoCaldera: SceneRule<CalderaVariant>().Init(this, cfg.variant.caldera); break;
             case StageVariantKind.SwampWisp: SceneRule<SwampWispVariant>().Init(this, cfg.variant.wisp); break;
+            case StageVariantKind.GraveyardAwakened: SceneRule<AwakenedGraveyardVariant>().Init(this, cfg.variant.awakened); break;
         }
     }
 
@@ -570,15 +589,25 @@ public class StageDirector : Singleton<StageDirector>
             if ((pos - p).sqrMagnitude < 64f || (pos - pp).sqrMagnitude < 64f) continue; // 근처 스폰 방지
             int k = PickEnemyType();
             if (UseFlow && !Nav.IsFree(pos)) pos = Nav.NearestFree(pos); // 너무 가파른 칸에는 스폰하지 않음
-            pos.y = Ground.HeightAt(pos);
-            var e = enemyPools[k].Get(pos, Quaternion.identity);
-            e.Init(enemyHp, enemySpeed, enemyDamage, enemyDefs[k]);
-            if (enemyScale != 1f) e.SetScale(enemyScale); // 거대화 변이
-            if (eliteChance > 0f && Random.value < eliteChance) e.MakeElite(eliteHpMul, cfg.stage.eliteDamageMul, cfg.stage.eliteScale * enemyScale);
-            return e;
+            return SpawnEnemyAt(pos, k);
         }
         return null;
     }
+
+    /// <summary>정한 위치에 적 하나 (종류 k, -1이면 가중치 무작위). 파생 규칙(무덤에서 일어나는 적 등)도 사용.</summary>
+    public Enemy SpawnEnemyAt(Vector3 pos, int k = -1)
+    {
+        if (k < 0) k = PickEnemyType();
+        pos.y = Ground.HeightAt(pos);
+        var e = enemyPools[k].Get(pos, Quaternion.identity);
+        e.Init(enemyHp, enemySpeed, enemyDamage, enemyDefs[k]);
+        if (enemyScale != 1f) e.SetScale(enemyScale); // 거대화 변이
+        if (eliteChance > 0f && Random.value < eliteChance) e.MakeElite(eliteHpMul, cfg.stage.eliteDamageMul, cfg.stage.eliteScale * enemyScale);
+        if (Routed()) e.OnRouted();
+        return e;
+    }
+
+    static bool Routed() => Enemy.Routed;
 
     void BuildEnemyPools(int stageIndex)
     {
@@ -643,7 +672,7 @@ public class StageDirector : Singleton<StageDirector>
             resourcePickups.Get(pos + Vector3.up * 0.1f, Quaternion.identity).Init(Theme.resource, def != null ? def.color : Color.white);
         }
         OnDeathMutations(dead, pos);
-        if (!PortalOpen && !Expandable && Kills >= KillTarget) OpenPortal(); // 심연은 포털 없음
+        CheckClear();
     }
 
     float routDespawnLeft;
@@ -753,6 +782,7 @@ public class StageDirector : Singleton<StageDirector>
     public void RadialForce(Vector3 center, float radius, float speed, float dmg)
     {
         center.y = Ground.HeightAt(center) + 0.4f; // 언덕 위에서도 지면 기준으로 판정
+        HitTargets(center, radius, dmg);
         int n = Physics.OverlapSphereNonAlloc(center, radius, areaHits, EnemyMask, QueryTriggerInteraction.Collide);
         for (int i = 0; i < n; i++)
         {
@@ -767,6 +797,7 @@ public class StageDirector : Singleton<StageDirector>
     public void PushArea(Vector3 center, float radius, Vector3 velocity, float dmg)
     {
         center.y = Ground.HeightAt(center) + 0.4f; // 언덕 위에서도 지면 기준으로 판정
+        HitTargets(center, radius, dmg);
         int n = Physics.OverlapSphereNonAlloc(center, radius, areaHits, EnemyMask, QueryTriggerInteraction.Collide);
         for (int i = 0; i < n; i++)
         {
@@ -782,6 +813,7 @@ public class StageDirector : Singleton<StageDirector>
         int n = Physics.OverlapSphereNonAlloc(center, radius, areaHits, EnemyMask, QueryTriggerInteraction.Collide);
         for (int i = 0; i < n; i++)
             if (areaHits[i].TryGetComponent(out Enemy e) && e.isActiveAndEnabled) e.Hit(dmg, center);
+        HitTargets(center, radius, dmg);
     }
 
     /// <summary>자동 공격 대상: 플레이어 사거리 안에서 생명체에 가장 가까운 적 (디펜스 우선).</summary>
@@ -800,6 +832,36 @@ public class StageDirector : Singleton<StageDirector>
             if (sq < bestSq) { bestSq = sq; best = list[i]; }
         }
         return best;
+    }
+
+    /// <summary>범위 안의 부술 수 있는 오브젝트(StageTarget)에 피해.</summary>
+    void HitTargets(Vector3 center, float radius, float dmg)
+    {
+        if (dmg <= 0f || StageTarget.All.Count == 0) return;
+        float r2 = radius * radius;
+        for (int i = StageTarget.All.Count - 1; i >= 0; i--)
+        {
+            var t = StageTarget.All[i];
+            if (!t.Alive) continue;
+            Vector3 d = t.transform.position - center; d.y = 0f;
+            if (d.sqrMagnitude <= r2) t.Hit(dmg, center);
+        }
+    }
+
+    /// <summary>생명체 자동 공격 대상: 사거리 안에서 가장 가까운 적 또는 부술 수 있는 오브젝트(무덤 등). 조준 위치를 돌려줌.</summary>
+    public bool NearestTarget(Vector3 p, float range, out Vector3 aim)
+    {
+        var e = NearestEnemy(p, range);
+        float bestSq = range * range; aim = default;
+        bool found = false;
+        if (e != null) { Vector3 d = e.transform.position - p; d.y = 0f; bestSq = d.sqrMagnitude; aim = e.transform.position; found = true; }
+        foreach (var t in StageTarget.All)
+        {
+            if (!t.Alive) continue;
+            Vector3 d = t.transform.position - p; d.y = 0f;
+            if (d.sqrMagnitude < bestSq) { bestSq = d.sqrMagnitude; aim = t.transform.position; found = true; }
+        }
+        return found;
     }
 
     public Enemy NearestEnemy(Vector3 p, float range)

@@ -9,6 +9,7 @@ public enum StageVariantKind
     [Tooltip("설원: 얼어붙은 호수. 얼음판 전장, 금 간 얼음은 밟으면 깨져 구멍 — 적은 빠지면 즉사, 생명체는 빠지면 스페이스 연타로 탈출")] SnowFrozenLake,
     [Tooltip("화산: 칼데라. 용암 호수를 둘러싼 고리 모양 플랫폼 전장(지형/보더 없음). 용암 수위가 주기적으로 오르내리고, 그때 가장자리 플랫폼이 가라앉아 고리 폭이 바뀜")] VolcanoCaldera,
     [Tooltip("늪: 도깨비불 늪. 떠다니는 도깨비불에 닿으면 스테이지 안 무작위 안전 위치로 순간이동 (생명체/적)")] SwampWisp,
+    [Tooltip("묘지: 깨어난 묘지. 무덤에서 적이 계속 일어남. 처치 목표 1.5배 + 무덤 N개를 부숴야 클리어")] GraveyardAwakened,
 }
 
 /// <summary>
@@ -25,6 +26,7 @@ public class StageVariantDef
     [Tooltip("파생 포털이 열리는 지역(기본형) 씬")] public string regionScene;
     [Tooltip("파생 스테이지 전용 씬 (이 씬을 불러옴. Build Settings 등록 필요)")] public string scene;
     [Tooltip("해금 조건 증강 (이 증강을 보유하면 파생 포털이 열림)")] public StageTraitType requiredTrait;
+    [Tooltip("함께 보유해야 하는 증강 (모두 보유해야 열림). 비우면 requiredTrait 하나만")] public StageTraitType[] alsoRequired;
     public StageVariantKind kind;
     [Tooltip("파생 포털/이름 색")] public Color color = Color.white;
     [Tooltip("켜면 환경사(구멍/용암 등에 빠져 죽음)도 처치 수에 침. 기본은 끔 (보상은 어느 쪽이든 그대로)")] public bool environmentKillsCount = false;
@@ -202,4 +204,26 @@ public class WispSwampSettings
     [Header("해 질 녘 (씬 빌더가 조명에 적용)")]
     [Tooltip("해 밝기 배율")] public float sunMul = 0.35f;
     public Color ambient = new Color(0.16f, 0.2f, 0.22f), fogColor = new Color(0.12f, 0.17f, 0.18f);
+}
+
+/// <summary>깨어난 묘지 수치 (VariantConfig.awakened).</summary>
+[System.Serializable]
+public class AwakenedGraveyardSettings
+{
+    [Header("클리어 조건")]
+    [Tooltip("처치 목표 배율 (기존 대비)")] public float killTargetMul = 1.5f;
+    [Tooltip("부숴야 하는 무덤 수 (N). 씬의 무덤 수보다 많으면 씬의 무덤 수")] public int gravesToBreak = 5;
+    [Header("무덤 (씬 빌더가 배치 — 이후 씬에서 옮기거나 늘려도 됨)")]
+    [Tooltip("씬 빌더가 놓는 무덤 수")] public int graveCount = 8;
+    [Tooltip("무덤 체력 = 그 스테이지 적 체력 × 이 값")] public float graveHpMul = 15f;
+    [Header("일어나는 적")]
+    [Tooltip("무덤 하나에서 적이 일어나는 간격(초)")] public float riseInterval = 6f;
+    [Tooltip("한 번에 일어나는 적 수 (최소, 최대)")] public Vector2Int risePerWave = new Vector2Int(1, 2);
+    [Tooltip("무덤에서 이 반경 안에 일어남(m)")] public float riseRadius = 2.5f;
+    [Tooltip("살아 있는 적이 이 수 이상이면 무덤에서 일어나지 않음")] public int riseCap = 70;
+    [Tooltip("첫 기상까지 무덤마다 흩어지는 시간(초, 0~이 값)")] public float firstRiseJitter = 4f;
+    [Header("색 (무광 파스텔)")]
+    public Color stoneColor = new Color(0.62f, 0.62f, 0.66f);
+    public Color moundColor = new Color(0.36f, 0.3f, 0.27f);
+    [Tooltip("적이 일어날 때 흙먼지 색")] public Color dustColor = new Color(0.55f, 0.47f, 0.4f);
 }

@@ -15,18 +15,19 @@ public abstract class CreatureAttack : ScriptableObject
 
     public void Bind(CreatureContext ctx) => Ctx = ctx;
 
-    /// <summary>매 프레임 (게임 진행 중, 살아 있을 때만). 사거리 안에 적이 있으면 간격마다 Fire.</summary>
+    /// <summary>매 프레임 (게임 진행 중, 살아 있을 때만). 사거리 안에 적(또는 부술 수 있는 오브젝트)이 있으면 간격마다 Fire.</summary>
     public void Tick(float dt)
     {
         if ((timer -= dt) > 0f) return;
         var s = Ctx.Stats;
-        var target = Ctx.Stage.NearestEnemy(Ctx.Position, s.attackRange);
-        if (target == null) return;
+        // 가장 가까운 적, 또는 부술 수 있는 오브젝트(무덤 등)
+        if (!Ctx.Stage.NearestTarget(Ctx.Position, s.attackRange, out var target)) return;
         timer = s.attackInterval;
         Fire(target, s);
     }
 
-    protected abstract void Fire(Enemy target, PlayerStats s);
+    /// <summary>target = 겨눈 위치 (적 또는 부술 수 있는 오브젝트).</summary>
+    protected abstract void Fire(Vector3 target, PlayerStats s);
 
     /// <summary>탄 수만큼 퍼짐 각도로 나눈 방향들 (기준 dir 중심).</summary>
     protected static Vector3 SpreadDir(Vector3 dir, PlayerStats s, int i)

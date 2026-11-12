@@ -18,6 +18,7 @@ public class VariantConfig : ScriptableObject
         new StageVariantDef("snow_frozenlake", "얼어붙은 호수", "얼음판 위의 전장. 금 간 얼음은 깨지고, 물에 빠진 적은 즉사한다. 작은 생명체도 빠질 수 있다.", "Region_Snow", "Region_Snow_FrozenLake", StageTraitType.Mire, StageVariantKind.SnowFrozenLake, new Color(0.6f, 0.88f, 1f), EnemyAbility.Charge, 2f),
         new StageVariantDef("volcano_caldera", "칼데라", "용암 호수를 둘러싼 고리 모양 전장. 용암 수위가 오르내리며 고리의 폭이 바뀐다.", "Region_Volcano", "Region_Volcano_Caldera", StageTraitType.Volatile, StageVariantKind.VolcanoCaldera, new Color(1f, 0.5f, 0.25f), EnemyAbility.Charge, 2f),
         new StageVariantDef("swamp_wisp", "도깨비불 늪", "떠다니는 도깨비불에 닿으면 어딘가로 순간이동한다.", "Region_Swamp", "Region_Swamp_Wisp", StageTraitType.Fog, StageVariantKind.SwampWisp, new Color(0.55f, 1f, 0.85f), EnemyAbility.Slow, 2f),
+        new StageVariantDef("graveyard_awakened", "깨어난 묘지", "무덤에서 적이 계속 일어난다. 무덤을 부숴야 한다.", "Region_Graveyard", "Region_Graveyard_Awakened", StageTraitType.Waves, StageVariantKind.GraveyardAwakened, new Color(0.75f, 0.7f, 0.95f), EnemyAbility.None, 1f) { alsoRequired = new[] { StageTraitType.Regen } },
     };
 
     [Header("공통 규칙")]
@@ -37,4 +38,6 @@ public class VariantConfig : ScriptableObject
     public CalderaSettings caldera = new CalderaSettings();
     [Header("늪: 도깨비불 늪")]
     public WispSwampSettings wisp = new WispSwampSettings();
+    [Header("묘지: 깨어난 묘지")]
+    public AwakenedGraveyardSettings awakened = new AwakenedGraveyardSettings();
 }

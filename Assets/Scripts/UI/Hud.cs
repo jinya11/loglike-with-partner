@@ -78,6 +78,7 @@ public class Hud : Singleton<Hud>
     HudExtras extras;
     StageDirector lastStage;
     int lastKillTarget = -1;
+    string lastExtra;
 
     protected override void Awake()
     {
@@ -202,11 +203,12 @@ public class Hud : Singleton<Hud>
         float xp = (float)s.xp / gm.XpToNext;
         if (!Mathf.Approximately(xp, lastXp)) { lastXp = xp; SetFill(xpFill, xp); }
 
-        if (s.level != lastLevel || stage.Kills != lastKills || stage != lastStage || stage.KillTarget != lastKillTarget) // 스테이지가 바뀌면 바로 갱신
+        string extra = stage.ExtraObjective != null ? stage.ExtraObjective() : null; // 파생 추가 목표 수치 (예: 무덤 2/5)
+        if (s.level != lastLevel || stage.Kills != lastKills || stage != lastStage || stage.KillTarget != lastKillTarget || extra != lastExtra) // 스테이지가 바뀌면 바로 갱신
         {
-            lastLevel = s.level; lastKills = stage.Kills; lastStage = stage; lastKillTarget = stage.KillTarget;
+            lastLevel = s.level; lastKills = stage.Kills; lastStage = stage; lastKillTarget = stage.KillTarget; lastExtra = extra;
             infoText.text = UiText.Format(infoFmt, s.level, gm.StageIndex + 1, gm.Config.stage.stageCount,
-                stage.DisplayName, stage.Kills, stage.KillTarget);
+                stage.DisplayName, stage.Kills, stage.KillTarget) + (string.IsNullOrEmpty(extra) ? "" : "   " + extra);
             if (bonusBadge) bonusBadge.SetActive(gm.InBonus);
         }
 
