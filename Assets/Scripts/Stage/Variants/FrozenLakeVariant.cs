@@ -39,10 +39,11 @@ public class FrozenLakeVariant : MonoBehaviour
         // 시작 지점 발밑은 멀쩡한 얼음
         if (Ward.I != null && grid.TryGetValue(Key(Ward.I.Position), out var start)) start.Set(IceTile.State.Intact);
         crackTimer = s.crackInterval;
+        Ward.Hazard = p => { var t = TileAt(p); return t && t.Current == IceTile.State.Hole; }; // 생명체는 구멍을 피해 다님
         if (escapeUI) escapeUI.Hide();
     }
 
-    void OnDestroy() { if (Ward.I != null) Ward.I.SetTrapped(false); }
+    void OnDestroy() { Ward.Hazard = null; if (Ward.I != null) Ward.I.SetTrapped(false); }
 
     Vector2Int Key(Vector3 p) => new Vector2Int(Mathf.RoundToInt(p.x / s.tileSize), Mathf.RoundToInt(p.z / s.tileSize));
 
@@ -128,11 +129,11 @@ public class FrozenLakeVariant : MonoBehaviour
             if (t.Current == IceTile.State.Hole) drown.Add(e);
             else if (t.Current == IceTile.State.Cracked && (t.load += dt / Mathf.Max(0.05f, s.enemyBreakTime)) >= 1f) StartBreak(t);
         }
-        foreach (var e in drown) // 물에 빠진 적은 즉사
+        foreach (var e in drown) // 물에 빠진 적은 즉사 (환경사: 처치 수에는 안 침)
         {
             Vector3 p = e.transform.position;
             Splash(p, 10);
-            e.Hit(1e6f, p + Vector3.up);
+            e.EnvironmentKill();
         }
     }
 

@@ -305,6 +305,17 @@ public class Enemy : Ticked<Enemy>
     /// <summary>외부 힘으로 밀기 (동반자 돌풍 등). 감쇠되며 사라짐.</summary>
     public void Push(Vector3 velocity) { knock = velocity; chargeLeft = 0f; }
 
+    /// <summary>환경사 (구멍/용암 등에 빠짐): 죽음 연출과 보상은 그대로, 처치 수에는 기본적으로 안 침 (StageVariantDef.environmentKillsCount).</summary>
+    public void EnvironmentKill()
+    {
+        Vfx.Death(rb.position, bodyColor);
+        StageDirector.I.OnEnemyKilled(this, true);
+        Despawn();
+    }
+
+    /// <summary>흔적 없이 제거 (처치 수·보상 없음). 스테이지 클리어 후 도망치던 적 정리 등.</summary>
+    public void Remove() => Despawn();
+
     public void Hit(float dmg, Vector3 from)
     {
         hp -= dmg;

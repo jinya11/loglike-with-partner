@@ -378,6 +378,7 @@ public class Ward : Singleton<Ward>
             float speed = stats.wardSpeed * zoneMul * speedMul;
             Vector3 delta = Arena.Clamp(pos + (dir * speed + knockVel) * dt) - pos;
             delta = Ground.ClampMove(pos, new Vector3(delta.x, 0f, delta.z)); // 지형: 너무 가파른 오르막은 못 오름
+            if (Hazard != null) delta = AvoidHazard(pos, delta); // 구멍/용암: 빠질 수 있는 곳은 피해서 다님
             delta.y = Ground.HeightAt(pos + delta) - pos.y; // 지면 높이를 따라 이동
             Vector3 before = transform.position;
             cc.Move(delta);
@@ -589,6 +590,29 @@ public class Ward : Singleton<Ward>
         Vfx.Hit(transform.position + Vector3.up * 0.5f, hurtColor);
         if (ability) ability.OnDamaged(dmg);
         if (stats.wardHp <= 0f) Die();
+    }
+
+    // ---- 빠질 수 있는 곳 피하기 (구멍/용암 등, 파생 규칙이 등록) ----
+    /// <summary>그 위치가 빠지는 곳(구멍, 용암 등)인지. 파생 규칙 컴포넌트가 등록/해제. 등록되면 생명체는 그곳으로 걸어 들어가지 않음.</summary>
+    public static System.Func<Vector3, bool> Hazard;
+    const float HazardLook = 0.6f;
+
+    /// <summary>이동량이 빠지는 곳으로 들어가면 x만/z만(가장자리를 따라 미끄러짐), 그것도 안 되면 멈춤. 이미 그 위라면 그대로 (빠져나가는 중).</summary>
+    Vector3 AvoidHazard(Vector3 pos, Vector3 delta)
+    {
+        float m = Mathf.Sqrt(delta.x * delta.x + delta.z * delta.z);
+        if (m < 0.0001f || Hazard(pos)) return delta;
+        float k = Mathf.Max(1f, HazardLook / m);
+        bool Bad(Vector3 d) => Hazard(pos + d) || Hazard(pos + d * k);
+        if (!Bad(delta)) return delta;
+        var dx = new Vector3(delta.x, delta.y, 0f);
+        var dz = new Vector3(0f, delta.y, delta.z);
+        bool okX = Mathf.Abs(delta.x) > 0.0001f && !Bad(dx);
+        bool okZ = Mathf.Abs(delta.z) > 0.0001f && !Bad(dz);
+        if (okX && okZ) return Mathf.Abs(delta.x) > Mathf.Abs(delta.z) ? dx : dz;
+        if (okX) return dx;
+        if (okZ) return dz;
+        return new Vector3(0f, delta.y, 0f);
     }
 
     // ---- 빠짐 (얼어붙은 호수: 깨진 얼음 구멍) ----

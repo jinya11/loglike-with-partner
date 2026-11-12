@@ -408,6 +408,9 @@ MonoBehaviour:
   vanishes: 0
   body: {fileID: 6168870186013316031}
   veins: {fileID: 3305210934303806671}
+  column: {fileID: 6697206910511652929}
+  rockMaterial: {fileID: 2100000, guid: 826b32db930c55f43b78f3222c616e16, type: 2}
+  crustMaterial: {fileID: 2100000, guid: f2b2940db7adcf04c8970c5c3e470c4c, type: 2}
 --- !u!1 &3110625809007332407
 GameObject:
   m_ObjectHideFlags: 0

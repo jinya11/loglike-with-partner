@@ -60,10 +60,7 @@ public static partial class PrototypeBuilder
                 go.name = $"Platform_{ix}_{iz}";
                 go.transform.SetPositionAndRotation(p, Quaternion.Euler(0f, rng.Next(4) * 90f, 0f));
                 var plat = go.GetComponent<CalderaPlatform>();
-                plat.vanishes = vanish;
-                if (plat.veins) plat.veins.SetActive(vanish);
-                // 가라앉는 플랫폼은 식은 껍질 색 (오버라이드 재질 대신 미리 만든 재질 교체)
-                if (vanish && plat.body) foreach (var rr in plat.body.GetComponentsInChildren<Renderer>(true)) if (rr.name == "Column") rr.sharedMaterial = ClayMat("CalderaCrust", s.crustColor);
+                plat.SetVanishes(vanish); // 런타임 무작위 고르기(randomVanish)를 끄면 이 지정 그대로
             }
     }
 
@@ -80,7 +77,8 @@ public static partial class PrototypeBuilder
         var plat = root.AddComponent<CalderaPlatform>();
         var body = new GameObject("Body").transform;
         body.SetParent(root.transform, false);
-        LPart(PrimitiveType.Cube, "Column", body, new Vector3(0f, -4f, 0f), new Vector3(sz - 0.12f, 8f, sz - 0.12f), rock);
+        plat.column = LPart(PrimitiveType.Cube, "Column", body, new Vector3(0f, -4f, 0f), new Vector3(sz - 0.12f, 8f, sz - 0.12f), rock);
+        plat.rockMaterial = rock; plat.crustMaterial = ClayMat("CalderaCrust", s.crustColor);
         plat.body = body;
         var veins = new GameObject("Veins");
         veins.transform.SetParent(body, false);

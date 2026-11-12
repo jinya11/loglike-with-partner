@@ -52,6 +52,7 @@ public class StageConfig : ScriptableObject
     [Header("포털")]
     [Tooltip("포털은 이동 가능한 지면 위 임의 위치에 생성: 생명체/플레이어에서 최소 이 거리")] public float portalMinDistance = 22f;
     [Tooltip("포털이 열리면 남은 적이 플레이어에게서 도망 (처치는 가능). 도망 속도 배율")] public float routSpeedMul = 1.25f;
+    [Tooltip("포털이 열려 적이 도망치기 시작하고 이 시간(초) 뒤 남은 적을 모두 지움 (처치 수·보상 없음). 0 이하면 지우지 않음")] public float routDespawnDelay = 3f;
 
     // 파생 스테이지 설정은 VariantConfig (GameConfig.variant, Resources/Config/VariantConfig.asset)로 옮김
 

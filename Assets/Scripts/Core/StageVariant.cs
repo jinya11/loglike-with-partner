@@ -26,6 +26,7 @@ public class StageVariantDef
     [Tooltip("해금 조건 증강 (이 증강을 보유하면 파생 포털이 열림)")] public StageTraitType requiredTrait;
     public StageVariantKind kind;
     [Tooltip("파생 포털/이름 색")] public Color color = Color.white;
+    [Tooltip("켜면 환경사(구멍/용암 등에 빠져 죽음)도 처치 수에 침. 기본은 끔 (보상은 어느 쪽이든 그대로)")] public bool environmentKillsCount = false;
     [Tooltip("켜면 지역 기본형의 자동 생성 모델(배치 소품: 나무·바위·장판, 보더 밖 풍경, 증강이 만드는 독 웅덩이·회복의 샘·진흙탕)을 그대로 씀. 끄면(기본) 파생 고유 오브젝트만")]
     public bool autoProps = false;
     [Header("적 구성 (기본형과 다르게)")]
@@ -155,12 +156,17 @@ public class CalderaSettings
     [Tooltip("안쪽 가장자리에서 가라앉는 띠 폭(m)")] public float innerBand = 7f;
     [Tooltip("바깥 가장자리에서 가라앉는 띠 폭(m)")] public float outerBand = 8f;
     [Tooltip("가라앉는 띠 경계의 들쭉날쭉함(m)")] public float bandJitter = 2f;
+    [Header("가라앉을 플랫폼 고르기")]
+    [Tooltip("켜면(기본) 스테이지에 들어올 때와 플랫폼이 다시 올라올 때마다 가라앉을 플랫폼을 무작위로 다시 고름 (씬의 'vanishes' 지정은 무시). 끄면 씬 지정 그대로")] public bool randomVanish = true;
+    [Tooltip("가라앉을 플랫폼 비율 (전체 칸 대비). 남는 칸이 서로 이어져야 해서 실제로는 조금 적을 수 있음")] [Range(0, 0.9f)] public float vanishRatio = 0.45f;
+    [Tooltip("고리 가장자리(안쪽/바깥)일수록 더 잘 뽑히는 정도 (0 = 완전 무작위)")] [Min(0)] public float edgeBias = 2f;
     [Header("용암 수위 주기")]
     [Tooltip("어느 쪽 수위에서 가장자리 플랫폼이 사라지는지")] public VanishAt vanishAt = VanishAt.Low;
     [Tooltip("높은 수위 유지(초)")] public float highHold = 16f;
     [Tooltip("낮은 수위 유지(초)")] public float lowHold = 12f;
     [Tooltip("수위가 바뀌는 데 걸리는 시간(초)")] public float transition = 4f;
     [Tooltip("사라지기 전에 플랫폼이 흔들리며 빛나는 경고 시간(초, 수위 변화 시작부터)")] public float warning = 2f;
+    [Tooltip("경고 중 화면 흔들림 세기(m, 미세하게). 플랫폼이 가라앉기 시작하면 멈춤. 0 = 없음")] public float warningShake = 0.05f;
     [Tooltip("높은 수위 / 낮은 수위 (용암 표면 높이, 플랫폼 윗면 = 0)")] public float highLevel = -0.35f, lowLevel = -3f;
     [Header("용암")]
     [Tooltip("생명체가 용암에 빠지면 받는 피해 (최대 체력 비율). 이후 가까운 플랫폼으로 돌아옴")] [Range(0, 1)] public float wardLavaDamageFrac = 0.2f;

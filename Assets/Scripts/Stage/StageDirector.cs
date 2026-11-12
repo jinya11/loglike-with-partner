@@ -536,6 +536,7 @@ public class StageDirector : Singleton<StageDirector>
             for (int i = 0; i < spawnBatch && Enemy.Active.Count < maxAlive; i++) SpawnEnemy();
         }
 
+        TickRoutDespawn(dt);
         TickTimeLimit(dt);
         TickEvents(dt);
         // 지형: 적이 가파른 비탈을 돌아오도록 생명체까지의 흐름장을 주기적으로 갱신
@@ -619,11 +620,12 @@ public class StageDirector : Singleton<StageDirector>
         }
     }
 
-    public void OnEnemyKilled(Enemy dead)
+    /// <summary>적 사망 처리. environmental = 구멍/용암 등 환경사: 처치 수에는 안 침 (파생 설정 environmentKillsCount로 예외). 보상(보석/자원/변이)은 같음.</summary>
+    public void OnEnemyKilled(Enemy dead, bool environmental = false)
     {
         Vector3 pos = dead.transform.position;
         bool elite = dead.Elite, treasure = dead.Treasure;
-        Kills++;
+        if (!environmental || (Variant != null && Variant.environmentKillsCount)) Kills++;
         gems.Get(pos, Quaternion.Euler(45f, 0f, 45f));
         int extra = elite ? cfg.stage.eliteGems - 1 : 0;
         var tc = Get(StageTraitType.TreasureCarrier);
@@ -643,6 +645,16 @@ public class StageDirector : Singleton<StageDirector>
         if (!PortalOpen && !Expandable && Kills >= KillTarget) OpenPortal(); // 심연은 포털 없음
     }
 
+    float routDespawnLeft;
+    readonly List<Enemy> routCleanup = new List<Enemy>(64);
+    /// <summary>포털이 열리고 routDespawnDelay초 뒤 도망치던 적을 모두 지움 (처치 수·보상 없음).</summary>
+    void TickRoutDespawn(float dt)
+    {
+        if (!PortalOpen || routDespawnLeft <= 0f || (routDespawnLeft -= dt) > 0f) return;
+        routCleanup.Clear(); routCleanup.AddRange(Enemy.Active);
+        foreach (var e in routCleanup) { Vfx.Pickup(e.transform.position + Vector3.up * 0.3f, new Color(0.85f, 0.85f, 0.9f), 4); e.Remove(); }
+    }
+
     void OpenPortal()
     {
         PortalOpen = true;
@@ -652,6 +664,7 @@ public class StageDirector : Singleton<StageDirector>
         // 남은 적은 플레이어에게서 도망 (Enemy.Routed, 공격하지 않음. 처치는 가능). 생명체가 포털에 도착하면 다음 스테이지 (Ward 참고)
         Enemy.Routed = true;
         Enemy.RoutSpeedMul = cfg.stage.routSpeedMul;
+        routDespawnLeft = cfg.stage.routDespawnDelay;
         foreach (var e in Enemy.Active) e.OnRouted();
         OpenVariantPortal(); // 조건 증강 보유 시 파생 포털도
     }

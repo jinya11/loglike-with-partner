@@ -49,6 +49,12 @@ public class CameraFollow : MonoBehaviour
 
     bool fogWasOn;
 
+    // ---- 화면 흔들림 (이번 프레임에 요청된 세기만큼, 요청이 끊기면 바로 멈춤) ----
+    Vector3 basePos; Quaternion baseRot = Quaternion.identity;
+    float shakeReq;
+    /// <summary>이번 프레임 화면 흔들림 (m). 계속 흔들려면 매 프레임 호출 (여러 요청은 큰 쪽).</summary>
+    public void Shake(float amount) { if (amount > shakeReq) shakeReq = amount; }
+
     void Awake()
     {
         I = this;
@@ -61,6 +67,7 @@ public class CameraFollow : MonoBehaviour
     {
         Compute(out var pos, out var rot);
         transform.SetPositionAndRotation(pos, rot);
+        basePos = pos; baseRot = rot;
         ApplyFov();
     }
 
@@ -80,7 +87,10 @@ public class CameraFollow : MonoBehaviour
         UpdateSplit();
         Compute(out var p, out var r);
         float k = 1f - Mathf.Exp(-smooth * Time.unscaledDeltaTime);
-        transform.SetPositionAndRotation(Vector3.Lerp(transform.position, p, k), Quaternion.Slerp(transform.rotation, r, k));
+        basePos = Vector3.Lerp(basePos, p, k); baseRot = Quaternion.Slerp(baseRot, r, k);
+        Vector3 jolt = shakeReq > 0f ? Random.insideUnitSphere * shakeReq : Vector3.zero;
+        shakeReq = 0f;
+        transform.SetPositionAndRotation(basePos + jolt, baseRot);
         if (split)
         {
             ComputeAt(Ward.I.Position, out var wp, out var wr);
