@@ -336,6 +336,7 @@ public class StageDirector : Singleton<StageDirector>
             case StageVariantKind.VolcanoCaldera: SceneRule<CalderaVariant>().Init(this, cfg.variant.caldera); break;
             case StageVariantKind.SwampWisp: SceneRule<SwampWispVariant>().Init(this, cfg.variant.wisp); break;
             case StageVariantKind.GraveyardAwakened: SceneRule<AwakenedGraveyardVariant>().Init(this, cfg.variant.awakened); break;
+            case StageVariantKind.GraveyardMoonlit: SceneRule<MoonlitGraveyardVariant>().Init(this, cfg.variant.moonlit); break;
         }
     }
 

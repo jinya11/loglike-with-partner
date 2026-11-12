@@ -119,6 +119,21 @@ MonoBehaviour:
     autoProps: 0
     enemyBias: 0
     enemyBiasMul: 1
+  - id: graveyard_moonlit
+    name: "\uB2EC\uBE5B \uBB18\uC5ED"
+    desc: "\uB2EC\uBE5B\uC774 \uBE44\uCE58\uB294 \uAD6C\uC5ED\uC774 \uCC9C\uCC9C\uD788
+      \uC62E\uACA8 \uB2E4\uB2CC\uB2E4. \uB2EC\uBE5B \uC548\uC5D0\uC11C \uC791\uC740
+      \uC0DD\uBA85\uCCB4\uB294 \uD68C\uBCF5\uD55C\uB2E4."
+    regionScene: Region_Graveyard
+    scene: Region_Graveyard_Moonlit
+    requiredTrait: 7
+    alsoRequired: 
+    kind: 7
+    color: {r: 0.75, g: 0.85, b: 1, a: 1}
+    environmentKillsCount: 0
+    autoProps: 0
+    enemyBias: 0
+    enemyBiasMul: 1
   stageDecrease: 1
   portalSpacing: 16
   firefly:
@@ -258,3 +273,17 @@ MonoBehaviour:
     stoneColor: {r: 0.62, g: 0.62, b: 0.66, a: 1}
     moundColor: {r: 0.36, g: 0.3, b: 0.27, a: 1}
     dustColor: {r: 0.55, g: 0.47, b: 0.4, a: 1}
+  moonlit:
+    beamCount: 1
+    radius: 7
+    moveSpeed: 1.3
+    minHop: 18
+    pause: 2
+    healPerSec: 4
+    stopFrac: 0.35
+    fleeBias: 0.1
+    sunMul: 0.18
+    ambient: {r: 0.08, g: 0.09, b: 0.14, a: 1}
+    fogColor: {r: 0.05, g: 0.06, b: 0.1, a: 1}
+    moonColor: {r: 0.75, g: 0.85, b: 1, a: 1}
+    moonIntensity: 400

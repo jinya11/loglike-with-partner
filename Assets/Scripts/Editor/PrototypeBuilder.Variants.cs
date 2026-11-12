@@ -35,6 +35,7 @@ public static partial class PrototypeBuilder
     [MenuItem("Roguelike/QA/파생 씬: 칼데라 열기")] static void OpenCaldera() => OpenVariantScene("Region_Volcano_Caldera");
     [MenuItem("Roguelike/QA/파생 씬: 도깨비불 늪 열기")] static void OpenWisp() => OpenVariantScene("Region_Swamp_Wisp");
     [MenuItem("Roguelike/QA/파생 씬: 깨어난 묘지 열기")] static void OpenAwakened() => OpenVariantScene("Region_Graveyard_Awakened");
+    [MenuItem("Roguelike/QA/파생 씬: 달빛 묘역 열기")] static void OpenMoonlit() => OpenVariantScene("Region_Graveyard_Moonlit");
 
     static void OpenVariantScene(string name)
     {
@@ -79,6 +80,7 @@ public static partial class PrototypeBuilder
                 case StageVariantKind.VolcanoCaldera: BuildCaldera(root, vc.caldera); break;
                 case StageVariantKind.SwampWisp: BuildWispSwamp(root, vc.wisp); break;
                 case StageVariantKind.GraveyardAwakened: BuildAwakenedGraveyard(root, vc.awakened); break;
+                case StageVariantKind.GraveyardMoonlit: BuildMoonlitGraveyard(root, vc.moonlit); break;
             }
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);

@@ -10,6 +10,7 @@ public enum StageVariantKind
     [Tooltip("화산: 칼데라. 용암 호수를 둘러싼 고리 모양 플랫폼 전장(지형/보더 없음). 용암 수위가 주기적으로 오르내리고, 그때 가장자리 플랫폼이 가라앉아 고리 폭이 바뀜")] VolcanoCaldera,
     [Tooltip("늪: 도깨비불 늪. 떠다니는 도깨비불에 닿으면 스테이지 안 무작위 안전 위치로 순간이동 (생명체/적)")] SwampWisp,
     [Tooltip("묘지: 깨어난 묘지. 무덤에서 적이 계속 일어남. 처치 목표 1.5배 + 무덤 N개를 부숴야 클리어")] GraveyardAwakened,
+    [Tooltip("묘지: 달빛 묘역. 달빛이 비치는 구역이 천천히 옮겨 다님. 달빛 안에서 생명체 회복, 생명체는 적에게서 도망치며 달빛을 따라감")] GraveyardMoonlit,
 }
 
 /// <summary>
@@ -226,4 +227,25 @@ public class AwakenedGraveyardSettings
     public Color stoneColor = new Color(0.62f, 0.62f, 0.66f);
     public Color moundColor = new Color(0.36f, 0.3f, 0.27f);
     [Tooltip("적이 일어날 때 흙먼지 색")] public Color dustColor = new Color(0.55f, 0.47f, 0.4f);
+}
+
+/// <summary>달빛 묘역 수치 (VariantConfig.moonlit).</summary>
+[System.Serializable]
+public class MoonlitGraveyardSettings
+{
+    [Header("달빛 구역 (씬 빌더가 배치 — 이후 씬에서 옮기거나 늘려도 됨)")]
+    [Tooltip("씬 빌더가 놓는 달빛 구역 수")] public int beamCount = 1;
+    [Tooltip("달빛 구역 반경(m)")] public float radius = 7f;
+    [Tooltip("옮겨 다니는 속도(m/초, 천천히)")] public float moveSpeed = 1.3f;
+    [Tooltip("다음 목적지는 지금 자리에서 이만큼 이상 떨어진 곳(m)")] public float minHop = 18f;
+    [Tooltip("목적지에 닿으면 머무는 시간(초)")] public float pause = 2f;
+    [Header("효과")]
+    [Tooltip("달빛 안에서 작은 생명체 초당 회복")] public float healPerSec = 4f;
+    [Tooltip("생명체가 달빛 중심에서 이 비율(반경 대비) 안이면 멈춤")] [Range(0, 1)] public float stopFrac = 0.35f;
+    [Tooltip("도망칠 때 달빛 쪽을 선호하는 정도 (도망 목표 후보가 달빛에서 1m 멀어질 때 감점)")] public float fleeBias = 0.1f;
+    [Header("밤 (씬 빌더가 조명에 적용)")]
+    [Tooltip("해 밝기 배율")] public float sunMul = 0.18f;
+    public Color ambient = new Color(0.08f, 0.09f, 0.14f), fogColor = new Color(0.05f, 0.06f, 0.1f);
+    [Tooltip("달빛 색 / 세기")] public Color moonColor = new Color(0.75f, 0.85f, 1f);
+    public float moonIntensity = 400f;
 }

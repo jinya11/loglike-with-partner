@@ -19,6 +19,7 @@ public class VariantConfig : ScriptableObject
         new StageVariantDef("volcano_caldera", "칼데라", "용암 호수를 둘러싼 고리 모양 전장. 용암 수위가 오르내리며 고리의 폭이 바뀐다.", "Region_Volcano", "Region_Volcano_Caldera", StageTraitType.Volatile, StageVariantKind.VolcanoCaldera, new Color(1f, 0.5f, 0.25f), EnemyAbility.Charge, 2f),
         new StageVariantDef("swamp_wisp", "도깨비불 늪", "떠다니는 도깨비불에 닿으면 어딘가로 순간이동한다.", "Region_Swamp", "Region_Swamp_Wisp", StageTraitType.Fog, StageVariantKind.SwampWisp, new Color(0.55f, 1f, 0.85f), EnemyAbility.Slow, 2f),
         new StageVariantDef("graveyard_awakened", "깨어난 묘지", "무덤에서 적이 계속 일어난다. 무덤을 부숴야 한다.", "Region_Graveyard", "Region_Graveyard_Awakened", StageTraitType.Waves, StageVariantKind.GraveyardAwakened, new Color(0.75f, 0.7f, 0.95f), EnemyAbility.None, 1f) { alsoRequired = new[] { StageTraitType.Regen } },
+        new StageVariantDef("graveyard_moonlit", "달빛 묘역", "달빛이 비치는 구역이 천천히 옮겨 다닌다. 달빛 안에서 작은 생명체는 회복한다.", "Region_Graveyard", "Region_Graveyard_Moonlit", StageTraitType.Sanctuary, StageVariantKind.GraveyardMoonlit, new Color(0.75f, 0.85f, 1f), EnemyAbility.None, 1f),
     };
 
     [Header("공통 규칙")]
@@ -40,4 +41,6 @@ public class VariantConfig : ScriptableObject
     public WispSwampSettings wisp = new WispSwampSettings();
     [Header("묘지: 깨어난 묘지")]
     public AwakenedGraveyardSettings awakened = new AwakenedGraveyardSettings();
+    [Header("묘지: 달빛 묘역")]
+    public MoonlitGraveyardSettings moonlit = new MoonlitGraveyardSettings();
 }

@@ -329,6 +329,14 @@ public class Ward : Singleton<Ward>
             Mode = AiMode.Follow;
             if (Flat(goal - pos).sqrMagnitude < W.followStopDistance * W.followStopDistance) { speedMul = 0f; Mode = AiMode.Hold; }
         }
+        else if (Attractor != null)
+        {
+            // 파생 규칙의 '따라갈 곳' (달빛 묘역의 달빛): 배회 대신 그쪽으로, 안쪽 깊이 들어오면 멈춤
+            hasFleeGoal = false;
+            goal = Attractor(); goal.y = 0f;
+            Mode = AiMode.Wander;
+            if (Flat(goal - pos).sqrMagnitude < AttractorStop * AttractorStop) { speedMul = 0f; Mode = AiMode.Pause; }
+        }
         else
         {
             hasFleeGoal = false;
@@ -518,6 +526,7 @@ public class Ward : Singleton<Ward>
             }
             if (Arena.Square) { float m = 12f, ed = Arena.EdgeDistance(c); if (ed < m) cost += (m - ed) * (m - ed) * 0.45f; } // 칸 경계: 가장 가까운 바깥 벽 기준
             else { float cr = c.x * c.x + c.z * c.z; if (cr > edgeSq) cost += (cr - edgeSq) * 0.05f; } // 벽에 몰리지 않도록
+            if (Attractor != null) { Vector3 at = Attractor(); cost += Flat(c - at).magnitude * AttractorFleeWeight; } // 도망칠 때도 따라갈 곳 쪽을 선호
             if (k == FleeDirs) cost *= 0.7f;
             if (cost < bestCost) { bestCost = cost; best = c; }
         }
@@ -590,6 +599,21 @@ public class Ward : Singleton<Ward>
         Vfx.Hit(transform.position + Vector3.up * 0.5f, hurtColor);
         if (ability) ability.OnDamaged(dmg);
         if (stats.wardHp <= 0f) Die();
+    }
+
+    // ---- 따라갈 곳 (파생 규칙이 등록: 달빛 묘역의 달빛 구역) ----
+    /// <summary>위협이 없을 때 배회 대신 향하는 곳. 도망칠 때도 이쪽 방향을 선호. 파생 규칙이 등록/해제 (명령: 따라오기/정지/직접 조작이 우선).</summary>
+    public static System.Func<Vector3> Attractor;
+    /// <summary>따라갈 곳 중심에서 이 거리 안이면 멈춤(m).</summary>
+    public static float AttractorStop = 2f;
+    /// <summary>도망 목표를 고를 때 따라갈 곳에서 먼 후보에 주는 감점 (m당).</summary>
+    public static float AttractorFleeWeight = 0.02f;
+
+    /// <summary>체력 회복 (달빛 등 외부 효과). 출혈 중엔 회복 불가.</summary>
+    public void Heal(float amount)
+    {
+        if (!Alive || bleedLeft > 0f || amount <= 0f) return;
+        stats.wardHp = Mathf.Min(stats.wardMaxHp, stats.wardHp + amount);
     }
 
     // ---- 빠질 수 있는 곳 피하기 (구멍/용암 등, 파생 규칙이 등록) ----
