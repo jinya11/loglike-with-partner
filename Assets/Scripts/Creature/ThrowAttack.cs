@@ -18,14 +18,14 @@ public class ThrowAttack : CreatureAttack
     protected override void Fire(Vector3 target, PlayerStats s)
     {
         Vector3 from = Ctx.Position + Vector3.up * handHeight;
-        Vector3 to = target; to.y = 0f;
+        Vector3 to = target; to.y = float.IsInfinity(Ctx.Stage.LevelTolerance) ? 0f : target.y; // 두 층 스테이지면 대상 높이(위층 발판)로
         Vector3 d = to - Ctx.Position; d.y = 0f;
         float dist = Mathf.Max(1f, d.magnitude);
         Vector3 dir = d / dist;
         float time = dist / Mathf.Max(1f, s.projectileSpeed * speedMul);
         for (int i = 0; i < s.projectileCount; i++)
         {
-            Vector3 p = Ctx.Position + SpreadDir(dir, s, i) * dist; p.y = 0f;
+            Vector3 p = Ctx.Position + SpreadDir(dir, s, i) * dist; p.y = to.y;
             Ctx.Stage.Throw(projectile, from, Arena.Clamp(p), time, arcHeight, s.damage * damageMul, splashRadius * s.areaMul, splashColor);
         }
     }

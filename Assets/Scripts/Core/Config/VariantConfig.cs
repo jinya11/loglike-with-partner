@@ -20,6 +20,7 @@ public class VariantConfig : ScriptableObject
         new StageVariantDef("swamp_wisp", "도깨비불 늪", "떠다니는 도깨비불에 닿으면 어딘가로 순간이동한다.", "Region_Swamp", "Region_Swamp_Wisp", StageTraitType.Fog, StageVariantKind.SwampWisp, new Color(0.55f, 1f, 0.85f), EnemyAbility.Slow, 2f),
         new StageVariantDef("graveyard_awakened", "깨어난 묘지", "무덤에서 적이 계속 일어난다. 무덤을 부숴야 한다.", "Region_Graveyard", "Region_Graveyard_Awakened", StageTraitType.Waves, StageVariantKind.GraveyardAwakened, new Color(0.75f, 0.7f, 0.95f), EnemyAbility.None, 1f) { alsoRequired = new[] { StageTraitType.Regen } },
         new StageVariantDef("graveyard_moonlit", "달빛 묘역", "달빛이 비치는 구역이 천천히 옮겨 다닌다. 달빛 안에서 작은 생명체는 회복한다.", "Region_Graveyard", "Region_Graveyard_Moonlit", StageTraitType.Sanctuary, StageVariantKind.GraveyardMoonlit, new Color(0.75f, 0.85f, 1f), EnemyAbility.None, 1f),
+        new StageVariantDef("mushroom_giant", "거대 버섯 숲", "버섯 갓이 위층 발판이 되어 전장이 갓 위와 아래 두 층으로 나뉜다.", "Region_Mushroom", "Region_Mushroom_Giant", StageTraitType.Giant, StageVariantKind.MushroomGiant, new Color(0.95f, 0.55f, 0.55f), EnemyAbility.None, 1f),
     };
 
     [Header("공통 규칙")]
@@ -43,4 +44,6 @@ public class VariantConfig : ScriptableObject
     public AwakenedGraveyardSettings awakened = new AwakenedGraveyardSettings();
     [Header("묘지: 달빛 묘역")]
     public MoonlitGraveyardSettings moonlit = new MoonlitGraveyardSettings();
+    [Header("버섯 숲: 거대 버섯 숲")]
+    public GiantMushroomSettings giantMushroom = new GiantMushroomSettings();
 }

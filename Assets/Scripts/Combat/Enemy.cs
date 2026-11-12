@@ -60,7 +60,7 @@ public class Enemy : Ticked<Enemy>
         SetHidden(false); SetMask(null);
         if (renderers != null) foreach (var rr in renderers) rr.SetPropertyBlock(null); // 보물 색 초기화 (풀 재사용)
         visual.localScale = visualScale;
-        emergeLeft = 0f; visual.localPosition = visualBase; noHealUntil = 0f;
+        emergeLeft = 0f; visual.localPosition = visualBase; noHealUntil = 0f; FloorY = float.NaN;
         abilityReadyAt = Time.time + Random.Range(0.5f, 2f); // 동시에 몰려서 쓰지 않도록
         rb.linearVelocity = Vector3.zero;
     }
@@ -159,16 +159,17 @@ public class Enemy : Ticked<Enemy>
     /// <summary>지면 높이 따라가기 (고저차). Y 위치는 물리 대신 직접 맞춤 (Rigidbody Y 고정 유지).</summary>
     void FollowGround()
     {
-        if (!Ground.HasTerrain) return;
+        if (!Ground.HasTerrain && float.IsNaN(FloorY)) return;
         Vector3 p = rb.position;
-        float gy = Ground.HeightAt(p.x, p.z);
+        float gy = float.IsNaN(FloorY) ? Ground.HeightAt(p.x, p.z) : FloorY; // 위층 발판 위면 그 높이
         if (Mathf.Abs(gy - p.y) > 0.005f) { p.y = gy; rb.position = p; transform.position = p; }
     }
 
     /// <summary>너무 가파른 오르막은 못 오름: 앞쪽(0.4m)이 막히면 비탈을 따라 미끄러지는 속도로 바꿈. 내려가는 건 가능.</summary>
-    static Vector3 Climb(Vector3 pos, Vector3 v, float dt)
+    Vector3 Climb(Vector3 pos, Vector3 v, float dt)
     {
         if (!Ground.HasTerrain) return v;
+        if (!float.IsNaN(FloorY)) { v.y = 0f; return v; } // 위층 발판은 평평
         v.y = 0f;
         float m = v.magnitude;
         if (m < 0.001f) return v;
@@ -210,6 +211,7 @@ public class Enemy : Ticked<Enemy>
         if (Frozen) { TickFrozen(dt); return; }
         if (treasure) { TickTreasure(dt); return; }
         if (Routed) { TickRouted(dt); return; }
+        if (GoalOverride != null) { var g = GoalOverride(this); if (g.HasValue) { TickToward(g.Value, dt); return; } }
         var player = PlayerController.I;
         var ward = Ward.I;
         Vector3 pos = rb.position;
@@ -314,6 +316,23 @@ public class Enemy : Ticked<Enemy>
         Vfx.Death(rb.position, bodyColor);
         StageDirector.I.OnEnemyKilled(this, true);
         Despawn();
+    }
+
+    // ---- 층 / 목표 바꾸기 (거대 버섯 숲) ----
+    /// <summary>NaN이면 지면 위, 값이 있으면 그 높이의 평평한 발판 위 (파생 규칙이 정함).</summary>
+    [System.NonSerialized] public float FloorY = float.NaN;
+    /// <summary>파생 규칙이 적의 목표를 바꿀 때 (값이 있으면 생명체 대신 그곳으로 감, 접촉 피해/능력 없음). 예: 다른 층의 생명체 → 오르내리는 곳.</summary>
+    public static System.Func<Enemy, Vector3?> GoalOverride;
+
+    void TickToward(Vector3 goal, float dt)
+    {
+        Vector3 pos = rb.position;
+        Vector3 d = goal - pos; d.y = 0f;
+        Vector3 v = knock;
+        if (d.sqrMagnitude > 0.01f) { Vector3 dir = d.normalized; v += dir * speed * SpeedMul; visual.rotation = Face(dir); }
+        rb.linearVelocity = Climb(pos, v, dt);
+        knock = Vector3.MoveTowards(knock, Vector3.zero, 30f * dt);
+        FollowGround();
     }
 
     float noHealUntil;

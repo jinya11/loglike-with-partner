@@ -385,9 +385,9 @@ public class Ward : Singleton<Ward>
             if (dir.sqrMagnitude > 0f) heading = dir;
             float speed = stats.wardSpeed * zoneMul * speedMul;
             Vector3 delta = Arena.Clamp(pos + (dir * speed + knockVel) * dt) - pos;
-            delta = Ground.ClampMove(pos, new Vector3(delta.x, 0f, delta.z)); // 지형: 너무 가파른 오르막은 못 오름
+            delta = float.IsNaN(FloorY) ? Ground.ClampMove(pos, new Vector3(delta.x, 0f, delta.z)) : new Vector3(delta.x, 0f, delta.z); // 지형: 너무 가파른 오르막은 못 오름 (위층 발판은 평평)
             if (Hazard != null) delta = AvoidHazard(pos, delta); // 구멍/용암: 빠질 수 있는 곳은 피해서 다님
-            delta.y = Ground.HeightAt(pos + delta) - pos.y; // 지면 높이를 따라 이동
+            delta.y = FloorAt(pos + delta) - pos.y; // 지면(또는 위층 발판) 높이를 따라 이동
             Vector3 before = transform.position;
             cc.Move(delta);
             // 막혀서 못 움직이면 곧 경로 재계산 (매 프레임 A*는 피함)
@@ -601,6 +601,11 @@ public class Ward : Singleton<Ward>
         if (stats.wardHp <= 0f) Die();
     }
 
+    // ---- 층 (거대 버섯 숲: 버섯 갓 위층) ----
+    /// <summary>NaN이면 지면(Ground) 위, 값이 있으면 그 높이의 평평한 발판 위 (파생 규칙이 정함).</summary>
+    [System.NonSerialized] public float FloorY = float.NaN;
+    float FloorAt(Vector3 p) => float.IsNaN(FloorY) ? Ground.HeightAt(p) : FloorY;
+
     // ---- 따라갈 곳 (파생 규칙이 등록: 달빛 묘역의 달빛 구역) ----
     /// <summary>위협이 없을 때 배회 대신 향하는 곳. 도망칠 때도 이쪽 방향을 선호. 파생 규칙이 등록/해제 (명령: 따라오기/정지/직접 조작이 우선).</summary>
     public static System.Func<Vector3> Attractor;
@@ -661,7 +666,7 @@ public class Ward : Singleton<Ward>
     public void Teleport(Vector3 p)
     {
         if (cc) cc.enabled = false;
-        transform.position = Ground.Snap(p);
+        transform.position = new Vector3(p.x, FloorAt(p), p.z);
         if (cc) cc.enabled = true;
         lastPos = transform.position; path.Clear(); replanLeft = 0f;
     }

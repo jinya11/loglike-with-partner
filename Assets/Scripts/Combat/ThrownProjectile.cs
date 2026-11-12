@@ -41,7 +41,8 @@ public class ThrownProjectile : Ticked<ThrownProjectile>
 
     void Land(StageDirector stage, Vector3 p)
     {
-        p.y = Ground.HeightAt(p);
+        float gy = Ground.HeightAt(p);
+        p.y = to.y > gy + 1f ? to.y : gy; // 위층 발판을 노렸으면 그 높이에 떨어짐
         stage.DamageArea(p, radius, damage);
         float d = radius * 2f;
         stage.SpawnFx(p + Vector3.up * 0.04f, new Vector3(0.3f, 0.02f, 0.3f), new Vector3(d, 0.02f, d), 0.25f, color);
