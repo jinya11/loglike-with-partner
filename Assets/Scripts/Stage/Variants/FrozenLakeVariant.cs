@@ -10,6 +10,7 @@ using UnityEngine.InputSystem;
 ///  - 구멍에 들어간 적은 즉사 (처치로 침).
 ///  - 생명체가 빠지면 움직이지 못하고 물에 반쯤 잠김 → 화면 중앙 UI, 스페이스 연타로 탈출 (가까운 얼음 위로).
 ///    제한 시간을 넘기면 큰 피해를 입고 끌려 나옴. 빠진 동안 차가운 물에 조금씩 피해.
+///  - 생명체가 빠져나오면(성공/실패 모두) 그 구멍은 바로 다시 얼고, 균열은 떨어진 다른 얼음판으로 옮겨 감. 적이 빠져 생긴 구멍은 그대로(시간 지나면 얼음).
 /// 수치는 VariantConfig.frozenLake.
 /// </summary>
 public class FrozenLakeVariant : MonoBehaviour
@@ -206,7 +207,40 @@ public class FrozenLakeVariant : MonoBehaviour
         ward.Shield(0.8f); // 나오자마자 다시 빠지거나 맞지 않게 잠깐
         Splash(from.transform.position, 16);
         if (escapeUI) escapeUI.Hide();
+        if (s.relocateCrackOnEscape) RelocateCrack(from, ward.Position);
     }
+
+    /// <summary>생명체가 빠졌던 구멍은 바로 다시 얼고, 균열은 떨어진 다른 멀쩡한 얼음판으로 옮겨 감.</summary>
+    void RelocateCrack(IceTile hole, Vector3 wardPos)
+    {
+        hole.Set(IceTile.State.Intact);
+        Vfx.Pickup(hole.transform.position + Vector3.up * 0.2f, s.iceColor, 12);
+
+        float minSq = s.relocateMinDist * s.relocateMinDist;
+        float maxSq = s.relocateMaxDist > 0f ? s.relocateMaxDist * s.relocateMaxDist : float.MaxValue;
+        var pick = PickCrackTarget(hole, wardPos, minSq, maxSq) ?? PickCrackTarget(hole, wardPos, minSq, float.MaxValue);
+        if (pick == null) return;
+        pick.Set(IceTile.State.Cracked);
+        Vfx.Pickup(pick.transform.position + Vector3.up * 0.2f, s.crackColor, 10);
+    }
+
+    readonly List<IceTile> candidates = new List<IceTile>(256);
+    IceTile PickCrackTarget(IceTile hole, Vector3 wardPos, float minSq, float maxSq)
+    {
+        candidates.Clear();
+        Vector3 hp = hole.transform.position;
+        foreach (var t in IceTile.All)
+        {
+            if (t == hole || t.Current != IceTile.State.Intact) continue;
+            Vector3 p = t.transform.position;
+            float dw = Flat(p - wardPos), dh = Flat(p - hp);
+            if (dw < minSq || dh < minSq || dw > maxSq) continue;
+            candidates.Add(t);
+        }
+        return candidates.Count > 0 ? candidates[Random.Range(0, candidates.Count)] : null;
+    }
+
+    static float Flat(Vector3 d) { d.y = 0f; return d.sqrMagnitude; }
 
     /// <summary>구멍이 아닌 가장 가까운 칸 (얼음 밖 땅 포함).</summary>
     Vector3 NearestSolid(Vector3 p)

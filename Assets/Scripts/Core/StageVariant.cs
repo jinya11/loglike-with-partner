@@ -131,6 +131,10 @@ public class FrozenLakeSettings
     [Tooltip("제한 시간(초): 넘기면 큰 피해를 입고 끌려 나옴")] public float escapeTime = 5f;
     [Tooltip("제한 시간을 넘기면 받는 피해 (최대 체력 비율)")] [Range(0, 1)] public float failDamageFrac = 0.25f;
     [Tooltip("빠진 동안 초당 피해 (차가운 물)")] public float inWaterDps = 2f;
+    [Header("탈출 후 (생명체가 빠졌던 구멍)")]
+    [Tooltip("생명체가 빠져나오면(연타 성공/시간 초과 모두) 그 구멍은 바로 멀쩡한 얼음으로 돌아오고, 균열이 다른 얼음판으로 옮겨 감")] public bool relocateCrackOnEscape = true;
+    [Tooltip("옮겨 갈 균열: 생명체(탈출 지점)와 복구된 칸에서 최소 이만큼 떨어진 칸(m)")] public float relocateMinDist = 6f;
+    [Tooltip("옮겨 갈 균열: 생명체에서 최대 이 거리 안의 칸(m, 0 = 제한 없음). 범위 안에 후보가 없으면 제한을 풀고 고름")] public float relocateMaxDist = 18f;
     [Header("색 (무광 파스텔)")]
     public Color iceColor = new Color(0.78f, 0.92f, 1f);
     public Color crackColor = new Color(0.32f, 0.5f, 0.72f);
