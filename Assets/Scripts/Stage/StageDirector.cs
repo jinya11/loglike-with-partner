@@ -316,6 +316,7 @@ public class StageDirector : Singleton<StageDirector>
             case StageVariantKind.DesertSandstorm: SceneRule<DesertSandstormVariant>().Init(this, cfg.variant.sandstorm); break;
             case StageVariantKind.SnowFrozenLake: SceneRule<FrozenLakeVariant>().Init(this, cfg.variant.frozenLake); break;
             case StageVariantKind.VolcanoCaldera: SceneRule<CalderaVariant>().Init(this, cfg.variant.caldera); break;
+            case StageVariantKind.SwampWisp: SceneRule<SwampWispVariant>().Init(this, cfg.variant.wisp); break;
         }
     }
 

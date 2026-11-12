@@ -14,8 +14,9 @@ using UnityEngine;
 public static partial class PrototypeBuilder
 {
     const string VariantSceneDir = "Assets/Scenes/Regions/Variants";
-    const string VariantMatDir = Root + "/Materials/Variants";
-    const string VariantPrefabDir = Root + "/Prefabs/Variants";
+    // 사용자가 폴더를 정리하면서 옮긴 위치(Prefabs/Presets/...)를 우선, 없으면 예전 위치
+    static string VariantMatDir => AssetDatabase.IsValidFolder(Root + "/Prefabs/Presets/Materials/Variants") ? Root + "/Prefabs/Presets/Materials/Variants" : Root + "/Materials/Variants";
+    static string VariantPrefabDir => AssetDatabase.IsValidFolder(Root + "/Prefabs/Presets/Variants") ? Root + "/Prefabs/Presets/Variants" : Root + "/Prefabs/Variants";
 
     [MenuItem("Roguelike/Build Variant Scenes")]
     public static void BuildVariantScenes() => BuildVariants(false);
@@ -32,6 +33,7 @@ public static partial class PrototypeBuilder
     [MenuItem("Roguelike/QA/파생 씬: 모래폭풍 사막 열기")] static void OpenSandstorm() => OpenVariantScene("Region_Desert_Sandstorm");
     [MenuItem("Roguelike/QA/파생 씬: 얼어붙은 호수 열기")] static void OpenFrozenLake() => OpenVariantScene("Region_Snow_FrozenLake");
     [MenuItem("Roguelike/QA/파생 씬: 칼데라 열기")] static void OpenCaldera() => OpenVariantScene("Region_Volcano_Caldera");
+    [MenuItem("Roguelike/QA/파생 씬: 도깨비불 늪 열기")] static void OpenWisp() => OpenVariantScene("Region_Swamp_Wisp");
 
     static void OpenVariantScene(string name)
     {
@@ -46,8 +48,8 @@ public static partial class PrototypeBuilder
         if (active.isDirty && !EditorUtility.DisplayDialog("파생 씬", $"'{active.name}' 씬에 저장하지 않은 변경이 있습니다. 씬을 닫고 계속할까요? (변경은 저장되지 않습니다)", "계속", "취소")) return;
         string returnTo = active.path;
         EnsureFolder("Assets/Scenes/Regions", "Variants");
-        EnsureFolder(Root + "/Materials", "Variants");
-        EnsureFolder(Root + "/Prefabs", "Variants");
+        if (!AssetDatabase.IsValidFolder(VariantMatDir)) { EnsureFolder(Root, "Materials"); EnsureFolder(Root + "/Materials", "Variants"); }
+        if (!AssetDatabase.IsValidFolder(VariantPrefabDir)) EnsureFolder(Root + "/Prefabs", "Variants");
 
         var cfg = AssetDatabase.LoadAssetAtPath<GameConfig>(Root + "/Resources/GameConfig.asset");
         var vc = cfg.variant;
@@ -74,6 +76,7 @@ public static partial class PrototypeBuilder
                 case StageVariantKind.DesertSandstorm: BuildSandstorm(root, vc.sandstorm); break;
                 case StageVariantKind.SnowFrozenLake: BuildFrozenLake(root, vc.frozenLake, v.scene); break;
                 case StageVariantKind.VolcanoCaldera: BuildCaldera(root, vc.caldera); break;
+                case StageVariantKind.SwampWisp: BuildWispSwamp(root, vc.wisp); break;
             }
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);

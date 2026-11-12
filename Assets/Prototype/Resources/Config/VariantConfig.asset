@@ -23,6 +23,7 @@ MonoBehaviour:
     requiredTrait: 9
     kind: 0
     color: {r: 0.65, g: 1, b: 0.45, a: 1}
+    environmentKillsCount: 0
     autoProps: 0
     enemyBias: 3
     enemyBiasMul: 3
@@ -38,6 +39,7 @@ MonoBehaviour:
     requiredTrait: 8
     kind: 1
     color: {r: 1, g: 0.85, b: 0.35, a: 1}
+    environmentKillsCount: 0
     autoProps: 0
     enemyBias: 2
     enemyBiasMul: 3
@@ -52,6 +54,7 @@ MonoBehaviour:
     requiredTrait: 11
     kind: 2
     color: {r: 1, g: 0.78, b: 0.45, a: 1}
+    environmentKillsCount: 0
     autoProps: 0
     enemyBias: 1
     enemyBiasMul: 2
@@ -65,6 +68,7 @@ MonoBehaviour:
     requiredTrait: 20
     kind: 3
     color: {r: 0.6, g: 0.88, b: 1, a: 1}
+    environmentKillsCount: 0
     autoProps: 0
     enemyBias: 1
     enemyBiasMul: 2
@@ -78,8 +82,22 @@ MonoBehaviour:
     requiredTrait: 14
     kind: 4
     color: {r: 1, g: 0.5, b: 0.25, a: 1}
+    environmentKillsCount: 0
     autoProps: 0
     enemyBias: 1
+    enemyBiasMul: 2
+  - id: swamp_wisp
+    name: "\uB3C4\uAE68\uBE44\uBD88 \uB2AA"
+    desc: "\uB5A0\uB2E4\uB2C8\uB294 \uB3C4\uAE68\uBE44\uBD88\uC5D0 \uB2FF\uC73C\uBA74
+      \uC5B4\uB518\uAC00\uB85C \uC21C\uAC04\uC774\uB3D9\uD55C\uB2E4."
+    regionScene: Region_Swamp
+    scene: Region_Swamp_Wisp
+    requiredTrait: 9
+    kind: 5
+    color: {r: 0.55, g: 1, b: 0.85, a: 1}
+    environmentKillsCount: 0
+    autoProps: 0
+    enemyBias: 2
     enemyBiasMul: 2
   stageDecrease: 1
   portalSpacing: 16
@@ -172,11 +190,15 @@ MonoBehaviour:
     innerBand: 7
     outerBand: 8
     bandJitter: 2
+    randomVanish: 1
+    vanishRatio: 0.45
+    edgeBias: 2
     vanishAt: 0
     highHold: 16
     lowHold: 12
     transition: 4
     warning: 2
+    warningShake: 0.05
     highLevel: -0.35
     lowLevel: -3
     wardLavaDamageFrac: 0.2
@@ -185,3 +207,21 @@ MonoBehaviour:
     crustColor: {r: 0.45, g: 0.3, b: 0.27, a: 1}
     lavaColor: {r: 1, g: 0.45, b: 0.15, a: 1}
     lavaGlow: 1.6
+  wisp:
+    wispCount: 9
+    wanderRadius: 7
+    driftSpeed: 1.6
+    hoverHeight: 1.1
+    touchRadius: 1.3
+    affectWard: 1
+    affectEnemies: 1
+    wispCooldown: 4
+    targetCooldown: 2
+    wardSafeDistance: 7
+    wispClearance: 4
+    wispColor: {r: 0.55, g: 1, b: 0.85, a: 1}
+    lightIntensity: 3.5
+    lightRange: 8
+    sunMul: 0.35
+    ambient: {r: 0.16, g: 0.2, b: 0.22, a: 1}
+    fogColor: {r: 0.12, g: 0.17, b: 0.18, a: 1}

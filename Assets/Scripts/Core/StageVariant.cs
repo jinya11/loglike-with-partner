@@ -8,6 +8,7 @@ public enum StageVariantKind
     [Tooltip("사막: 모래폭풍 사막. 주기적 모래폭풍이 한 방향으로 밀어냄, 동굴 바위 뒤가 피난처, 폭풍 뒤 묻힌 유물이 드러남")] DesertSandstorm,
     [Tooltip("설원: 얼어붙은 호수. 얼음판 전장, 금 간 얼음은 밟으면 깨져 구멍 — 적은 빠지면 즉사, 생명체는 빠지면 스페이스 연타로 탈출")] SnowFrozenLake,
     [Tooltip("화산: 칼데라. 용암 호수를 둘러싼 고리 모양 플랫폼 전장(지형/보더 없음). 용암 수위가 주기적으로 오르내리고, 그때 가장자리 플랫폼이 가라앉아 고리 폭이 바뀜")] VolcanoCaldera,
+    [Tooltip("늪: 도깨비불 늪. 떠다니는 도깨비불에 닿으면 스테이지 안 무작위 안전 위치로 순간이동 (생명체/적)")] SwampWisp,
 }
 
 /// <summary>
@@ -176,4 +177,29 @@ public class CalderaSettings
     [Tooltip("가라앉는 플랫폼 (식은 껍질)")] public Color crustColor = new Color(0.45f, 0.3f, 0.27f);
     public Color lavaColor = new Color(1f, 0.45f, 0.15f);
     [Tooltip("용암 발광 세기")] public float lavaGlow = 1.6f;
+}
+
+/// <summary>도깨비불 늪 수치 (VariantConfig.wisp).</summary>
+[System.Serializable]
+public class WispSwampSettings
+{
+    [Header("도깨비불 (씬 빌더가 배치 — 이후 씬에서 옮기거나 늘려도 됨)")]
+    [Tooltip("씬 빌더가 놓는 도깨비불 수")] public int wispCount = 9;
+    [Tooltip("자기 자리에서 떠다니는 반경(m)")] public float wanderRadius = 7f;
+    [Tooltip("떠다니는 속도(m/초)")] public float driftSpeed = 1.6f;
+    [Tooltip("땅에서 뜬 높이(m)")] public float hoverHeight = 1.1f;
+    [Tooltip("닿았다고 보는 거리(m, 수평)")] public float touchRadius = 1.3f;
+    [Header("순간이동")]
+    [Tooltip("작은 생명체가 닿으면 순간이동")] public bool affectWard = true;
+    [Tooltip("적이 닿으면 순간이동")] public bool affectEnemies = true;
+    [Tooltip("한 번 닿은 도깨비불이 꺼져 있다가 다시 켜지기까지(초)")] public float wispCooldown = 4f;
+    [Tooltip("순간이동한 대상이 다시 순간이동되지 않는 시간(초)")] public float targetCooldown = 2f;
+    [Tooltip("생명체 도착 지점: 적에게서 최소 이만큼 떨어진 곳을 우선(m)")] public float wardSafeDistance = 7f;
+    [Tooltip("도착 지점: 도깨비불에서 최소 이만큼 떨어진 곳(m)")] public float wispClearance = 4f;
+    [Header("색 (무광 파스텔 + 불빛만 발광)")]
+    public Color wispColor = new Color(0.55f, 1f, 0.85f);
+    [Tooltip("도깨비불 빛 세기 / 범위")] public float lightIntensity = 3.5f, lightRange = 8f;
+    [Header("해 질 녘 (씬 빌더가 조명에 적용)")]
+    [Tooltip("해 밝기 배율")] public float sunMul = 0.35f;
+    public Color ambient = new Color(0.16f, 0.2f, 0.22f), fogColor = new Color(0.12f, 0.17f, 0.18f);
 }
