@@ -203,6 +203,7 @@ public class WispSwampSettings
     [Tooltip("지속 피해 총량")] public float teleportDotTotal = 9f;
     [Tooltip("지속 피해 시간(초)")] public float teleportDotDuration = 3f;
     [Tooltip("작은 생명체에게 지속 피해")] public bool dotWard = true;
+    [Tooltip("지속 피해를 받는 동안 회복 불가 (기본 회복·회복 구역 등 모든 회복 차단). 생명체에게 적용")] public bool noHealDuringDot = true;
     [Tooltip("적에게도 지속 피해 (이 피해로 죽으면 환경사: 처치 수에 안 침)")] public bool dotEnemies = false;
     [Header("생명체는 도깨비불을 피해 다님")]
     [Tooltip("생명체가 도깨비불 둘레 이 거리 안으로는 걸어 들어가지 않음(m, 닿는 거리보다 크게)")] public float wardAvoidRadius = 2.2f;

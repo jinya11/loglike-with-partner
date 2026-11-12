@@ -60,7 +60,7 @@ public class Enemy : Ticked<Enemy>
         SetHidden(false); SetMask(null);
         if (renderers != null) foreach (var rr in renderers) rr.SetPropertyBlock(null); // 보물 색 초기화 (풀 재사용)
         visual.localScale = visualScale;
-        emergeLeft = 0f; visual.localPosition = visualBase;
+        emergeLeft = 0f; visual.localPosition = visualBase; noHealUntil = 0f;
         abilityReadyAt = Time.time + Random.Range(0.5f, 2f); // 동시에 몰려서 쓰지 않도록
         rb.linearVelocity = Vector3.zero;
     }
@@ -205,7 +205,7 @@ public class Enemy : Ticked<Enemy>
 
     public override void Tick(float dt)
     {
-        if (RegenFrac > 0f && hp < maxHp) hp = Mathf.Min(maxHp, hp + maxHp * RegenFrac * dt); // 재생 변이
+        if (RegenFrac > 0f && hp < maxHp && Time.time >= noHealUntil) hp = Mathf.Min(maxHp, hp + maxHp * RegenFrac * dt); // 재생 변이 (회복 불가 중엔 안 됨)
         if (emergeLeft > 0f) { TickEmerge(dt); return; }
         if (Frozen) { TickFrozen(dt); return; }
         if (treasure) { TickTreasure(dt); return; }
@@ -315,6 +315,10 @@ public class Enemy : Ticked<Enemy>
         StageDirector.I.OnEnemyKilled(this, true);
         Despawn();
     }
+
+    float noHealUntil;
+    /// <summary>회복 불가 (공통): seconds초 동안 재생 안 됨.</summary>
+    public void BlockHealing(float seconds) { noHealUntil = Mathf.Max(noHealUntil, Time.time + seconds); }
 
     /// <summary>환경 피해 (도깨비불 지속 피해 등): 이 피해로 죽으면 환경사 (처치 수에 안 침).</summary>
     public void EnvironmentDamage(float dmg)

@@ -194,7 +194,7 @@ public class ForestFireflyVariant : MonoBehaviour
             {
                 Vector3 d = Ward.I.Position - c; d.y = 0f;
                 var st = gm.Stats;
-                if (d.sqrMagnitude < sr2) st.wardHp = Mathf.Min(st.wardMaxHp, st.wardHp + s.wardRegen * 0.2f);
+                if (d.sqrMagnitude < sr2 && !Ward.I.HealBlocked) st.wardHp =Mathf.Min(st.wardMaxHp, st.wardHp + s.wardRegen * 0.2f);
             }
         }
     }

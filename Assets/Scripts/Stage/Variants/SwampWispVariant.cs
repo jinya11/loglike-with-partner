@@ -125,7 +125,7 @@ public class SwampWispVariant : MonoBehaviour
         Flash(from); Flash(to);
         ward.Teleport(to);
         Spend(w, ward);
-        if (s.dotWard) AddDot(ward);
+        if (s.dotWard) { AddDot(ward); if (s.noHealDuringDot) ward.BlockHealing(s.teleportDotDuration); }
     }
 
     void TouchEnemies()
@@ -142,7 +142,7 @@ public class SwampWispVariant : MonoBehaviour
             e.transform.position = to;
             if (e.TryGetComponent(out Rigidbody rb)) { rb.position = to; rb.linearVelocity = Vector3.zero; }
             Spend(w, e);
-            if (s.dotEnemies) AddDot(e);
+            if (s.dotEnemies) { AddDot(e); if (s.noHealDuringDot) e.BlockHealing(s.teleportDotDuration); }
         }
     }
 

@@ -535,7 +535,7 @@ public class Ward : Singleton<Ward>
 
     void Regen(float dt, StageDirector stage)
     {
-        if (bleedLeft > 0f) return; // 출혈 중 회복 불가
+        if (bleedLeft > 0f || noHealLeft > 0f) return; // 출혈/회복 불가 중엔 회복 안 됨
         float regen = GameManager.I.Has(ModifierType.NoHealing) ? 0f : stats.wardRegen;
         if (stage.Theme) regen += stage.Theme.ambientRegen; // 보너스 스테이지 (고갈 석판 무시)
         if (regen > 0f) stats.wardHp = Mathf.Min(stats.wardMaxHp, stats.wardHp + regen * dt);
@@ -557,7 +557,7 @@ public class Ward : Singleton<Ward>
                 case ZoneType.Slow: mul = Mathf.Min(mul, z.value); break;
                 case ZoneType.Water: mul = Mathf.Min(mul, z.value); water = true; break;
                 case ZoneType.Damage: Drain(z.value * dt); break;
-                case ZoneType.Heal: stats.wardHp = Mathf.Min(stats.wardMaxHp, stats.wardHp + z.value * dt); break;
+                case ZoneType.Heal: if (noHealLeft <= 0f) stats.wardHp = Mathf.Min(stats.wardMaxHp, stats.wardHp + z.value * dt); break;
             }
         }
         if (water && (!inWater || (splashTimer -= dt) <= 0f))
@@ -612,7 +612,7 @@ public class Ward : Singleton<Ward>
     /// <summary>체력 회복 (달빛 등 외부 효과). 출혈 중엔 회복 불가.</summary>
     public void Heal(float amount)
     {
-        if (!Alive || bleedLeft > 0f || amount <= 0f) return;
+        if (!Alive || bleedLeft > 0f || noHealLeft > 0f || amount <= 0f) return;
         stats.wardHp = Mathf.Min(stats.wardMaxHp, stats.wardHp + amount);
     }
 
@@ -690,6 +690,11 @@ public class Ward : Singleton<Ward>
         if (fearLeft <= 0f) Vfx.Debuff(transform.position, EnemyAbility.Fear, 10);
         fearLeft = Mathf.Max(fearLeft, seconds);
     }
+    /// <summary>회복 불가 (공통): seconds초 동안 기본 회복·회복 구역·외부 회복(달빛 등) 모두 막힘. 보호막으로 풀리지 않음.</summary>
+    public void BlockHealing(float seconds) { noHealLeft = Mathf.Max(noHealLeft, seconds); }
+    public bool HealBlocked => noHealLeft > 0f;
+    float noHealLeft;
+
     public void Bleed(float dps, float seconds)
     {
         if (Shielded || !AllowDebuff(EnemyAbility.Bleed)) return;
@@ -702,6 +707,7 @@ public class Ward : Singleton<Ward>
         if (slowLeft > 0f && (slowLeft -= dt) <= 0f) slowMul = 1f;
         if (fearLeft > 0f) fearLeft -= dt;
         if (bleedLeft > 0f) { bleedLeft -= dt; Drain(bleedDps * dt); }
+        if (noHealLeft > 0f) noHealLeft -= dt;
         if ((debuffFxTimer -= dt) > 0f) return; // 지속 중 표시 (0.25초마다 소량)
         debuffFxTimer = 0.25f;
         Vector3 p = transform.position;
