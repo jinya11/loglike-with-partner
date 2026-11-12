@@ -186,6 +186,7 @@ public class Hud : Singleton<Hud>
         }
 
         var bs = BombardSkill.I;
+        if (bombardText && bombardText.gameObject.activeSelf == BombardSkill.Disabled) bombardText.gameObject.SetActive(!BombardSkill.Disabled); // 폭격 불가 스테이지는 숨김
         if (bs)
         {
             int b = Mathf.CeilToInt(bs.CooldownLeft);

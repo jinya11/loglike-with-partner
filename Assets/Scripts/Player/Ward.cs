@@ -113,7 +113,7 @@ public class Ward : Singleton<Ward>
 
     void ReadCommands(Keyboard kb)
     {
-        if (kb == null) return;
+        if (kb == null || ControlLocked) return; // 파생 규칙이 조작 방식을 고정 (발광 균사 동굴: 생명체 직접 조작)
         if (kb[W.linkKey].wasPressedThisFrame) ToggleLink();
         else if (kb[W.autoKey].wasPressedThisFrame) SetOrder(Command.Auto);
         else if (kb[W.stayKey].wasPressedThisFrame) SetOrder(Command.Stay);
@@ -256,7 +256,7 @@ public class Ward : Singleton<Ward>
         var stage = StageDirector.I;
         Vector3 pos = transform.position;
         if (ability) ability.Tick(dt);
-        if (attack) attack.Tick(dt);
+        if (attack && (AttackAllowed == null || AttackAllowed())) attack.Tick(dt); // 파생 규칙이 공격 시점을 제한할 수 있음 (발광 균사 동굴: 발각됐을 때만)
 
         float zoneMul = ApplyZones(dt);
 
@@ -296,6 +296,14 @@ public class Ward : Singleton<Ward>
             speedMul = W.steerSpeedMul;
             hasFleeGoal = false;
             Mode = AiMode.Manual;
+        }
+        else if (ManualOnly && !stage.PortalOpen)
+        {
+            // 직접 조작 전용 (발광 균사 동굴): 입력이 없으면 제자리
+            goal = pos;
+            speedMul = 0f;
+            hasFleeGoal = false;
+            Mode = AiMode.Hold;
         }
         else if (stage.PortalOpen && Order != Command.Stay)
         {
@@ -412,7 +420,7 @@ public class Ward : Singleton<Ward>
         UpdateTint();
 
         // 미약한 저항
-        if ((pulseTimer += dt) >= stats.wardPulseInterval && stage.NearestEnemy(transform.position, stats.wardPulseRadius) != null)
+        if ((pulseTimer += dt) >= stats.wardPulseInterval && (AttackAllowed == null || AttackAllowed()) && stage.NearestEnemy(transform.position, stats.wardPulseRadius) != null)
         {
             pulseTimer = 0f;
             Vector3 c = transform.position;
@@ -599,6 +607,22 @@ public class Ward : Singleton<Ward>
         Vfx.Hit(transform.position + Vector3.up * 0.5f, hurtColor);
         if (ability) ability.OnDamaged(dmg);
         if (stats.wardHp <= 0f) Die();
+    }
+
+    // ---- 조작/공격 제한 (파생 규칙이 정함: 발광 균사 동굴) ----
+    /// <summary>켜면 명령/조작 전환 키를 무시 (파생 규칙이 정한 조작 방식 고정).</summary>
+    public static bool ControlLocked;
+    /// <summary>켜면 생명체가 스스로 움직이지 않음 (직접 조작 입력이 없으면 제자리, 포털이 열리면 포털로).</summary>
+    public static bool ManualOnly;
+    /// <summary>등록되면 이 조건일 때만 자동 공격·저항 파동 (예: 적에게 발각됐을 때만).</summary>
+    public static System.Func<bool> AttackAllowed;
+
+    /// <summary>파생 규칙용: 명령과 조작 대상을 바로 지정 (연출 없음).</summary>
+    public void ForceControl(Command order, Control control)
+    {
+        Order = order; Controls = control;
+        if (order != Command.Linked) lastFreeOrder = order;
+        hasFleeGoal = false; replanLeft = 0f;
     }
 
     // ---- 층 (거대 버섯 숲: 버섯 갓 위층) ----

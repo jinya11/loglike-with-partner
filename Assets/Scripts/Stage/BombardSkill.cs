@@ -49,6 +49,7 @@ public class BombardSkill : Singleton<BombardSkill>
         var kb = Keyboard.current;
         var mouse = Mouse.current;
         var comp = CompanionBase.Current;
+        if (Disabled) { if (Aiming) EndAim(); return; }
 
         if (!Aiming)
         {
@@ -143,8 +144,12 @@ public class BombardSkill : Singleton<BombardSkill>
     /// 감시자 자동(자율 + 생명체만 조작)일 때 자동 폭격: 쿨타임이 끝나면 생명체 주변(사거리 안)에서 적이 가장 많이 모인 곳에.
     /// 감시자 마커 방식이면 감시자 위치의 폭격 범위 안에 적이 충분히 모였을 때 감시자 위치에.
     /// </summary>
+    /// <summary>파생 규칙이 폭격을 막음 (발광 균사 동굴). 켜져 있으면 조준·자동 폭격 모두 안 됨.</summary>
+    public static bool Disabled;
+
     public void TryAuto(Vector3 around)
     {
+        if (Disabled) return;
         var comp = CompanionBase.Current;
         var gm = GameManager.I;
         if (Aiming || comp == null || Time.time < readyAt || gm.State != GameState.Playing || Time.time < autoCheckAt) return;

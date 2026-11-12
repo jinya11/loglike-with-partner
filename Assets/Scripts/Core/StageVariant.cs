@@ -12,6 +12,7 @@ public enum StageVariantKind
     [Tooltip("묘지: 깨어난 묘지. 무덤에서 적이 계속 일어남. 처치 목표 1.5배 + 무덤 N개를 부숴야 클리어")] GraveyardAwakened,
     [Tooltip("묘지: 달빛 묘역. 달빛이 비치는 구역이 천천히 옮겨 다님. 달빛 안에서 생명체 회복, 생명체는 적에게서 도망치며 달빛을 따라감")] GraveyardMoonlit,
     [Tooltip("버섯 숲: 거대 버섯 숲. 버섯 갓이 위층 발판 — 전장이 갓 위/아래 두 층. 층 사이는 정해진 곳에서 상호작용 키(F)로 오르내림")] MushroomGiant,
+    [Tooltip("버섯 숲: 발광 균사 동굴. 생명체 직접 조작, 감시자·폭격 없음. 적은 잠들어 있다가 균사를 밟아 번진 빛이 닿으면 깨어남. 생명체 공격은 발각됐을 때만")] MushroomMycelium,
 }
 
 /// <summary>
@@ -284,4 +285,27 @@ public class GiantMushroomSettings
     public Color spotColor = new Color(1f, 0.95f, 0.88f);
     public Color stemColor = new Color(0.95f, 0.9f, 0.8f);
     [Tooltip("오르내리는 곳 표시 색")] public Color climbColor = new Color(0.55f, 1f, 0.7f);
+}
+
+/// <summary>발광 균사 동굴 수치 (VariantConfig.mycelium).</summary>
+[System.Serializable]
+public class MyceliumCaveSettings
+{
+    [Header("균사 (씬 빌더가 배치 — 이후 씬에서 옮기거나 늘려도 됨)")]
+    [Tooltip("씬 빌더가 놓는 균사 덩어리 수")] public int patchCount = 42;
+    [Tooltip("균사 덩어리 반경(m) — 생명체가 이 안을 밟으면 빛이 번짐")] public float patchRadius = 2.6f;
+    [Header("빛 번짐")]
+    [Tooltip("번지는 빛의 최대 반경(m)")] public float spreadRadius = 11f;
+    [Tooltip("빛이 최대 반경까지 번지는 시간(초)")] public float spreadTime = 1.2f;
+    [Tooltip("한 번 번진 균사가 다시 번질 수 있기까지(초)")] public float patchCooldown = 6f;
+    [Header("적")]
+    [Tooltip("잠든 적에게 생명체가 이 거리까지 닿으면 깨어남(m)")] public float bumpWakeRadius = 1.4f;
+    [Tooltip("깨어난 적이 이 반경 안의 잠든 적도 깨움(m, 0 = 안 깨움)")] public float chainWakeRadius = 0f;
+    [Header("클리어")]
+    [Tooltip("처치 목표 배율 (적이 깨어나야 싸울 수 있어 기존보다 적게)")] public float killTargetMul = 0.5f;
+    [Header("동굴 (씬 빌더가 조명에 적용)")]
+    [Tooltip("해 밝기 배율")] public float sunMul = 0.1f;
+    public Color ambient = new Color(0.06f, 0.06f, 0.1f), fogColor = new Color(0.03f, 0.03f, 0.06f);
+    [Tooltip("균사 빛 색")] public Color glowColor = new Color(0.45f, 0.95f, 1f);
+    [Tooltip("잠든 균사 색 (어둡게)")] public Color dimColor = new Color(0.25f, 0.45f, 0.55f);
 }

@@ -338,6 +338,7 @@ public class StageDirector : Singleton<StageDirector>
             case StageVariantKind.GraveyardAwakened: SceneRule<AwakenedGraveyardVariant>().Init(this, cfg.variant.awakened); break;
             case StageVariantKind.GraveyardMoonlit: SceneRule<MoonlitGraveyardVariant>().Init(this, cfg.variant.moonlit); break;
             case StageVariantKind.MushroomGiant: SceneRule<GiantMushroomVariant>().Init(this, cfg.variant.giantMushroom); break;
+            case StageVariantKind.MushroomMycelium: SceneRule<MyceliumCaveVariant>().Init(this, cfg.variant.mycelium); break;
         }
     }
 

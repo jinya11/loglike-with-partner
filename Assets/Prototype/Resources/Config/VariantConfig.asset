@@ -149,6 +149,20 @@ MonoBehaviour:
     autoProps: 0
     enemyBias: 0
     enemyBiasMul: 1
+  - id: mushroom_mycelium
+    name: "\uBC1C\uAD11 \uADE0\uC0AC \uB3D9\uAD74"
+    desc: "\uADE0\uC0AC\uB97C \uBC1F\uC73C\uBA74 \uBE5B\uC774 \uBC88\uC838 \uB098\uAC04\uB2E4.
+      \uBE5B\uC774 \uB2FF\uC740 \uC801\uC774 \uAE68\uC5B4\uB09C\uB2E4."
+    regionScene: Region_Mushroom
+    scene: Region_Mushroom_Mycelium
+    requiredTrait: 8
+    alsoRequired: 
+    kind: 9
+    color: {r: 0.45, g: 0.95, b: 1, a: 1}
+    environmentKillsCount: 0
+    autoProps: 0
+    enemyBias: 0
+    enemyBiasMul: 1
   stageDecrease: 1
   portalSpacing: 16
   firefly:
@@ -325,3 +339,17 @@ MonoBehaviour:
     spotColor: {r: 1, g: 0.95, b: 0.88, a: 1}
     stemColor: {r: 0.95, g: 0.9, b: 0.8, a: 1}
     climbColor: {r: 0.55, g: 1, b: 0.7, a: 1}
+  mycelium:
+    patchCount: 42
+    patchRadius: 2.6
+    spreadRadius: 11
+    spreadTime: 1.2
+    patchCooldown: 6
+    bumpWakeRadius: 1.4
+    chainWakeRadius: 0
+    killTargetMul: 0.5
+    sunMul: 0.1
+    ambient: {r: 0.06, g: 0.06, b: 0.1, a: 1}
+    fogColor: {r: 0.03, g: 0.03, b: 0.06, a: 1}
+    glowColor: {r: 0.45, g: 0.95, b: 1, a: 1}
+    dimColor: {r: 0.25, g: 0.45, b: 0.55, a: 1}

@@ -45,6 +45,7 @@ public abstract class CompanionBase : MonoBehaviour
 
         var s = GameManager.I.Stats;
         if ((timer += Time.deltaTime) < s.companionInterval || Enemy.Active.Count == 0) return;
+        if (Ward.AttackAllowed != null && !Ward.AttackAllowed()) return; // 파생 규칙이 공격을 막은 동안 (발광 균사 동굴: 발각 전) 동반자도 조용히
         timer = 0f;
         StartCoroutine(Run(s));
     }
