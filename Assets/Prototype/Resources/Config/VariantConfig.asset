@@ -134,21 +134,6 @@ MonoBehaviour:
     autoProps: 0
     enemyBias: 0
     enemyBiasMul: 1
-  - id: mushroom_giant
-    name: "\uAC70\uB300 \uBC84\uC12F \uC232"
-    desc: "\uBC84\uC12F \uAC13\uC774 \uC704\uCE35 \uBC1C\uD310\uC774 \uB418\uC5B4
-      \uC804\uC7A5\uC774 \uAC13 \uC704\uC640 \uC544\uB798 \uB450 \uCE35\uC73C\uB85C
-      \uB098\uB25C\uB2E4."
-    regionScene: Region_Mushroom
-    scene: Region_Mushroom_Giant
-    requiredTrait: 15
-    alsoRequired: 
-    kind: 8
-    color: {r: 0.95, g: 0.55, b: 0.55, a: 1}
-    environmentKillsCount: 0
-    autoProps: 0
-    enemyBias: 0
-    enemyBiasMul: 1
   - id: mushroom_mycelium
     name: "\uBC1C\uAD11 \uADE0\uC0AC \uB3D9\uAD74"
     desc: "\uADE0\uC0AC\uB97C \uBC1F\uC73C\uBA74 \uBE5B\uC774 \uBC88\uC838 \uB098\uAC04\uB2E4.
@@ -157,7 +142,7 @@ MonoBehaviour:
     scene: Region_Mushroom_Mycelium
     requiredTrait: 8
     alsoRequired: 
-    kind: 9
+    kind: 8
     color: {r: 0.45, g: 0.95, b: 1, a: 1}
     environmentKillsCount: 0
     autoProps: 0
@@ -325,20 +310,6 @@ MonoBehaviour:
     fogColor: {r: 0.05, g: 0.06, b: 0.1, a: 1}
     moonColor: {r: 0.75, g: 0.85, b: 1, a: 1}
     moonIntensity: 400
-  giantMushroom:
-    mushroomCount: 6
-    ringRadius: 20
-    capRadius: 11
-    capHeight: 5.5
-    climbRange: 3
-    enemyClimbDelay: 0.8
-    upperSpawnShare: 0.6
-    levelTolerance: 2.5
-    capFadeAlpha: 0.18
-    capColor: {r: 0.9, g: 0.45, b: 0.45, a: 1}
-    spotColor: {r: 1, g: 0.95, b: 0.88, a: 1}
-    stemColor: {r: 0.95, g: 0.9, b: 0.8, a: 1}
-    climbColor: {r: 0.55, g: 1, b: 0.7, a: 1}
   mycelium:
     patchCount: 42
     patchRadius: 2.6

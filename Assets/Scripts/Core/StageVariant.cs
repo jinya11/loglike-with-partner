@@ -11,7 +11,6 @@ public enum StageVariantKind
     [Tooltip("늪: 도깨비불 늪. 떠다니는 도깨비불에 닿으면 스테이지 안 무작위 안전 위치로 순간이동 (생명체/적)")] SwampWisp,
     [Tooltip("묘지: 깨어난 묘지. 무덤에서 적이 계속 일어남. 처치 목표 1.5배 + 무덤 N개를 부숴야 클리어")] GraveyardAwakened,
     [Tooltip("묘지: 달빛 묘역. 달빛이 비치는 구역이 천천히 옮겨 다님. 달빛 안에서 생명체 회복, 생명체는 적에게서 도망치며 달빛을 따라감")] GraveyardMoonlit,
-    [Tooltip("버섯 숲: 거대 버섯 숲. 버섯 갓이 위층 발판 — 전장이 갓 위/아래 두 층. 층 사이는 정해진 곳에서 상호작용 키(F)로 오르내림")] MushroomGiant,
     [Tooltip("버섯 숲: 발광 균사 동굴. 생명체 직접 조작, 감시자·폭격 없음. 적은 잠들어 있다가 균사를 밟아 번진 빛이 닿으면 깨어남. 생명체 공격은 발각됐을 때만")] MushroomMycelium,
 }
 
@@ -262,29 +261,6 @@ public class MoonlitGraveyardSettings
     public Color ambient = new Color(0.08f, 0.09f, 0.14f), fogColor = new Color(0.05f, 0.06f, 0.1f);
     [Tooltip("달빛 색 / 세기")] public Color moonColor = new Color(0.75f, 0.85f, 1f);
     public float moonIntensity = 400f;
-}
-
-/// <summary>거대 버섯 숲 수치 (VariantConfig.giantMushroom).</summary>
-[System.Serializable]
-public class GiantMushroomSettings
-{
-    [Header("버섯 (씬 빌더가 배치 — 이후 씬에서 옮기거나 크기를 바꿔도 됨)")]
-    [Tooltip("거대 버섯 수 (고리 모양으로 배치, 갓끼리 겹쳐 위층이 이어짐)")] public int mushroomCount = 6;
-    [Tooltip("버섯이 놓이는 고리 반경(m)")] public float ringRadius = 20f;
-    [Tooltip("갓 반경(m)")] public float capRadius = 11f;
-    [Tooltip("갓 윗면 높이 (가장 높은 지면 기준 위로, m)")] public float capHeight = 5.5f;
-    [Header("층 이동")]
-    [Tooltip("생명체가 오르내리는 곳에서 이 거리 안이면 상호작용(F)으로 층 이동(m)")] public float climbRange = 3f;
-    [Tooltip("적이 오르내리는 곳에 닿고 층을 옮기기까지(초)")] public float enemyClimbDelay = 0.8f;
-    [Tooltip("생명체가 위층일 때 갓 위에 생긴 적이 위층에 생길 확률")] [Range(0, 1)] public float upperSpawnShare = 0.6f;
-    [Tooltip("같은 층으로 보는 높이 차(m) — 다른 층의 적은 공격/피해 대상이 아님")] public float levelTolerance = 2.5f;
-    [Header("가림")]
-    [Tooltip("생명체가 아래층일 때 갓 투명도 (아래층이 보이게)")] [Range(0, 1)] public float capFadeAlpha = 0.18f;
-    [Header("색 (무광 파스텔)")]
-    public Color capColor = new Color(0.9f, 0.45f, 0.45f);
-    public Color spotColor = new Color(1f, 0.95f, 0.88f);
-    public Color stemColor = new Color(0.95f, 0.9f, 0.8f);
-    [Tooltip("오르내리는 곳 표시 색")] public Color climbColor = new Color(0.55f, 1f, 0.7f);
 }
 
 /// <summary>발광 균사 동굴 수치 (VariantConfig.mycelium).</summary>

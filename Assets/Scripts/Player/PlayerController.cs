@@ -120,7 +120,7 @@ public class PlayerController : Singleton<PlayerController>
         {
             float a = i * (Mathf.PI * 2f / LeashSeg);
             float lx = c.x + Mathf.Cos(a) * r, lz = c.z + Mathf.Sin(a) * r;
-            leashBuf[i] = new Vector3(lx, (Ward.I != null && !float.IsNaN(Ward.I.FloorY) ? Mathf.Max(Ground.HeightAt(lx, lz), Ward.I.FloorY) : Ground.HeightAt(lx, lz)) + 0.08f, lz);
+            leashBuf[i] = new Vector3(lx, Ground.HeightAt(lx, lz) + 0.08f, lz);
         }
         leashRing.SetPositions(leashBuf);
         Color col = pc.leashColor; col.a *= k; // 한계에 가까울수록 진하게
@@ -181,7 +181,6 @@ public class PlayerController : Singleton<PlayerController>
     Vector3 Hover(Vector3 p, float dt)
     {
         float gy = Ground.HeightAt(p);
-        if (Ward.I != null && !float.IsNaN(Ward.I.FloorY)) gy = Mathf.Max(gy, Ward.I.FloorY); // 생명체가 위층 발판에 있으면 감시자(카메라)도 그 높이로
         p.y = Mathf.MoveTowards(transform.position.y, gy, Mathf.Max(8f, Mathf.Abs(gy - transform.position.y) * 12f) * dt);
         return p;
     }

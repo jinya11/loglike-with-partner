@@ -337,7 +337,6 @@ public class StageDirector : Singleton<StageDirector>
             case StageVariantKind.SwampWisp: SceneRule<SwampWispVariant>().Init(this, cfg.variant.wisp); break;
             case StageVariantKind.GraveyardAwakened: SceneRule<AwakenedGraveyardVariant>().Init(this, cfg.variant.awakened); break;
             case StageVariantKind.GraveyardMoonlit: SceneRule<MoonlitGraveyardVariant>().Init(this, cfg.variant.moonlit); break;
-            case StageVariantKind.MushroomGiant: SceneRule<GiantMushroomVariant>().Init(this, cfg.variant.giantMushroom); break;
             case StageVariantKind.MushroomMycelium: SceneRule<MyceliumCaveVariant>().Init(this, cfg.variant.mycelium); break;
         }
     }
@@ -784,7 +783,7 @@ public class StageDirector : Singleton<StageDirector>
     /// <summary>범위 내 적을 중심에서 방사형으로 밀거나(speed &gt; 0) 끌어당김(speed &lt; 0).</summary>
     public void RadialForce(Vector3 center, float radius, float speed, float dmg)
     {
-        center.y = AreaHeight(center) + 0.4f; // 언덕 위에서도 지면 기준으로 판정 (두 층 스테이지면 위층 발판 높이)
+        center.y = Ground.HeightAt(center) + 0.4f; // 언덕 위에서도 지면 기준으로 판정
         HitTargets(center, radius, dmg);
         int n = Physics.OverlapSphereNonAlloc(center, radius, areaHits, EnemyMask, QueryTriggerInteraction.Collide);
         for (int i = 0; i < n; i++)
@@ -799,7 +798,7 @@ public class StageDirector : Singleton<StageDirector>
     /// <summary>범위 내 적에게 피해 후 지정 속도로 밀어냄.</summary>
     public void PushArea(Vector3 center, float radius, Vector3 velocity, float dmg)
     {
-        center.y = AreaHeight(center) + 0.4f; // 언덕 위에서도 지면 기준으로 판정 (두 층 스테이지면 위층 발판 높이)
+        center.y = Ground.HeightAt(center) + 0.4f; // 언덕 위에서도 지면 기준으로 판정
         HitTargets(center, radius, dmg);
         int n = Physics.OverlapSphereNonAlloc(center, radius, areaHits, EnemyMask, QueryTriggerInteraction.Collide);
         for (int i = 0; i < n; i++)
@@ -812,7 +811,7 @@ public class StageDirector : Singleton<StageDirector>
 
     public void DamageArea(Vector3 center, float radius, float dmg)
     {
-        center.y = AreaHeight(center) + 0.4f; // 언덕 위에서도 지면 기준으로 판정 (두 층 스테이지면 위층 발판 높이)
+        center.y = Ground.HeightAt(center) + 0.4f; // 언덕 위에서도 지면 기준으로 판정
         int n = Physics.OverlapSphereNonAlloc(center, radius, areaHits, EnemyMask, QueryTriggerInteraction.Collide);
         for (int i = 0; i < n; i++)
             if (areaHits[i].TryGetComponent(out Enemy e) && e.isActiveAndEnabled) e.Hit(dmg, center);
@@ -879,16 +878,6 @@ public class StageDirector : Singleton<StageDirector>
     /// <summary>사거리 안에 부술 수 있는 오브젝트(무덤 등)가 있을 때, 적이 더 가까워도 그쪽을 노리는 확률 (파생 규칙이 정함, 기본 0).</summary>
     [System.NonSerialized] public float TargetShare;
 
-    /// <summary>같은 층으로 보는 높이 차 (두 층 스테이지에서 파생 규칙이 정함, 기본 무한 = 층 구분 없음).</summary>
-    [System.NonSerialized] public float LevelTolerance = float.PositiveInfinity;
-
-    /// <summary>범위 판정 높이: 기본은 지면. 두 층 스테이지에서는 지정 높이가 지면보다 1m 이상 위면 그 높이(위층 발판).</summary>
-    float AreaHeight(Vector3 c)
-    {
-        float gy = Ground.HeightAt(c);
-        return !float.IsInfinity(LevelTolerance) && c.y > gy + 1f ? c.y : gy;
-    }
-
     public Enemy NearestEnemy(Vector3 p, float range)
     {
         Enemy best = null;
@@ -896,7 +885,6 @@ public class StageDirector : Singleton<StageDirector>
         var list = Enemy.Active;
         for (int i = 0; i < list.Count; i++)
         {
-            if (Mathf.Abs(list[i].transform.position.y - p.y) > LevelTolerance) continue; // 두 층 스테이지: 다른 층의 적은 제외
             Vector3 d = list[i].transform.position - p; d.y = 0f; // 고저차가 있어도 수평 거리로
             float sq = d.sqrMagnitude;
             if (sq < bestSq) { bestSq = sq; best = list[i]; }

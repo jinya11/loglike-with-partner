@@ -36,7 +36,6 @@ public static partial class PrototypeBuilder
     [MenuItem("Roguelike/QA/파생 씬: 도깨비불 늪 열기")] static void OpenWisp() => OpenVariantScene("Region_Swamp_Wisp");
     [MenuItem("Roguelike/QA/파생 씬: 깨어난 묘지 열기")] static void OpenAwakened() => OpenVariantScene("Region_Graveyard_Awakened");
     [MenuItem("Roguelike/QA/파생 씬: 달빛 묘역 열기")] static void OpenMoonlit() => OpenVariantScene("Region_Graveyard_Moonlit");
-    [MenuItem("Roguelike/QA/파생 씬: 거대 버섯 숲 열기")] static void OpenGiantMushroom() => OpenVariantScene("Region_Mushroom_Giant");
     [MenuItem("Roguelike/QA/파생 씬: 발광 균사 동굴 열기")] static void OpenMycelium() => OpenVariantScene("Region_Mushroom_Mycelium");
 
     static void OpenVariantScene(string name)
@@ -83,7 +82,6 @@ public static partial class PrototypeBuilder
                 case StageVariantKind.SwampWisp: BuildWispSwamp(root, vc.wisp); break;
                 case StageVariantKind.GraveyardAwakened: BuildAwakenedGraveyard(root, vc.awakened); break;
                 case StageVariantKind.GraveyardMoonlit: BuildMoonlitGraveyard(root, vc.moonlit); break;
-                case StageVariantKind.MushroomGiant: BuildGiantMushroom(root, vc.giantMushroom); break;
                 case StageVariantKind.MushroomMycelium: BuildMyceliumCave(root, vc.mycelium); break;
             }
             EditorSceneManager.MarkSceneDirty(scene);
