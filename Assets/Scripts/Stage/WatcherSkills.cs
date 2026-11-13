@@ -30,6 +30,7 @@ public class WatcherSkills : MonoBehaviour
         cfg = gm.Config.skills;
         stage = GetComponent<StageDirector>();
         SaveData.EnsureSkillLoadout();
+        cfg.SanitizeLoadout();
         StageDirector.EnemyDied += OnEnemyDied;
         Ward.HitByEnemy += OnWardHit;
         Ward.AttackIntercept = ParryIntercept;

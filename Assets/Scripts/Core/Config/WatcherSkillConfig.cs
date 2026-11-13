@@ -84,6 +84,7 @@ public class WatcherSkillConfig : ScriptableObject
     [Tooltip("장착 칸 1, 2 사용 키")] public Key[] slotKeys = { Key.Digit1, Key.Digit2 };
     [Tooltip("스킬 장착 창 열기 (로비)")] public Key menuKey = Key.U;
     [Tooltip("장착 칸 수")] public int slotCount = 2;
+    [Tooltip("같은 분류(유도/폭격/방어) 스킬은 함께 장착할 수 없음")] public bool uniqueCategory = true;
 
     [Header("코스트")]
     [Tooltip("최대 코스트")] public int maxCost = 5;
@@ -113,6 +114,40 @@ public class WatcherSkillConfig : ScriptableObject
     {
         foreach (var s in skills) if (s != null && s.type == t) return s;
         return null;
+    }
+
+    /// <summary>t를 장착하면 이미 장착한 다른 스킬과 분류가 겹치는지 (같은 분류는 함께 장착 불가).</summary>
+    public bool CategoryTaken(WatcherSkillType t)
+    {
+        if (!uniqueCategory) return false;
+        var d = Get(t);
+        if (d == null) return false;
+        for (int i = 0; i < slotCount; i++)
+        {
+            int s = SaveData.EquippedSkill(i);
+            if (s < 0 || s == (int)t) continue;
+            var o = Get((WatcherSkillType)s);
+            if (o != null && o.category == d.category) return true;
+        }
+        return false;
+    }
+
+    /// <summary>저장된 장착에 같은 분류가 둘 이상이면 뒤쪽 칸을 비움 (규칙 이전에 저장된 장착 정리).</summary>
+    public void SanitizeLoadout()
+    {
+        if (!uniqueCategory) return;
+        for (int i = 1; i < slotCount; i++)
+        {
+            int s = SaveData.EquippedSkill(i);
+            if (s < 0) continue;
+            var d = Get((WatcherSkillType)s);
+            for (int j = 0; j < i; j++)
+            {
+                int o = SaveData.EquippedSkill(j);
+                var od = o < 0 ? null : Get((WatcherSkillType)o);
+                if (d != null && od != null && od.category == d.category) { SaveData.SetEquippedSkill(i, -1); break; }
+            }
+        }
     }
 
     /// <summary>성장 레벨을 반영한 효과 배율 (레벨 0 = 1).</summary>

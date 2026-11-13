@@ -37,6 +37,7 @@ public class SkillSelectUI : MonoBehaviour
         if (EventSystem.current == null) new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
 
         SaveData.EnsureSkillLoadout();
+        GameManager.I.Config.skills.SanitizeLoadout(); // 예전에 저장된 같은 분류 2개 정리
         var cfg = GameManager.I.Config.skills;
         int n = cfg.skills.Length;
         float rowH = 74f, h = 70f + n * (rowH + 8f);
@@ -97,6 +98,7 @@ public class SkillSelectUI : MonoBehaviour
         int n = cfg.slotCount;
         for (int i = 0; i < n; i++)
             if (SaveData.EquippedSkill(i) == (int)t) { SaveData.SetEquippedSkill(i, -1); Compact(n); Refresh(); return; } // 해제
+        if (cfg.CategoryTaken(t)) return; // 같은 분류는 함께 장착 불가
         for (int i = 0; i < n; i++)
             if (SaveData.EquippedSkill(i) < 0) { SaveData.SetEquippedSkill(i, (int)t); Refresh(); return; } // 빈 칸에
         // 다 찼으면 먼저 장착한 것(1번 칸)을 빼고 한 칸씩 당긴 뒤 마지막 칸에
@@ -120,7 +122,7 @@ public class SkillSelectUI : MonoBehaviour
         {
             int slot = -1;
             for (int i = 0; i < cfg.slotCount; i++) if (SaveData.EquippedSkill(i) == (int)r.def.type) slot = i;
-            bool unlocked = SaveData.SkillUnlocked(r.def);
+            bool unlocked = SaveData.SkillUnlocked(r.def) && (slot >= 0 || !cfg.CategoryTaken(r.def.type)); // 같은 분류가 장착돼 있으면 흐리게
             r.badge.text = slot >= 0 && slot < cfg.slotKeys.Length ? UiKit.KeyName(cfg.slotKeys[slot]) : "";
             r.back.color = !unlocked ? new Color(0.1f, 0.1f, 0.11f) : slot >= 0 ? new Color(0.3f, 0.25f, 0.14f) : new Color(0.16f, 0.15f, 0.19f);
         }
