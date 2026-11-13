@@ -148,6 +148,21 @@ MonoBehaviour:
     autoProps: 0
     enemyBias: 0
     enemyBiasMul: 1
+  - id: river_dam
+    name: "\uC0C1\uB958\uC758 \uB310"
+    desc: "\uC218\uBB38 \uC7A5\uCE58 3\uAC1C\uB97C \uC9C0\uD0A8\uB2E4. \uC218\uBB38\uC774
+      \uC5F4\uB9AC\uBA74 \uBB3C\uC0B4\uC774 \uC544\uB798\uCABD \uC801\uC744 \uD55C\uAEBC\uBC88\uC5D0
+      \uC4F8\uC5B4 \uAC04\uB2E4."
+    regionScene: Region_River
+    scene: Region_River_Dam
+    requiredTrait: 10
+    alsoRequired: 
+    kind: 9
+    color: {r: 0.5, g: 0.8, b: 1, a: 1}
+    environmentKillsCount: 0
+    autoProps: 0
+    enemyBias: 0
+    enemyBiasMul: 1
   stageDecrease: 1
   portalSpacing: 16
   firefly:
@@ -318,9 +333,38 @@ MonoBehaviour:
     patchCooldown: 6
     bumpWakeRadius: 1.4
     chainWakeRadius: 0
-    killTargetMul: 0.5
+    crystalCount: 7
+    crystalsToCollect: 5
+    pickupRadius: 1.6
+    maxEnemies: 45
+    spawnMinWardDistance: 16
+    spawnCandidates: 10
+    idleLight: 0.9
+    idleRange: 4.5
+    burstLight: 6
     sunMul: 0.1
     ambient: {r: 0.06, g: 0.06, b: 0.1, a: 1}
     fogColor: {r: 0.03, g: 0.03, b: 0.06, a: 1}
     glowColor: {r: 0.45, g: 0.95, b: 1, a: 1}
     dimColor: {r: 0.25, g: 0.45, b: 0.55, a: 1}
+  dam:
+    deckWidth: 28
+    deckLength: 100
+    slabSize: 7
+    gateCount: 3
+    gateInset: 10
+    gateHpMul: 40
+    gateDpsPerEnemy: 4
+    gateReach: 2.6
+    gateCharge: 22
+    floodTime: 2.2
+    floodHalfWidth: 0
+    spawnDepth: 22
+    wardAggro: 5
+    defendTime: 120
+    killTargetMul: 0.5
+    deckColor: {r: 0.62, g: 0.64, b: 0.66, a: 1}
+    waterColor: {r: 0.35, g: 0.6, b: 0.78, a: 1}
+    wallColor: {r: 0.55, g: 0.55, b: 0.6, a: 1}
+    gateColor: {r: 0.55, g: 0.42, b: 0.32, a: 1}
+    readyColor: {r: 0.5, g: 0.9, b: 1, a: 1}

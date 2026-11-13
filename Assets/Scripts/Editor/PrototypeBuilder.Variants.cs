@@ -37,6 +37,7 @@ public static partial class PrototypeBuilder
     [MenuItem("Roguelike/QA/파생 씬: 깨어난 묘지 열기")] static void OpenAwakened() => OpenVariantScene("Region_Graveyard_Awakened");
     [MenuItem("Roguelike/QA/파생 씬: 달빛 묘역 열기")] static void OpenMoonlit() => OpenVariantScene("Region_Graveyard_Moonlit");
     [MenuItem("Roguelike/QA/파생 씬: 발광 균사 동굴 열기")] static void OpenMycelium() => OpenVariantScene("Region_Mushroom_Mycelium");
+    [MenuItem("Roguelike/QA/파생 씬: 상류의 댐 열기")] static void OpenDam() => OpenVariantScene("Region_River_Dam");
 
     static void OpenVariantScene(string name)
     {
@@ -83,6 +84,7 @@ public static partial class PrototypeBuilder
                 case StageVariantKind.GraveyardAwakened: BuildAwakenedGraveyard(root, vc.awakened); break;
                 case StageVariantKind.GraveyardMoonlit: BuildMoonlitGraveyard(root, vc.moonlit); break;
                 case StageVariantKind.MushroomMycelium: BuildMyceliumCave(root, vc.mycelium); break;
+                case StageVariantKind.RiverDam: BuildRiverDam(root, vc.dam); break;
             }
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
