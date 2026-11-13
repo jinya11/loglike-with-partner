@@ -186,7 +186,7 @@ public class Hud : Singleton<Hud>
         }
 
         var bs = BombardSkill.I;
-        if (bombardText && bombardText.gameObject.activeSelf == BombardSkill.Disabled) bombardText.gameObject.SetActive(!BombardSkill.Disabled); // 폭격 불가 스테이지는 숨김
+        if (bombardText && bombardText.gameObject.activeSelf) bombardText.gameObject.SetActive(false); // 폭격은 감시자 스킬(장착 칸)로 옮겨 감 — 스킬 HUD가 표시
         if (bs)
         {
             int b = Mathf.CeilToInt(bs.CooldownLeft);

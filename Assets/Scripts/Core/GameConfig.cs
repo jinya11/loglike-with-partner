@@ -14,6 +14,7 @@ public class GameConfig : ScriptableObject
     [Tooltip("플레이어 능력치 / 레벨업 / 강화")] public PlayerConfig player;
     [Tooltip("자원 / 거점 성장")] public MetaConfig meta;
     [Tooltip("파생 스테이지 (목록, 조건 증강, 반딧불 숲/자연 농지 수치)")] public VariantConfig variant;
+    [Tooltip("감시자 스킬 (코스트, 재사용 대기, 키, 스킬별 수치)")] public WatcherSkillConfig skills;
 
     /// <summary>런 시작 능력치: 플레이어 기본값 + 생명체/감시자 기본값.</summary>
     public PlayerStats CreateStats()
@@ -35,6 +36,7 @@ public class GameConfig : ScriptableObject
         companion = Section(companion, "CompanionConfig"); ward = Section(ward, "WardConfig");
         player = Section(player, "PlayerConfig"); meta = Section(meta, "MetaConfig");
         variant = Section(variant, "VariantConfig");
+        skills = Section(skills, "WatcherSkillConfig");
     }
 
     static T Section<T>(T cur, string name) where T : ScriptableObject

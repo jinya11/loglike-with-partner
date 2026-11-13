@@ -1,0 +1,116 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 791ba1c5e8734774dba80aea7542c42b, type: 3}
+  m_Name: WatcherSkillConfig
+  m_EditorClassIdentifier: Assembly-CSharp::WatcherSkillConfig
+  slotKeys: 290000002a000000
+  menuKey: 35
+  slotCount: 2
+  maxCost: 5
+  startCost: 3
+  costPerKill: 0.2
+  chargeFromEnvironmentKills: 0
+  skills:
+  - type: 0
+    name: "\uB514\uCF54\uC774"
+    category: 0
+    oneLine: "\uBC94\uC704 \uC548\uC758 \uC801\uC744 \uC124\uCE58\uD55C \uC7A5\uCE58\uB85C
+      \uB04C\uC5B4\uB4E4\uC778\uB2E4"
+    cooldown: 5
+    cost: 2
+    unlockedByDefault: 1
+    maxLevel: 5
+    effectPerLevel: 0.1
+    cooldownPerLevel: 0
+  - type: 1
+    name: "\uC870\uC885"
+    category: 0
+    oneLine: "\uC2DC\uAC04\uC744 \uBA48\uCD94\uACE0 \uACE0\uB978 \uC801\uC744 \uD63C\uB3C8\uC5D0
+      \uBE60\uB728\uB9B0\uB2E4"
+    cooldown: 15
+    cost: 5
+    unlockedByDefault: 1
+    maxLevel: 5
+    effectPerLevel: 0.1
+    cooldownPerLevel: 0
+  - type: 2
+    name: "3\uC911 \uD3ED\uACA9"
+    category: 1
+    oneLine: "\uD0D1\uBDF0\uC5D0\uC11C \uC138 \uACF3\uC744 \uACE8\uB77C \uD3ED\uACA9\uD55C\uB2E4"
+    cooldown: 10
+    cost: 4
+    unlockedByDefault: 1
+    maxLevel: 5
+    effectPerLevel: 0.1
+    cooldownPerLevel: 0
+  - type: 3
+    name: "\uD3ED\uACA9"
+    category: 1
+    oneLine: "\uAC10\uC2DC\uC790 \uC704\uCE58\uC5D0 \uD3ED\uACA9\uD55C\uB2E4"
+    cooldown: 20
+    cost: 5
+    unlockedByDefault: 1
+    maxLevel: 5
+    effectPerLevel: 0.1
+    cooldownPerLevel: 0
+  - type: 4
+    name: "\uAC00\uC2DC"
+    category: 2
+    oneLine: "\uC0DD\uBA85\uCCB4\uB97C \uB54C\uB9B0 \uC801\uC5D0\uAC8C \uD53C\uD574\uB97C
+      \uB418\uB3CC\uB824\uC900\uB2E4"
+    cooldown: 10
+    cost: 3
+    unlockedByDefault: 1
+    maxLevel: 5
+    effectPerLevel: 0.1
+    cooldownPerLevel: 0
+  - type: 5
+    name: "\uD328\uB9C1"
+    category: 2
+    oneLine: "\uACF5\uACA9 \uC21C\uAC04\uC5D0 \uB9DE\uCDB0 \uC4F0\uBA74 \uC801\uC744
+      \uC4F0\uB7EC\uB728\uB9B0\uB2E4"
+    cooldown: 3
+    cost: 1
+    unlockedByDefault: 1
+    maxLevel: 5
+    effectPerLevel: 0.1
+    cooldownPerLevel: 0
+  decoy:
+    armDelay: 0.5
+    radius: 9
+    duration: 6
+  control:
+    pickTime: 5
+    maxPicks: 3
+    pickRadius: 2.5
+    chaosChance: 0.7
+    chaosDuration: 8
+    chaosDamageMul: 0.25
+    chaosHitRange: 1.3
+  tripleBombard:
+    points: 3
+    delay: 0.3
+    radius: 4
+    damageMul: 3
+    aimTimeScale: 0.4
+  thorns:
+    reflects: 5
+    reflectFrac: 0.5
+    maxDuration: 20
+    spikeLife: 10
+    spikeRadius: 1.3
+    spikeDps: 8
+  parry:
+    window: 0.25
+    invulnerable: 1.3
+    knockRadius: 6
+    knockSpeed: 12

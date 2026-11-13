@@ -596,6 +596,23 @@ public class Ward : Singleton<Ward>
         if (ability) ability.OnShield(seconds);
     }
 
+    /// <summary>적이 생명체를 공격하려 할 때 (피해 전). true를 돌려주면 그 공격은 막힘 (감시자 스킬: 패링).</summary>
+    public static System.Func<Enemy, float, bool> AttackIntercept;
+    /// <summary>적의 공격으로 생명체가 실제로 피해를 받음 (감시자 스킬: 가시 반사).</summary>
+    public static event System.Action<Enemy, float> HitByEnemy;
+
+    /// <summary>적의 공격. 실제로 피해가 들어갔으면 true.</summary>
+    public bool TakeDamage(float dmg, Enemy from)
+    {
+        if (iframe > 0f || !Alive || GameManager.I.State != GameState.Playing) return false;
+        if (from != null && AttackIntercept != null && AttackIntercept(from, dmg)) return false;
+        float before = stats.wardHp;
+        TakeDamage(dmg);
+        float taken = before - stats.wardHp;
+        if (taken > 0f && from != null) HitByEnemy?.Invoke(from, taken);
+        return taken > 0f;
+    }
+
     public void TakeDamage(float dmg)
     {
         if (iframe > 0f || !Alive || GameManager.I.State != GameState.Playing) return;

@@ -133,6 +133,7 @@ public class GameManager : Singleton<GameManager>
         Kind = ChoiceKind.Upgrade;
         RewardOrder.Clear(); RewardStacks.Clear();
         ActiveTraits.Clear(); TraitPoolExhausted = false;
+        SkillCost = Config.skills ? Config.skills.startCost : 0f; // 감시자 스킬 코스트: 첫 스테이지 입장 시 (씬이 바뀌어도 그대로)
         UsedVariants.Clear(); ActiveVariant = null; pendingVariant = null;
         XpMul = 1f; xpCarry = 0f;
     }
@@ -153,6 +154,8 @@ public class GameManager : Singleton<GameManager>
     public int XpToNext => Mathf.RoundToInt(Config.player.xpBase * Mathf.Pow(Config.player.xpGrowth, Stats.level - 1));
     public int KillTarget => Config.stage.baseKillTarget + StageIndex * Config.stage.killTargetPerStage;
     public bool InBonus { get; private set; }
+    /// <summary>감시자 스킬 코스트 (런 동안 유지, 씬이 바뀌어도 그대로). 적 처치로 충전.</summary>
+    public float SkillCost { get; set; }
     /// <summary>UI가 열려 있을 때 플레이어 입력 차단.</summary>
     public bool InputLocked
     {

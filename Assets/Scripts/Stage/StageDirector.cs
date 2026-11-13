@@ -88,6 +88,10 @@ public class StageDirector : Singleton<StageDirector>
         }
         Enemy.AggroSq = cfg.enemy.enemyAggroRadius * cfg.enemy.enemyAggroRadius;
         gameObject.AddComponent<BombardSkill>();
+        SkillSelectUI.HotkeyEnabled = false; // 인게임에서는 스킬 교체 불가 (보너스 스테이지 장착대만)
+        gameObject.AddComponent<WatcherSkills>(); // 감시자 스킬 (장착 2칸, 키 1/2, 코스트)
+        new GameObject("SkillHud").AddComponent<SkillHud>().transform.SetParent(transform, false);
+        if (gm.InBonus) SkillStation.Spawn(new Vector3(3f, 0f, 1.5f)); // 보너스 스테이지에서만 스킬 교체 가능
         gameObject.AddComponent<Vfx>();
         new GameObject("CommandHud", typeof(RectTransform)).AddComponent<CommandHud>().transform.SetParent(transform, false);
         if (Hud.I == null && cfg.stage.hudPrefab) Instantiate(cfg.stage.hudPrefab); // 첫 스테이지에서 한 번만 (이후 유지)
@@ -661,11 +665,16 @@ public class StageDirector : Singleton<StageDirector>
     }
 
     /// <summary>적 사망 처리. environmental = 구멍/용암 등 환경사: 처치 수에는 안 침 (파생 설정 environmentKillsCount로 예외). 보상(보석/자원/변이)은 같음.</summary>
+    /// <summary>적이 죽음 (counted = 처치 수에 침). 감시자 스킬 코스트 충전 등.</summary>
+    public static event System.Action<Enemy, bool> EnemyDied;
+
     public void OnEnemyKilled(Enemy dead, bool environmental = false)
     {
         Vector3 pos = dead.transform.position;
         bool elite = dead.Elite, treasure = dead.Treasure;
-        if (!environmental || (Variant != null && Variant.environmentKillsCount)) Kills++;
+        bool counted = !environmental || (Variant != null && Variant.environmentKillsCount);
+        if (counted) Kills++;
+        EnemyDied?.Invoke(dead, counted);
         gems.Get(pos, Quaternion.Euler(45f, 0f, 45f));
         int extra = elite ? cfg.stage.eliteGems - 1 : 0;
         var tc = Get(StageTraitType.TreasureCarrier);

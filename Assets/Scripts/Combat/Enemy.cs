@@ -211,6 +211,7 @@ public class Enemy : Ticked<Enemy>
         if (treasure) { TickTreasure(dt); return; }
         if (Routed) { TickRouted(dt); return; }
         if (GoalOverride != null) { var g = GoalOverride(this); if (g.HasValue) { TickToward(g.Value, dt); return; } }
+        if (Lure != null) { var g = Lure(this); if (g.HasValue) { TickToward(g.Value, dt); return; } } // 감시자 스킬(디코이/조종)
         var player = PlayerController.I;
         var ward = Ward.I;
         Vector3 pos = rb.position;
@@ -228,7 +229,7 @@ public class Enemy : Ticked<Enemy>
             moveSpeed = UseAbility(ward, tw, wsq, dt) * SpeedMul;
             if (wsq < WardContactSq)
             {
-                ward.TakeDamage(damage);
+                ward.TakeDamage(damage, this);
                 OnTouchWard(ward);
             }
         }
@@ -266,7 +267,7 @@ public class Enemy : Ticked<Enemy>
                     if (wsq < ChargeContactSq) // 돌진 중 충돌: 생명체를 크게 넉백
                     {
                         ward.Knockback(chargeDir * def.abilityValue);
-                        ward.TakeDamage(damage);
+                        ward.TakeDamage(damage, this);
                         Vfx.Debuff(ward.Position, EnemyAbility.Charge);
                         chargeLeft = 0f;
                     }
@@ -320,6 +321,10 @@ public class Enemy : Ticked<Enemy>
     // ---- 목표 바꾸기 (파생 규칙: 발광 균사 동굴의 잠든 적 등) ----
     /// <summary>파생 규칙이 적의 목표를 바꿀 때 (값이 있으면 생명체 대신 그곳으로 감, 접촉 피해/능력 없음). 자기 위치를 주면 제자리.</summary>
     public static System.Func<Enemy, Vector3?> GoalOverride;
+    /// <summary>감시자 스킬이 적을 끌어당김 (디코이: 장치로, 조종: 혼돈 적은 다른 적에게). 파생 규칙(GoalOverride) 다음에 봄.</summary>
+    public static System.Func<Enemy, Vector3?> Lure;
+    /// <summary>접촉 피해량 (조종 스킬의 혼돈 적 피해 계산).</summary>
+    public float ContactDamage => damage;
 
     void TickToward(Vector3 goal, float dt)
     {

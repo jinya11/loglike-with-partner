@@ -53,13 +53,7 @@ public class BombardSkill : Singleton<BombardSkill>
 
         if (!Aiming)
         {
-            bool atWatcher = gm.Config.companion.bombardAtWatcher;
-            if (gm.State == GameState.Playing && !gm.InputBlocked && comp != null && kb != null && !(Ward.I && Ward.I.WatcherAuto) // 감시자 자동일 때는 직접 조준 불가
-                && kb[key].wasPressedThisFrame && Time.time >= readyAt)
-            {
-                if (atWatcher) FireAtWatcher(comp);
-                else BeginAim(comp);
-            }
+            bool atWatcher = gm.Config.companion.bombardAtWatcher; // 발동은 감시자 스킬 "폭격"(WatcherSkills)이 Trigger로
             if (atWatcher) UpdateRangePreview(gm, comp);
             return;
         }
@@ -72,7 +66,7 @@ public class BombardSkill : Singleton<BombardSkill>
         bool confirm = (mouse != null && mouse.leftButton.wasPressedThisFrame && !WardDebugPanel.PointerOver(mouse.position.ReadValue()))
             || (kb != null && (kb[key].wasPressedThisFrame || kb.enterKey.wasPressedThisFrame));
         bool cancel = (mouse != null && mouse.rightButton.wasPressedThisFrame) || (kb != null && kb.escapeKey.wasPressedThisFrame);
-        if (cancel) { readyAt = Time.time + cancelCooldown; EndAim(); return; }
+        if (cancel) { WatcherSkills.I?.Refund(WatcherSkillType.Bombard); EndAim(); return; } // 조준 취소: 코스트/대기 되돌림
         if (!confirm) return;
 
         var def = gm.Companion;
@@ -98,7 +92,7 @@ public class BombardSkill : Singleton<BombardSkill>
     void UpdateRangePreview(GameManager gm, CompanionBase comp)
     {
         var pc = PlayerController.I;
-        bool show = gm.Config.companion.showBombardRange && comp != null && pc != null && gm.State == GameState.Playing && Time.time >= readyAt;
+        bool show = gm.Config.companion.showBombardRange && comp != null && pc != null && gm.State == GameState.Playing && WatcherSkills.IsEquippedAndReady(WatcherSkillType.Bombard);
         if (!show) { if (rangeRing) rangeRing.enabled = false; return; }
         if (!rangeRing)
         {
@@ -144,6 +138,15 @@ public class BombardSkill : Singleton<BombardSkill>
     /// 감시자 자동(자율 + 생명체만 조작)일 때 자동 폭격: 쿨타임이 끝나면 생명체 주변(사거리 안)에서 적이 가장 많이 모인 곳에.
     /// 감시자 마커 방식이면 감시자 위치의 폭격 범위 안에 적이 충분히 모였을 때 감시자 위치에.
     /// </summary>
+    /// <summary>감시자 스킬 "폭격"의 발동 (코스트/대기는 WatcherSkills가 처리): 감시자 위치에 바로, 또는 조준 모드.</summary>
+    public void Trigger()
+    {
+        var comp = CompanionBase.Current;
+        if (comp == null || Aiming || Disabled) return;
+        if (GameManager.I.Config.companion.bombardAtWatcher) FireAtWatcher(comp);
+        else BeginAim(comp);
+    }
+
     /// <summary>파생 규칙이 폭격을 막음 (발광 균사 동굴). 켜져 있으면 조준·자동 폭격 모두 안 됨.</summary>
     public static bool Disabled;
 
@@ -152,7 +155,7 @@ public class BombardSkill : Singleton<BombardSkill>
         if (Disabled) return;
         var comp = CompanionBase.Current;
         var gm = GameManager.I;
-        if (Aiming || comp == null || Time.time < readyAt || gm.State != GameState.Playing || Time.time < autoCheckAt) return;
+        if (Aiming || comp == null || !WatcherSkills.IsEquippedAndReady(WatcherSkillType.Bombard) || gm.State != GameState.Playing || Time.time < autoCheckAt) return; // 폭격 스킬을 장착하고 준비됐을 때만
         autoCheckAt = Time.time + 0.5f; // 검사는 0.5초마다
         if (gm.Config.companion.bombardAtWatcher && PlayerController.I)
         {
@@ -160,7 +163,7 @@ public class BombardSkill : Singleton<BombardSkill>
             float rr = comp.BombardRadius * gm.Stats.areaMul;
             int cnt = 0;
             foreach (var e in Enemy.Active) { Vector3 d = e.transform.position - w; d.y = 0f; if (d.sqrMagnitude < rr * rr) cnt++; }
-            if (cnt >= gm.Config.companion.autoBombardMinEnemies) FireAtWatcher(comp);
+            if (cnt >= gm.Config.companion.autoBombardMinEnemies) WatcherSkills.I?.Use(WatcherSkillType.Bombard); // 스킬 코스트/대기 소모 후 발동
             return;
         }
         float r = comp.BombardRadius * gm.Stats.areaMul, reach = gm.Stats.attackRange + r;
@@ -176,7 +179,7 @@ public class BombardSkill : Singleton<BombardSkill>
         }
         if (best < 5) return; // 적이 충분히 모였을 때만
         var def = gm.Companion;
-        readyAt = Time.time + (def != null ? def.bombardCooldown : 45f) * gm.Stats.cooldownMul;
+        if (WatcherSkills.I == null || !WatcherSkills.I.Consume(WatcherSkillType.Bombard)) return; // 자동 폭격도 스킬 코스트/대기 소모
         comp.BeginBombard(Arena.Clamp(target));
     }
 

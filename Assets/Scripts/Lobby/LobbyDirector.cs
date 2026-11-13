@@ -32,6 +32,8 @@ public class LobbyDirector : Singleton<LobbyDirector>
 
     void Start()
     {
+        SkillSelectUI.HotkeyEnabled = true; // 로비: U로 감시자 스킬 장착 창
+        SkillSelectUI.Ensure();
         var mods = GameManager.I.Config.stage.modifiers;
         foreach (var c in cards) c.gameObject.SetActive(c.Index < mods.Length);
         infoFmt = infoText.text; countFmt = activeCountText.text;
