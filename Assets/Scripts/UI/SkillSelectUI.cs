@@ -66,6 +66,18 @@ public class SkillSelectUI : MonoBehaviour
         }
         panel.SetActive(false);
         Refresh();
+
+        // 오른쪽 위 책 아이콘 버튼 (클릭 = 메뉴 키와 같음) + 아래 이름표
+        var icon = Resources.Load<Sprite>("UI/SkillBook");
+        var ib = UiKit.Rect("SkillBookButton", transform, new Vector2(1f, 1f), new Vector2(-28f, -24f), new Vector2(96f, 96f));
+        var bg = UiKit.Image(ib, UiKit.RoundedButton, Color.white); // 살구색 둥근 네모 + 진한 갈색 외곽선 (참고 UI 오른쪽 위 아이콘 버튼)
+        bg.raycastTarget = true;
+        var img = UiKit.Image(UiKit.Rect("Icon", ib, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(66f, 66f), true), icon, Color.white);
+        img.preserveAspect = true;
+        ib.gameObject.AddComponent<Button>().onClick.AddListener(() => SetOpen(!IsOpen));
+        var label = UiKit.Text(ib, "Label", 24, new Color(0.29f, 0.18f, 0.13f), new Vector2(0.5f, 0f), new Vector2(0f, -32f), new Vector2(120f, 30f));
+        label.text = "스킬";
+        label.outlineWidth = 0.2f; label.outlineColor = new Color(0.97f, 0.94f, 0.88f);
     }
 
     void SetOpen(bool on)

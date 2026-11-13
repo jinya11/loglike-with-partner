@@ -78,7 +78,31 @@ public class SkillHud : MonoBehaviour
 /// <summary>코드로 만드는 간단한 uGUI 조각 (스킬 HUD / 장착 창 공용).</summary>
 public static class UiKit
 {
-    static Sprite square, circle;
+    static Sprite square, circle, roundedButton;
+    /// <summary>참고 UI 스타일 아이콘 버튼 배경: 살구색(#F0C39B) 둥근 네모 + 진한 갈색(#4A2E22) 외곽선 + 안쪽 밝은 테두리 (픽셀).</summary>
+    public static Sprite RoundedButton => roundedButton ? roundedButton : roundedButton = MakeRoundedButton();
+
+    static Sprite MakeRoundedButton()
+    {
+        const int n = 32, r = 6;
+        Color outline = new Color32(74, 46, 34, 255), fill = new Color32(240, 195, 155, 255), light = new Color32(250, 220, 188, 255), shade = new Color32(214, 160, 120, 255);
+        var t = new Texture2D(n, n, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+        bool In(int x, int y) { int cx = Mathf.Clamp(x, r, n - 1 - r), cy = Mathf.Clamp(y, r, n - 1 - r); int dx = x - cx, dy = y - cy; return dx * dx + dy * dy <= r * r; }
+        for (int y = 0; y < n; y++)
+            for (int x = 0; x < n; x++)
+            {
+                Color c = new Color(0, 0, 0, 0);
+                if (In(x, y))
+                {
+                    bool edge = !In(x - 1, y) || !In(x + 1, y) || !In(x, y - 1) || !In(x, y + 1);
+                    bool edge2 = !In(x - 2, y) || !In(x + 2, y) || !In(x, y - 2) || !In(x, y + 2);
+                    c = edge || edge2 && (x <= 1 || x >= n - 2 || y <= 1 || y >= n - 2) ? outline : edge2 ? (y > n / 2 ? light : shade) : fill;
+                }
+                t.SetPixel(x, y, c);
+            }
+        t.Apply();
+        return Sprite.Create(t, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f);
+    }
     public static Sprite Square => square ? square : square = Make(false);
     public static Sprite Circle => circle ? circle : circle = Make(true);
 
