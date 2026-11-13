@@ -12,7 +12,6 @@ public enum StageVariantKind
     [Tooltip("묘지: 깨어난 묘지. 무덤에서 적이 계속 일어남. 처치 목표 1.5배 + 무덤 N개를 부숴야 클리어")] GraveyardAwakened,
     [Tooltip("묘지: 달빛 묘역. 달빛이 비치는 구역이 천천히 옮겨 다님. 달빛 안에서 생명체 회복, 생명체는 적에게서 도망치며 달빛을 따라감")] GraveyardMoonlit,
     [Tooltip("버섯 숲: 발광 균사 동굴. 생명체 직접 조작, 감시자·폭격 없음. 적은 잠들어 있다가 균사를 밟아 번진 빛이 닿으면 깨어남. 생명체 공격은 발각됐을 때만")] MushroomMycelium,
-    [Tooltip("강: 상류의 댐. 지형/보더 없는 세로로 긴 플랫폼 맵. 수문 장치 3개를 지키고, 수문을 열면 물살이 아래쪽 적을 쓸어 감. 감시자 조작이 메인")] RiverDam,
 }
 
 /// <summary>
@@ -294,35 +293,4 @@ public class MyceliumCaveSettings
     public Color ambient = new Color(0.06f, 0.06f, 0.1f), fogColor = new Color(0.03f, 0.03f, 0.06f);
     [Tooltip("균사 빛 색")] public Color glowColor = new Color(0.45f, 0.95f, 1f);
     [Tooltip("잠든 균사 색 (어둡게)")] public Color dimColor = new Color(0.25f, 0.45f, 0.55f);
-}
-
-/// <summary>상류의 댐 수치 (VariantConfig.dam).</summary>
-[System.Serializable]
-public class RiverDamSettings
-{
-    [Header("맵 (씬 빌더가 깖 — 세로로 긴 강바닥 발판, 위쪽 끝에 댐과 수문 장치)")]
-    [Tooltip("발판 폭(m, 가로)")] public float deckWidth = 28f;
-    [Tooltip("발판 길이(m, 세로: 아래 = 하류, 위 = 댐)")] public float deckLength = 100f;
-    [Tooltip("발판 한 장 크기(m)")] public float slabSize = 7f;
-    [Tooltip("수문 장치 수")] public int gateCount = 3;
-    [Tooltip("수문 장치 줄: 위쪽 끝에서 이만큼 아래(m)")] public float gateInset = 10f;
-    [Header("수문 장치")]
-    [Tooltip("장치 체력 = 그 스테이지 적 체력 × 이 값")] public float gateHpMul = 40f;
-    [Tooltip("장치에 붙은 적 하나가 주는 초당 피해")] public float gateDpsPerEnemy = 4f;
-    [Tooltip("적이 장치에 붙었다고 보는 거리(m)")] public float gateReach = 2.6f;
-    [Tooltip("수문이 열 수 있게 차오르는 시간(초) — 차오르면 감시자가 가까이 가서 상호작용(F)으로 엶")] public float gateCharge = 22f;
-    [Tooltip("물살이 수문에서 아래 끝까지 내려가는 시간(초)")] public float floodTime = 2.2f;
-    [Tooltip("물살 폭: 열린 수문 중심에서 좌우로(m, 0이면 발판 전체 폭)")] public float floodHalfWidth = 0f;
-    [Header("적")]
-    [Tooltip("적이 나타나는 곳: 아래쪽 끝에서 이 길이 안(m)")] public float spawnDepth = 22f;
-    [Tooltip("생명체가 이 거리 안이면 적이 장치 대신 생명체를 노림(m)")] public float wardAggro = 5f;
-    [Header("클리어")]
-    [Tooltip("이 시간(초) 동안 수문 장치를 하나라도 지키면 + 처치 목표를 채우면 포털")] public float defendTime = 120f;
-    [Tooltip("처치 목표 배율 (물살에 쓸려 간 적은 처치 수에 안 침)")] public float killTargetMul = 0.5f;
-    [Header("색 (무광 파스텔)")]
-    public Color deckColor = new Color(0.62f, 0.64f, 0.66f);
-    public Color waterColor = new Color(0.35f, 0.6f, 0.78f);
-    public Color wallColor = new Color(0.55f, 0.55f, 0.6f);
-    public Color gateColor = new Color(0.55f, 0.42f, 0.32f);
-    [Tooltip("수문이 다 차올랐을 때 표시 색")] public Color readyColor = new Color(0.5f, 0.9f, 1f);
 }

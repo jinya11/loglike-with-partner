@@ -21,7 +21,6 @@ public class VariantConfig : ScriptableObject
         new StageVariantDef("graveyard_awakened", "깨어난 묘지", "무덤에서 적이 계속 일어난다. 무덤을 부숴야 한다.", "Region_Graveyard", "Region_Graveyard_Awakened", StageTraitType.Waves, StageVariantKind.GraveyardAwakened, new Color(0.75f, 0.7f, 0.95f), EnemyAbility.None, 1f) { alsoRequired = new[] { StageTraitType.Regen } },
         new StageVariantDef("graveyard_moonlit", "달빛 묘역", "달빛이 비치는 구역이 천천히 옮겨 다닌다. 달빛 안에서 작은 생명체는 회복한다.", "Region_Graveyard", "Region_Graveyard_Moonlit", StageTraitType.Sanctuary, StageVariantKind.GraveyardMoonlit, new Color(0.75f, 0.85f, 1f), EnemyAbility.None, 1f),
         new StageVariantDef("mushroom_mycelium", "발광 균사 동굴", "균사를 밟으면 빛이 번져 나간다. 빛이 닿은 적이 깨어난다.", "Region_Mushroom", "Region_Mushroom_Mycelium", StageTraitType.Riches, StageVariantKind.MushroomMycelium, new Color(0.45f, 0.95f, 1f), EnemyAbility.None, 1f),
-        new StageVariantDef("river_dam", "상류의 댐", "수문 장치 3개를 지킨다. 수문이 열리면 물살이 아래쪽 적을 한꺼번에 쓸어 간다.", "Region_River", "Region_River_Dam", StageTraitType.Blitz, StageVariantKind.RiverDam, new Color(0.5f, 0.8f, 1f), EnemyAbility.None, 1f),
     };
 
     [Header("공통 규칙")]
@@ -47,6 +46,4 @@ public class VariantConfig : ScriptableObject
     public MoonlitGraveyardSettings moonlit = new MoonlitGraveyardSettings();
     [Header("버섯 숲: 발광 균사 동굴")]
     public MyceliumCaveSettings mycelium = new MyceliumCaveSettings();
-    [Header("강: 상류의 댐")]
-    public RiverDamSettings dam = new RiverDamSettings();
 }

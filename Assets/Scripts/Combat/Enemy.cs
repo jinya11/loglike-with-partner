@@ -317,7 +317,7 @@ public class Enemy : Ticked<Enemy>
         Despawn();
     }
 
-    // ---- 목표 바꾸기 (파생 규칙: 발광 균사 동굴의 잠든 적, 상류의 댐의 수문 장치 등) ----
+    // ---- 목표 바꾸기 (파생 규칙: 발광 균사 동굴의 잠든 적 등) ----
     /// <summary>파생 규칙이 적의 목표를 바꿀 때 (값이 있으면 생명체 대신 그곳으로 감, 접촉 피해/능력 없음). 자기 위치를 주면 제자리.</summary>
     public static System.Func<Enemy, Vector3?> GoalOverride;
 

@@ -266,7 +266,7 @@ public class StageDirector : Singleton<StageDirector>
     /// <summary>파생 규칙이 포털 자리를 거를 때 (칼데라: 사라지지 않는 플랫폼 위만). 후보가 하나도 없으면 PortalFallback.</summary>
     public System.Func<Vector3, bool> PortalFilter;
     public System.Func<Vector3> PortalFallback;
-    /// <summary>파생 규칙이 적 출현 위치를 정함 (발광 균사 동굴: 고르게, 상류의 댐: 하류 끝). 비우면 생명체 주변.</summary>
+    /// <summary>파생 규칙이 적 출현 위치를 정함 (발광 균사 동굴: 고르게). 비우면 생명체 주변.</summary>
     public System.Func<Vector3> SpawnPoint;
     /// <summary>파생 규칙의 추가 클리어 조건 (깨어난 묘지: 무덤 N개 파괴). 처치 목표와 함께 둘 다 채워야 포털이 열림. 바뀌면 규칙이 CheckClear 호출.</summary>
     public System.Func<bool> ExtraClearCondition;
@@ -345,7 +345,6 @@ public class StageDirector : Singleton<StageDirector>
             case StageVariantKind.GraveyardAwakened: SceneRule<AwakenedGraveyardVariant>().Init(this, cfg.variant.awakened); break;
             case StageVariantKind.GraveyardMoonlit: SceneRule<MoonlitGraveyardVariant>().Init(this, cfg.variant.moonlit); break;
             case StageVariantKind.MushroomMycelium: SceneRule<MyceliumCaveVariant>().Init(this, cfg.variant.mycelium); break;
-            case StageVariantKind.RiverDam: SceneRule<RiverDamVariant>().Init(this, cfg.variant.dam); break;
         }
     }
 
