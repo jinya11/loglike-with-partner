@@ -36,7 +36,7 @@ public static partial class PrototypeBuilder
 
         string result = LobbyPlatformConnector.Connect();
         if (result != null) Debug.Log($"[PrototypeBuilder] {result}");
-        bool altars = ArrangeCompanionAltars();
+        bool altars = false; // 동반자 선택 장소(제단)는 삭제됨
         if (result != null || altars)
         {
             EditorSceneManager.MarkSceneDirty(lobby);
