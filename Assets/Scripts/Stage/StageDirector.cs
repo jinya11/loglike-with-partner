@@ -266,6 +266,8 @@ public class StageDirector : Singleton<StageDirector>
     /// <summary>파생 규칙이 포털 자리를 거를 때 (칼데라: 사라지지 않는 플랫폼 위만). 후보가 하나도 없으면 PortalFallback.</summary>
     public System.Func<Vector3, bool> PortalFilter;
     public System.Func<Vector3> PortalFallback;
+    /// <summary>파생 규칙이 적 출현 위치를 정함 (발광 균사 동굴: 고르게, 상류의 댐: 하류 끝). 비우면 생명체 주변.</summary>
+    public System.Func<Vector3> SpawnPoint;
     /// <summary>파생 규칙의 추가 클리어 조건 (깨어난 묘지: 무덤 N개 파괴). 처치 목표와 함께 둘 다 채워야 포털이 열림. 바뀌면 규칙이 CheckClear 호출.</summary>
     public System.Func<bool> ExtraClearCondition;
     /// <summary>HUD 정보 줄에 덧붙는 추가 목표 수치 (예: "무덤 2/5"). 비우면 없음.</summary>
@@ -273,13 +275,18 @@ public class StageDirector : Singleton<StageDirector>
     /// <summary>현재 스테이지 적 기본 체력 (무덤 체력 등 기준).</summary>
     public float EnemyHp => enemyHp;
 
+    /// <summary>켜면 처치 목표 없이 추가 클리어 조건만으로 포털 (발광 균사 동굴: 물품 회수).</summary>
+    [System.NonSerialized] public bool IgnoreKillTarget;
+    /// <summary>동시에 살아 있는 적 최대 수 (파생 규칙이 바꿀 수 있음).</summary>
+    public int MaxAlive { get => maxAlive; set => maxAlive = value; }
+
     /// <summary>처치 목표 배율 (파생 규칙용, 곱해 누적).</summary>
     public void MulKillTarget(float m) { killTargetMul *= m; UpdateKillTarget(); }
 
     /// <summary>클리어 조건(처치 목표 + 추가 조건)을 채웠으면 포털을 엶. 심연은 포털 없음.</summary>
     public void CheckClear()
     {
-        if (PortalOpen || Expandable || Kills < KillTarget) return;
+        if (PortalOpen || Expandable || (Kills < KillTarget && !IgnoreKillTarget)) return;
         if (ExtraClearCondition != null && !ExtraClearCondition()) return;
         OpenPortal();
     }
@@ -588,6 +595,7 @@ public class StageDirector : Singleton<StageDirector>
         {
             Vector2 d = Random.insideUnitCircle.normalized * cfg.stage.spawnDistance;
             var pos = Arena.Clamp(wide ? Arena.RandomPoint(0.95f) : new Vector3(p.x + d.x, 0f, p.z + d.y), 1.5f); // 경계(보더) 밖에는 생성하지 않음
+            if (SpawnPoint != null) pos = SpawnPoint(); // 파생 규칙이 정한 출현 위치
             if ((pos - p).sqrMagnitude < 64f || (pos - pp).sqrMagnitude < 64f) continue; // 근처 스폰 방지
             int k = PickEnemyType();
             if (UseFlow && !Nav.IsFree(pos)) pos = Nav.NearestFree(pos); // 너무 가파른 칸에는 스폰하지 않음
@@ -878,6 +886,9 @@ public class StageDirector : Singleton<StageDirector>
     /// <summary>사거리 안에 부술 수 있는 오브젝트(무덤 등)가 있을 때, 적이 더 가까워도 그쪽을 노리는 확률 (파생 규칙이 정함, 기본 0).</summary>
     [System.NonSerialized] public float TargetShare;
 
+    /// <summary>파생 규칙이 생명체 자동 공격·저항 파동의 대상을 거름 (발광 균사 동굴: 깨어난 적만). 비우면 모든 적.</summary>
+    public System.Func<Enemy, bool> TargetFilter;
+
     public Enemy NearestEnemy(Vector3 p, float range)
     {
         Enemy best = null;
@@ -885,6 +896,7 @@ public class StageDirector : Singleton<StageDirector>
         var list = Enemy.Active;
         for (int i = 0; i < list.Count; i++)
         {
+            if (TargetFilter != null && !TargetFilter(list[i])) continue; // 파생 규칙이 공격 대상을 거름 (발광 균사 동굴: 깨어난 적만)
             Vector3 d = list[i].transform.position - p; d.y = 0f; // 고저차가 있어도 수평 거리로
             float sq = d.sqrMagnitude;
             if (sq < bestSq) { bestSq = sq; best = list[i]; }

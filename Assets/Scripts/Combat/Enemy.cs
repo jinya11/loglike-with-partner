@@ -376,9 +376,13 @@ public class Enemy : Ticked<Enemy>
     /// <summary>흔적 없이 제거 (처치 수·보상 없음). 스테이지 클리어 후 도망치던 적 정리 등.</summary>
     public void Remove() => Despawn();
 
+    /// <summary>맞았을 때 (어떤 공격이든). 파생 규칙이 구독 (발광 균사 동굴: 잠든 적이 맞으면 깨어남).</summary>
+    public static event System.Action<Enemy> Damaged;
+
     public void Hit(float dmg, Vector3 from)
     {
         hp -= dmg;
+        Damaged?.Invoke(this);
         Vector3 k = rb.position - from; k.y = 0f;
         knock = k.normalized * 8f;
         punch = 0.12f;

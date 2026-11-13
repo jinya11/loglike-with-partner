@@ -49,7 +49,7 @@ public class BombardSkill : Singleton<BombardSkill>
         var kb = Keyboard.current;
         var mouse = Mouse.current;
         var comp = CompanionBase.Current;
-        if (Disabled) { if (Aiming) EndAim(); return; }
+        if (Disabled) { if (Aiming) EndAim(); if (rangeRing) rangeRing.enabled = false; return; } // 폭격 범위 고리도 숨김
 
         if (!Aiming)
         {

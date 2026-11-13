@@ -277,8 +277,17 @@ public class MyceliumCaveSettings
     [Header("적")]
     [Tooltip("잠든 적에게 생명체가 이 거리까지 닿으면 깨어남(m)")] public float bumpWakeRadius = 1.4f;
     [Tooltip("깨어난 적이 이 반경 안의 잠든 적도 깨움(m, 0 = 안 깨움)")] public float chainWakeRadius = 0f;
-    [Header("클리어")]
-    [Tooltip("처치 목표 배율 (적이 깨어나야 싸울 수 있어 기존보다 적게)")] public float killTargetMul = 0.5f;
+    [Header("클리어: 포자 결정 회수 (처치 수와 상관없음)")]
+    [Tooltip("씬 빌더가 맵 곳곳에 놓는 포자 결정 수")] public int crystalCount = 7;
+    [Tooltip("이만큼 회수하면 클리어 (포털). 씬의 결정 수보다 많으면 씬의 결정 수")] public int crystalsToCollect = 5;
+    [Tooltip("생명체가 이 거리 안에 오면 회수(m)")] public float pickupRadius = 1.6f;
+    [Header("적 분포")]
+    [Tooltip("동시에 있는 적 최대 수")] public int maxEnemies = 45;
+    [Tooltip("적은 생명체에게서 최소 이만큼 떨어진 곳에 생김(m)")] public float spawnMinWardDistance = 16f;
+    [Tooltip("적이 생길 자리 후보 수 — 그중 다른 적과 가장 먼 곳에 생김 (클수록 고르게)")] public int spawnCandidates = 10;
+    [Header("균사 빛")]
+    [Tooltip("균사 하나의 평소 빛 세기 / 범위")] public float idleLight = 0.9f, idleRange = 4.5f;
+    [Tooltip("밟았을 때 번지는 빛 세기")] public float burstLight = 6f;
     [Header("동굴 (씬 빌더가 조명에 적용)")]
     [Tooltip("해 밝기 배율")] public float sunMul = 0.1f;
     public Color ambient = new Color(0.06f, 0.06f, 0.1f), fogColor = new Color(0.03f, 0.03f, 0.06f);

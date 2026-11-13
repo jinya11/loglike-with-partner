@@ -159,7 +159,7 @@ public class PlayerController : Singleton<PlayerController>
     {
         // 공격은 생명체가 함 (생명체 고유 공격). 감시자는 이동/폭격 마커/재화 획득
         var ward = Ward.I;
-        if (body && body.gameObject.activeSelf == Hidden) body.gameObject.SetActive(!Hidden);
+        if (Hidden != hiddenShown) SetPresenceHidden(Hidden); // 감시자 표시(몸체·존재 표시 고리/빛기둥/구슬) 전부
         if (Hidden) // 감시자 표시 없음 (발광 균사 동굴): 생명체 위치에 붙어 있기만 함 (카메라가 생명체를 따라감)
         {
             if (ward != null) transform.position = Hover(ward.Position, dt);
@@ -176,6 +176,16 @@ public class PlayerController : Singleton<PlayerController>
 
     /// <summary>파생 규칙이 감시자 표시를 숨김 (발광 균사 동굴). 켜져 있으면 감시자는 보이지 않고 생명체 위치에 붙어 다님.</summary>
     public static bool Hidden;
+    bool hiddenShown;
+    readonly System.Collections.Generic.List<GameObject> hiddenObjs = new System.Collections.Generic.List<GameObject>(4);
+
+    /// <summary>감시자 자식 표시를 숨기거나, 숨기기 전에 보이던 것만 다시 켬.</summary>
+    void SetPresenceHidden(bool on)
+    {
+        hiddenShown = on;
+        if (on) { hiddenObjs.Clear(); foreach (Transform c in transform) if (c.gameObject.activeSelf) { hiddenObjs.Add(c.gameObject); c.gameObject.SetActive(false); } }
+        else { foreach (var g in hiddenObjs) if (g) g.SetActive(true); hiddenObjs.Clear(); }
+    }
 
     /// <summary>감시자는 가파른 비탈도 넘어감: 지면 높이를 부드럽게 따라감.</summary>
     Vector3 Hover(Vector3 p, float dt)

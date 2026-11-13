@@ -208,7 +208,8 @@ public class Hud : Singleton<Hud>
         if (s.level != lastLevel || stage.Kills != lastKills || stage != lastStage || stage.KillTarget != lastKillTarget || extra != lastExtra) // 스테이지가 바뀌면 바로 갱신
         {
             lastLevel = s.level; lastKills = stage.Kills; lastStage = stage; lastKillTarget = stage.KillTarget; lastExtra = extra;
-            infoText.text = UiText.Format(infoFmt, s.level, gm.StageIndex + 1, gm.Config.stage.stageCount,
+            string fmt = stage.IgnoreKillTarget ? System.Text.RegularExpressions.Regex.Replace(infoFmt, @"\s*[^\s{}]*\s*\{4\}\s*/\s*\{5\}", "") : infoFmt; // 처치 목표가 없는 스테이지는 처치 표시 빼고
+            infoText.text = UiText.Format(fmt, s.level, gm.StageIndex + 1, gm.Config.stage.stageCount,
                 stage.DisplayName, stage.Kills, stage.KillTarget) + (string.IsNullOrEmpty(extra) ? "" : "   " + extra);
             if (bonusBadge) bonusBadge.SetActive(gm.InBonus);
         }
