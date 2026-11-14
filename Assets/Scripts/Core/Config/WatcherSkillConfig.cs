@@ -33,6 +33,7 @@ public class WatcherSkillDef
     [Tooltip("설치 후 작동까지(초)")] public float armDelay = 0.5f;
     [Tooltip("적을 끌어당기는 원형 범위(m)")] public float radius = 9f;
     [Tooltip("작동 시간(초)")] public float duration = 6f;
+    [Tooltip("한 번에 유도하는 적 최대 수: 작동 순간 디코이에 가까운 적부터. 0 = 무제한")] public int maxLured = 12;
 }
 
 [System.Serializable] public class ControlSkillSettings

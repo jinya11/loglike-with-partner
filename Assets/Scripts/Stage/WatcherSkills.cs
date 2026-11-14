@@ -141,6 +141,7 @@ public class WatcherSkills : MonoBehaviour
         foreach (var d in decoys)
         {
             if (Time.time < d.armAt) continue;
+            if (d.lured != null) { if (d.lured.Contains(e)) return d.pos; continue; } // 최대 수 제한: 작동 순간 고른 적만
             Vector3 v = e.transform.position - d.pos; v.y = 0f;
             if (v.sqrMagnitude <= d.radius * d.radius) return d.pos;
         }
@@ -150,7 +151,22 @@ public class WatcherSkills : MonoBehaviour
     // =====================================================================
     // 디코이: 감시자 위치에 장치 설치 → armDelay 뒤 범위 안의 적을 장치로 유도
     // =====================================================================
-    class Decoy { public Vector3 pos; public float armAt, until, radius; public GameObject go; }
+    class Decoy { public Vector3 pos; public float armAt, until, radius; public GameObject go; public HashSet<Enemy> lured; public bool picked; }
+    readonly List<Enemy> decoyPick = new List<Enemy>(32);
+
+    /// <summary>작동 순간 범위 안에서 디코이에 가까운 적부터 maxLured마리만 유도 대상으로 (0 = 무제한: 범위 안 적 모두, 나중에 들어온 적도). 죽어도 다시 채우지 않음.</summary>
+    void PickLured(Decoy d)
+    {
+        d.picked = true;
+        int max = cfg.decoy.maxLured;
+        if (max <= 0) return;
+        decoyPick.Clear();
+        float r2 = d.radius * d.radius;
+        foreach (var e in Enemy.Active) { Vector3 v = e.transform.position - d.pos; v.y = 0f; if (v.sqrMagnitude <= r2) decoyPick.Add(e); }
+        decoyPick.Sort((a, b) => (a.transform.position - d.pos).sqrMagnitude.CompareTo((b.transform.position - d.pos).sqrMagnitude));
+        d.lured = new HashSet<Enemy>();
+        for (int i = 0; i < decoyPick.Count && i < max; i++) d.lured.Add(decoyPick[i]);
+    }
     readonly List<Decoy> decoys = new List<Decoy>();
 
     void PlaceDecoy()
@@ -168,6 +184,7 @@ public class WatcherSkills : MonoBehaviour
         for (int i = decoys.Count - 1; i >= 0; i--)
         {
             var d = decoys[i];
+            if (!d.picked && Time.time >= d.armAt) PickLured(d);
             if (d.go) SkillProps.PulseDecoy(d.go, Time.time >= d.armAt);
             if (Time.time < d.until) continue;
             if (d.go) Destroy(d.go);
