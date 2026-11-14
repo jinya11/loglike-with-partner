@@ -51,16 +51,6 @@ public static class SkillProps
         if (head) head.localScale = Vector3.one * (armed ? 0.6f + Mathf.Sin(Time.time * 8f) * 0.08f : 0.35f);
     }
 
-    /// <summary>고른 대상 표시 (대상에 붙음).</summary>
-    public static GameObject Mark(Transform target, Color c)
-    {
-        var root = new GameObject("Mark").transform;
-        root.SetParent(target, false);
-        Part(PrimitiveType.Cylinder, root, new Vector3(0f, 0.05f, 0f), new Vector3(1.6f, 0.01f, 1.6f), Glow(c));
-        Part(PrimitiveType.Sphere, root, new Vector3(0f, 2f, 0f), Vector3.one * 0.3f, Glow(c));
-        return root.gameObject;
-    }
-
     /// <summary>바닥 범위 고리 (폭격 예고).</summary>
     public static GameObject Ring(Vector3 p, float radius, Color c)
     {

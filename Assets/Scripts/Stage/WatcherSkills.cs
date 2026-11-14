@@ -120,11 +120,12 @@ public class WatcherSkills : MonoBehaviour
     {
         if (Blocked || busy) return;
         if (t == WatcherSkillType.Parry) { if (CanUse(t)) StartParry(); return; }
+        if (t == WatcherSkillType.Control && PickChaosTargets(false) == 0) { Vfx.Hit(WatcherPos + Vector3.up, new Color(0.6f, 0.6f, 0.65f)); return; } // 주변에 적이 없으면 안 씀 (코스트/대기 그대로)
         if (!Consume(t)) { Vfx.Hit(WatcherPos + Vector3.up, new Color(0.6f, 0.6f, 0.65f)); return; }
         switch (t)
         {
             case WatcherSkillType.Decoy: PlaceDecoy(); break;
-            case WatcherSkillType.Control: StartCoroutine(ControlRoutine()); break;
+            case WatcherSkillType.Control: PickChaosTargets(true); break;
             case WatcherSkillType.TripleBombard: StartCoroutine(TripleBombardRoutine()); break;
             case WatcherSkillType.Bombard: if (BombardSkill.I) BombardSkill.I.Trigger(); break;
             case WatcherSkillType.Thorns: StartThorns(); break;
@@ -175,47 +176,38 @@ public class WatcherSkills : MonoBehaviour
     }
 
     // =====================================================================
-    // 조종: 시간 정지 + 탑뷰에서 적 고르기 → 확률로 혼돈 (다른 적을 때리면 자신은 즉사 — 처치 수 제외,
-    //       맞은 적은 낮은 피해, 그 피해로 죽으면 처치 수 포함)
+    // 조종: 감시자 주변 반경 안의 적 중 무작위로 targets마리를 혼돈 상태로 (확정). 혼돈 적이 다른 적을 때리면 자신은 즉사
+    //       (처치 수 제외), 맞은 적은 낮은 피해, 그 피해로 죽으면 처치 수 포함
     // =====================================================================
     readonly Dictionary<Enemy, float> chaos = new Dictionary<Enemy, float>();
 
-    IEnumerator ControlRoutine()
+    readonly List<Enemy> chaosPool = new List<Enemy>(32);
+
+    /// <summary>감시자 주변 반경 안의 (혼돈이 아닌) 적 중 무작위로 targets마리. apply = false면 후보 수만 셈.</summary>
+    int PickChaosTargets(bool apply)
     {
         var s = cfg.control;
-        busy = true;
-        float prevScale = Time.timeScale;
-        Time.timeScale = 0f;
-        gm.InputLocked = true;
-        if (CameraFollow.I) CameraFollow.I.SetOverview(true);
-        var picked = new List<Enemy>();
-        var marks = new List<GameObject>();
-        float end = Time.realtimeSinceStartup + s.pickTime;
-        yield return null;
-        while (Time.realtimeSinceStartup < end && picked.Count < s.maxPicks && gm.State == GameState.Playing)
+        Vector3 c = WatcherPos;
+        float r2 = s.radius * s.radius;
+        chaosPool.Clear();
+        foreach (var e in Enemy.Active)
         {
-            var mouse = Mouse.current; var kb = Keyboard.current;
-            if (kb != null && (kb.escapeKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame)) break;
-            if (mouse != null && mouse.leftButton.wasPressedThisFrame && GroundPoint(mouse, out var g))
-            {
-                Enemy best = null; float bestSq = s.pickRadius * s.pickRadius;
-                foreach (var e in Enemy.Active) { if (picked.Contains(e)) continue; Vector3 v = e.transform.position - g; v.y = 0f; if (v.sqrMagnitude < bestSq) { bestSq = v.sqrMagnitude; best = e; } }
-                if (best) { picked.Add(best); marks.Add(SkillProps.Mark(best.transform, new Color(0.8f, 0.5f, 1f))); }
-            }
-            yield return null;
+            if (chaos.ContainsKey(e)) continue;
+            Vector3 v = e.transform.position - c; v.y = 0f;
+            if (v.sqrMagnitude <= r2) chaosPool.Add(e);
         }
-        foreach (var m in marks) if (m) Destroy(m);
-        if (CameraFollow.I) CameraFollow.I.SetOverview(false);
-        gm.InputLocked = false;
-        if (gm.State == GameState.Playing) Time.timeScale = prevScale > 0f ? prevScale : 1f;
-        busy = false;
+        if (!apply) return chaosPool.Count;
         float dur = s.chaosDuration * cfg.EffectMul(WatcherSkillType.Control);
-        foreach (var e in picked)
+        int n = Mathf.Min(Mathf.Max(1, s.targets), chaosPool.Count);
+        for (int i = 0; i < n; i++)
         {
-            if (!e || !e.isActiveAndEnabled) continue;
-            if (Random.value < s.chaosChance) { chaos[e] = Time.time + dur; Vfx.Pillar(e.transform.position, new Color(0.8f, 0.5f, 1f)); }
-            else Vfx.Hit(e.transform.position + Vector3.up, new Color(0.5f, 0.5f, 0.55f)); // 실패
+            int k = Random.Range(i, chaosPool.Count);
+            (chaosPool[i], chaosPool[k]) = (chaosPool[k], chaosPool[i]);
+            var e = chaosPool[i];
+            chaos[e] = Time.time + dur;
+            Vfx.Pillar(e.transform.position, new Color(0.8f, 0.5f, 1f));
         }
+        return n;
     }
 
     Vector3? NearestOther(Enemy self, out Enemy other)

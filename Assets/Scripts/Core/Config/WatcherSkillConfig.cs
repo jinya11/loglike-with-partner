@@ -37,10 +37,8 @@ public class WatcherSkillDef
 
 [System.Serializable] public class ControlSkillSettings
 {
-    [Tooltip("시간이 멈추고 적을 고르는 시간(초, 실제 시간)")] public float pickTime = 5f;
-    [Tooltip("고를 수 있는 적 수")] public int maxPicks = 3;
-    [Tooltip("클릭 지점에서 이 거리 안의 가장 가까운 적을 고름(m)")] public float pickRadius = 2.5f;
-    [Tooltip("고른 적이 혼돈 상태가 될 확률")] [Range(0, 1)] public float chaosChance = 0.7f;
+    [Tooltip("감시자 주변 이 반경 안의 적 중에서 고름(m). 안에 적이 없으면 발동하지 않음 (코스트/대기 그대로)")] public float radius = 10f;
+    [Tooltip("혼돈 상태로 만드는 적 수 (무작위)")] public int targets = 1;
     [Tooltip("혼돈 상태 지속(초)")] public float chaosDuration = 8f;
     [Tooltip("혼돈 적이 주는 피해 = 원래 접촉 피해 × 이 값 (많이 낮게)")] public float chaosDamageMul = 0.25f;
     [Tooltip("혼돈 적이 다른 적을 때리는 거리(m)")] public float chaosHitRange = 1.3f;
@@ -96,7 +94,7 @@ public class WatcherSkillConfig : ScriptableObject
     public WatcherSkillDef[] skills =
     {
         new WatcherSkillDef(WatcherSkillType.Decoy, "디코이", WatcherSkillCategory.유도, "범위 안의 적을 설치한 장치로 끌어들인다", 5f, 2),
-        new WatcherSkillDef(WatcherSkillType.Control, "조종", WatcherSkillCategory.유도, "시간을 멈추고 고른 적을 혼돈에 빠뜨린다", 15f, 5),
+        new WatcherSkillDef(WatcherSkillType.Control, "조종", WatcherSkillCategory.유도, "주변 적 하나를 혼돈에 빠뜨린다", 15f, 5),
         new WatcherSkillDef(WatcherSkillType.TripleBombard, "3중 폭격", WatcherSkillCategory.폭격, "탑뷰에서 세 곳을 골라 폭격한다", 10f, 4),
         new WatcherSkillDef(WatcherSkillType.Bombard, "폭격", WatcherSkillCategory.폭격, "감시자 위치에 폭격한다", 20f, 5),
         new WatcherSkillDef(WatcherSkillType.Thorns, "가시", WatcherSkillCategory.방어, "생명체를 때린 적에게 피해를 되돌려준다", 10f, 3),
