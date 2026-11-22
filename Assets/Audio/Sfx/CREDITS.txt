@@ -1,0 +1,24 @@
+Character/witch_attack.ogg: "Retro, Laser Shot 01.wav" by MATRIXXX_ (cc0 1.0) https://freesound.org/people/MATRIXXX_/sounds/413057
+Character/creature_skill.ogg: "Metal iron magic spell cast.flac" by qubodup (cc0 1.0) https://freesound.org/people/qubodup/sounds/171100
+Character/creature_hurt.ogg: "Cartoon - Bat / Mouse Squeak" by Breviceps (cc0 1.0) https://freesound.org/people/Breviceps/sounds/445958
+Character/creature_die.ogg: "Magic disappearing/appearing" by Tetoszka (cc0 1.0) https://freesound.org/people/Tetoszka/sounds/538013
+Character/watcher_strike.ogg: "Hilt clang!.wav" by ethanchase7744 (cc0 1.0) https://freesound.org/people/ethanchase7744/sounds/439540
+Character/player_hurt.ogg: "PlayerHurt2" by mrickey13 (cc0 1.0) https://freesound.org/people/mrickey13/sounds/515624
+Character/enemy_hit.ogg: "Ping pong ball hit" by michorvath (cc0 1.0) https://freesound.org/people/michorvath/sounds/269718
+Character/enemy_die.ogg: "Pop 2" by greenvwbeetle (cc0 1.0) https://freesound.org/people/greenvwbeetle/sounds/244654
+Environment/wind.ogg: "Storm wind whistling through harbour boat masts.wav" by dangale (cc0 1.0) https://freesound.org/people/dangale/sounds/463373
+Environment/portal_appear.ogg: "Portal Phase Jump.wav" by Vic5555 (cc0 1.0) https://freesound.org/people/Vic5555/sounds/494484
+Environment/ground_collapse.ogg: "PiedraDesmoronandose.wav" by Trancox (cc0 1.0) https://freesound.org/people/Trancox/sounds/391919
+Environment/ice_crack.ogg: "Ice Crack 1" by j_p_higgins (cc0 1.0) https://freesound.org/people/j_p_higgins/sounds/262635
+Environment/ice_break.ogg: "Ice Breaking 1" by giwake (cc0 1.0) https://freesound.org/people/giwake/sounds/666478
+Environment/sandstorm.ogg: "Howling Wind" by Zulfish (by 4.0) https://freesound.org/people/Zulfish/sounds/704636
+Etc/level_up.ogg: "8-Bit Powerup" by SomeGuy22 (cc0 1.0) https://freesound.org/people/SomeGuy22/sounds/431329
+Etc/resource_pickup.ogg: "item-pickup-v1.wav" by DeltaCode (cc0 1.0) https://freesound.org/people/DeltaCode/sounds/678384
+Etc/ui_click.ogg: "Click 2.wav" by ecfike (cc0 1.0) https://freesound.org/people/ecfike/sounds/128919
+Etc/ui_open.ogg: "paper flip 1.wav" by gynation (cc0 1.0) https://freesound.org/people/gynation/sounds/82377
+Etc/game_over.ogg: "Arcade Game Over" by Poligonstudio (cc0 1.0) https://freesound.org/people/Poligonstudio/sounds/412168
+Etc/victory.ogg: "Achievement Happy Beeps Jingle" by CogFireStudios (cc0 1.0) https://freesound.org/people/CogFireStudios/sounds/619838
+Etc/xp_pickup.ogg: "The Best Bubble Pop Sound For Game and UI" (cc0) https://openverse.org/audio/57fc1a1b-320c-4c70-a52c-fee4442d2272
+Character/rabbit_impact.ogg: "Retro Jump 01.wav" (cc0) https://openverse.org/audio/d8ac6a49-dc71-4d2d-996f-9613774f7dc0
+Character/bird_attack.ogg: witch_attack + "Single Bird Chirp" (cc0) https://openverse.org/audio/4548222c-e35a-406c-beb3-909c718e1050
+Character/bombard_impact.ogg: "magicProjectile_impact.wav" (cc0) https://openverse.org/audio/0e29ea12-efe8-4631-ba00-2100ce21d51f

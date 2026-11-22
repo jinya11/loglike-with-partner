@@ -44,3 +44,7 @@ Thumbs.db
 
 # 로컬 백업 압축본
 *.zip
+
+# 스크린샷/미리보기 캡처
+/Screenshots/
+/*_preview*.png

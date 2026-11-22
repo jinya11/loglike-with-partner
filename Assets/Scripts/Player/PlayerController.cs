@@ -152,7 +152,7 @@ public class PlayerController : Singleton<PlayerController>
         else UpdateLobby(dt, move, kb);
 
         UpdateFocus();
-        if (Focus != null && kb != null && kb.fKey.wasPressedThisFrame) Focus.Interact();
+        if (Focus != null && kb != null && kb.fKey.wasPressedThisFrame) { SfxManager.Play(SfxManager.S.uiOpen); Focus.Interact(); }
     }
 
     void UpdatePresence(float dt, Vector3 move, Keyboard kb)
@@ -282,6 +282,7 @@ public class PlayerController : Singleton<PlayerController>
         if (Formless || iframe > 0f || GameManager.I.State != GameState.Playing) return;
         stats.hp -= dmg;
         iframe = 0.5f;
+        SfxManager.Play(SfxManager.S.playerHurt);
         if (stats.hp <= 0f) { stats.hp = 0f; GameManager.I.GameOver(); }
     }
 }

@@ -15,6 +15,7 @@ public class GameConfig : ScriptableObject
     [Tooltip("자원 / 거점 성장")] public MetaConfig meta;
     [Tooltip("파생 스테이지 (목록, 조건 증강, 반딧불 숲/자연 농지 수치)")] public VariantConfig variant;
     [Tooltip("감시자 스킬 (코스트, 재사용 대기, 키, 스킬별 수치)")] public WatcherSkillConfig skills;
+    [Tooltip("효과음 (SfxManager가 Resources/Config/SfxConfig를 직접 읽음, 여기서는 편집용 바로가기)")] public SfxConfig sfx;
 
     /// <summary>런 시작 능력치: 플레이어 기본값 + 생명체/감시자 기본값.</summary>
     public PlayerStats CreateStats()

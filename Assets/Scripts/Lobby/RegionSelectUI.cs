@@ -105,12 +105,13 @@ public class RegionSelectUI : Singleton<RegionSelectUI>
         {
             var r = gm.Regions[GridNumbers[i]];
             cellNames[i].text = r != null ? $"{GridNumbers[i]}. {r.name}" : $"{GridNumbers[i]}. ???";
-            cellDescs[i].text = r != null ? r.desc : "";
-            cellBackgrounds[i].color = r != null ? r.mapColor : new Color(0.1f, 0.1f, 0.12f);
+            if (cellDescs != null && i < cellDescs.Length && cellDescs[i]) cellDescs[i].text = r != null ? r.desc : "";
+            cellBackgrounds[i].sprite = r != null ? r.mapArt : null;
+            cellBackgrounds[i].color = r == null ? new Color(0.1f, 0.1f, 0.12f) : r.mapArt ? Color.white : r.mapColor;
             cellBorders[i].color = i == selected ? borderSelected : borderIdle;
             cells[i].interactable = r != null;
         }
         var sel = selected >= 0 ? gm.Regions[GridNumbers[selected]] : null;
-        selectedText.text = sel != null ? $"{GridNumbers[selected]}번 지역: {sel.name}" : "지역을 고르세요";
+        selectedText.text = sel != null ? $"{GridNumbers[selected]}번 지역: {sel.name}" : "";
     }
 }

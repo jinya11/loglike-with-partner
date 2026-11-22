@@ -1,0 +1,439 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f4a612ee2d99d5439250d06e8d20dfc, type: 3}
+  m_Name: WizardGrowth
+  m_EditorClassIdentifier: Assembly-CSharp::WizardGrowthConfig
+  creatureName: "\uB9C8\uB140"
+  title: "\uB9C8\uBC95\uC0AC\uC758 \uC131\uC7A5"
+  displayName: "\uB9C8\uBC95\uC0AC"
+  nodes:
+  - id: o0
+    name: "\uB9C8\uB825"
+    desc: "\uACF5\uACA9\uB825 +0.25"
+    kind: 1
+    position: {x: 0.49999997, y: 0.060000002}
+    requires: []
+    cost: 1
+    requiredClears: 0
+    stat: 0
+    value: 0.25
+    effect: 0
+  - id: o1
+    name: "\uBE60\uB978 \uC601\uCC3D"
+    desc: "\uACF5\uACA9 \uC18D\uB3C4 +2%"
+    kind: 1
+    position: {x: 0.6683807, y: 0.09349302}
+    requires:
+    - o0
+    - o2
+    cost: 1
+    requiredClears: 0
+    stat: 2
+    value: 0.02
+    effect: 0
+  - id: o2
+    name: "\uB450\uAEBC\uC6B4 \uB9DD\uD1A0"
+    desc: "\uCCB4\uB825 +4"
+    kind: 1
+    position: {x: 0.81112695, y: 0.18887302}
+    requires:
+    - o1
+    - o3
+    cost: 1
+    requiredClears: 0
+    stat: 13
+    value: 4
+    effect: 0
+  - id: o3
+    name: "\uBCC4\uBE5B \uC2DC\uC57C"
+    desc: "\uC0AC\uAC70\uB9AC +0.4"
+    kind: 1
+    position: {x: 0.90650696, y: 0.3316193}
+    requires:
+    - o2
+    - o4
+    cost: 2
+    requiredClears: 0
+    stat: 17
+    value: 0.4
+    effect: 0
+  - id: o4
+    name: "\uAC00\uBCBC\uC6B4 \uC2E0\uBC1C"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.08"
+    kind: 1
+    position: {x: 0.94, y: 0.5}
+    requires:
+    - o3
+    - o5
+    cost: 2
+    requiredClears: 0
+    stat: 20
+    value: 0.08
+    effect: 0
+  - id: o5
+    name: "\uD734\uC2DD\uC758 \uCC28"
+    desc: "\uCD08\uB2F9 \uD68C\uBCF5 +0.05"
+    kind: 1
+    position: {x: 0.90650696, y: 0.66838074}
+    requires:
+    - o4
+    - o6
+    cost: 2
+    requiredClears: 0
+    stat: 19
+    value: 0.05
+    effect: 0
+  - id: o6
+    name: "\uB113\uC740 \uB9C8\uBC95\uC9C4"
+    desc: "\uACF5\uACA9 \uBC94\uC704 +3%"
+    kind: 1
+    position: {x: 0.81112695, y: 0.81112695}
+    requires:
+    - o5
+    - o7
+    cost: 3
+    requiredClears: 0
+    stat: 8
+    value: 0.03
+    effect: 0
+  - id: o7
+    name: "\uB9C8\uB825"
+    desc: "\uACF5\uACA9\uB825 +0.25"
+    kind: 1
+    position: {x: 0.6683807, y: 0.90650696}
+    requires:
+    - o6
+    - o8
+    cost: 3
+    requiredClears: 0
+    stat: 0
+    value: 0.25
+    effect: 0
+  - id: o8
+    name: "\uC794\uC0C1 \uB9C8\uD0C4"
+    desc: "\uAC10\uC2DC\uC790\uC758 \uC720\uB3C4 \uC2A4\uD0AC(\uB514\uCF54\uC774\xB7\uC870\uC885)\uC744
+      \uC4F0\uBA74\n\uB04C\uB824\uC628 \uC801\uB4E4\uC5D0\uAC8C \uAC70\uB300 \uB9C8\uBC95
+      \uD22C\uC0AC\uCCB4\uB97C \uBC1C\uC0AC\uD569\uB2C8\uB2E4."
+    kind: 3
+    position: {x: 0.49999997, y: 0.94}
+    requires:
+    - o7
+    - o9
+    cost: 6
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 12
+  - id: o9
+    name: "\uBE60\uB978 \uC601\uCC3D"
+    desc: "\uACF5\uACA9 \uC18D\uB3C4 +2%"
+    kind: 1
+    position: {x: 0.3316193, y: 0.906507}
+    requires:
+    - o8
+    - o10
+    cost: 3
+    requiredClears: 0
+    stat: 2
+    value: 0.02
+    effect: 0
+  - id: o10
+    name: "\uB450\uAEBC\uC6B4 \uB9DD\uD1A0"
+    desc: "\uCCB4\uB825 +4"
+    kind: 1
+    position: {x: 0.18887302, y: 0.81112695}
+    requires:
+    - o9
+    - o11
+    cost: 3
+    requiredClears: 0
+    stat: 13
+    value: 4
+    effect: 0
+  - id: o11
+    name: "\uBCC4\uBE5B \uC2DC\uC57C"
+    desc: "\uC0AC\uAC70\uB9AC +0.4"
+    kind: 1
+    position: {x: 0.09349302, y: 0.66838074}
+    requires:
+    - o10
+    - o12
+    cost: 2
+    requiredClears: 0
+    stat: 17
+    value: 0.4
+    effect: 0
+  - id: o12
+    name: "\uAC00\uBCBC\uC6B4 \uC2E0\uBC1C"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.08"
+    kind: 1
+    position: {x: 0.060000002, y: 0.49999997}
+    requires:
+    - o11
+    - o13
+    cost: 2
+    requiredClears: 0
+    stat: 20
+    value: 0.08
+    effect: 0
+  - id: o13
+    name: "\uD734\uC2DD\uC758 \uCC28"
+    desc: "\uCD08\uB2F9 \uD68C\uBCF5 +0.05"
+    kind: 1
+    position: {x: 0.09349302, y: 0.3316193}
+    requires:
+    - o12
+    - o14
+    cost: 2
+    requiredClears: 0
+    stat: 19
+    value: 0.05
+    effect: 0
+  - id: o14
+    name: "\uB113\uC740 \uB9C8\uBC95\uC9C4"
+    desc: "\uACF5\uACA9 \uBC94\uC704 +3%"
+    kind: 1
+    position: {x: 0.188873, y: 0.18887305}
+    requires:
+    - o13
+    - o15
+    cost: 1
+    requiredClears: 0
+    stat: 8
+    value: 0.03
+    effect: 0
+  - id: o15
+    name: "\uB9C8\uB825"
+    desc: "\uACF5\uACA9\uB825 +0.25"
+    kind: 1
+    position: {x: 0.33161923, y: 0.09349302}
+    requires:
+    - o14
+    - o0
+    cost: 1
+    requiredClears: 0
+    stat: 0
+    value: 0.25
+    effect: 0
+  - id: i0
+    name: "\uBE60\uB978 \uC601\uCC3D"
+    desc: "\uACF5\uACA9 \uC18D\uB3C4 +2%"
+    kind: 1
+    position: {x: 0.5526744, y: 0.23518798}
+    requires:
+    - o0
+    - o1
+    cost: 3
+    requiredClears: 0
+    stat: 2
+    value: 0.02
+    effect: 0
+  - id: i1
+    name: "\uB450\uAEBC\uC6B4 \uB9DD\uD1A0"
+    desc: "\uCCB4\uB825 +4"
+    kind: 1
+    position: {x: 0.7244968, y: 0.34999603}
+    requires:
+    - o2
+    - o3
+    cost: 3
+    requiredClears: 0
+    stat: 13
+    value: 4
+    effect: 0
+  - id: i2
+    name: "\uBCC4\uBE5B \uC2DC\uC57C"
+    desc: "\uC0AC\uAC70\uB9AC +0.4"
+    kind: 1
+    position: {x: 0.76481205, y: 0.5526744}
+    requires:
+    - o4
+    - o5
+    cost: 3
+    requiredClears: 0
+    stat: 17
+    value: 0.4
+    effect: 0
+  - id: i3
+    name: "\uAC00\uBCBC\uC6B4 \uC2E0\uBC1C"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.08"
+    kind: 1
+    position: {x: 0.65000397, y: 0.7244968}
+    requires:
+    - o6
+    - o7
+    cost: 3
+    requiredClears: 0
+    stat: 20
+    value: 0.08
+    effect: 0
+  - id: i4
+    name: "\uD734\uC2DD\uC758 \uCC28"
+    desc: "\uCD08\uB2F9 \uD68C\uBCF5 +0.05"
+    kind: 1
+    position: {x: 0.44732562, y: 0.76481205}
+    requires:
+    - o8
+    - o9
+    cost: 3
+    requiredClears: 0
+    stat: 19
+    value: 0.05
+    effect: 0
+  - id: i5
+    name: "\uB113\uC740 \uB9C8\uBC95\uC9C4"
+    desc: "\uACF5\uACA9 \uBC94\uC704 +3%"
+    kind: 1
+    position: {x: 0.2755032, y: 0.65000397}
+    requires:
+    - o10
+    - o11
+    cost: 3
+    requiredClears: 0
+    stat: 8
+    value: 0.03
+    effect: 0
+  - id: i6
+    name: "\uB9C8\uB825"
+    desc: "\uACF5\uACA9\uB825 +0.25"
+    kind: 1
+    position: {x: 0.23518796, y: 0.44732562}
+    requires:
+    - o12
+    - o13
+    cost: 3
+    requiredClears: 0
+    stat: 0
+    value: 0.25
+    effect: 0
+  - id: i7
+    name: "\uBE60\uB978 \uC601\uCC3D"
+    desc: "\uACF5\uACA9 \uC18D\uB3C4 +2%"
+    kind: 1
+    position: {x: 0.34999597, y: 0.27550322}
+    requires:
+    - o14
+    - o15
+    cost: 3
+    requiredClears: 0
+    stat: 2
+    value: 0.02
+    effect: 0
+  - id: main_chain
+    name: "\uC5F0\uC1C4"
+    desc: "\uD3C9\uD0C0\uAC00 \uC801\uC5D0\uAC8C \uB9DE\uC73C\uBA74 \uBC88\uAC1C\uAC00\n\uC8FC\uBCC0
+      \uC801\uC5D0\uAC8C \uC5F0\uC1C4\uB429\uB2C8\uB2E4. (\uCD5C\uB300 4\uBA85)"
+    kind: 0
+    position: {x: 0.57222414, y: 0.39190894}
+    requires:
+    - i0
+    - i1
+    cost: 5
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 7
+  - id: main_burn
+    name: "\uC5F0\uC18C"
+    desc: "\uD3C9\uD0C0\uAC00 \uC801\uC744 \uBD88\uD0DC\uC6CC\n1.2\uCD08 \uB3D9\uC548
+      \uCD1D 5\uC758 \uD53C\uD574\uB97C \uC90D\uB2C8\uB2E4."
+    kind: 0
+    position: {x: 0.60809106, y: 0.57222414}
+    requires:
+    - i2
+    - i3
+    cost: 5
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 8
+  - id: main_freeze
+    name: "\uBE59\uACB0"
+    desc: "\uD3C9\uD0C0\uAC00 \uBA85\uC911\uD558\uBA74 \uD655\uB960\uC801\uC73C\uB85C\n\uC801\uC744
+      1.5\uCD08 \uB3D9\uC548 \uC5BC\uB9BD\uB2C8\uB2E4."
+    kind: 0
+    position: {x: 0.4277759, y: 0.60809106}
+    requires:
+    - i4
+    - i5
+    cost: 5
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 9
+  - id: main_curse
+    name: "\uC800\uC8FC"
+    desc: "\uD3C9\uD0C0\uAC00 \uBA85\uC911\uD558\uBA74 \uD655\uB960\uC801\uC73C\uB85C
+      \uC800\uC8FC\uB97C \uAC78\uC5B4\n\uCC98\uCE58\uB420 \uB54C\uAE4C\uC9C0 \uBC1B\uB294
+      \uD53C\uD574\uAC00 10% \uB298\uC5B4\uB0A9\uB2C8\uB2E4."
+    kind: 0
+    position: {x: 0.39190897, y: 0.42777586}
+    requires:
+    - i6
+    - i7
+    cost: 5
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 10
+  - id: p_arcane
+    name: "\uB9C8\uB3C4\uC758 \uADF9\uC758"
+    desc: "\uC5F0\uC1C4\xB7\uC5F0\uC18C\xB7\uBE59\uACB0\xB7\uC800\uC8FC\uAC00 \uBAA8\uB450
+      \uC801\uC6A9\uB418\uACE0,\n\uC5F0\uC1C4\uAC00 \uD130\uC9C8 \uB54C \uB9DE\uC740
+      \uC801 \uBAA8\uB450\uC5D0\uAC8C\n\uBAA8\uB4E0 \uD6A8\uACFC\uAC00 \uD568\uAED8
+      \uD130\uC9D1\uB2C8\uB2E4."
+    kind: 2
+    position: {x: 0.5, y: 0.5}
+    requires:
+    - main_chain
+    - main_burn
+    - main_freeze
+    - main_curse
+    cost: 10
+    requiredClears: 1
+    stat: 0
+    value: 0
+    effect: 11
+  boardSize: {x: 900, y: 900}
+  silhouette: {fileID: 21300000, guid: 6ee70fe991c471c4d9ad708ea51d63c3, type: 3}
+  lockedColor: {r: 0.86, g: 0.82, b: 0.86, a: 1}
+  availableColor: {r: 1, g: 0.8, b: 0.62, a: 1}
+  ownedColor: {r: 1, g: 0.6, b: 0.55, a: 1}
+  mainColor: {r: 0.78, g: 0.62, b: 1, a: 1}
+  statColor: {r: 1, g: 0.9, b: 0.7, a: 1}
+  passiveColor: {r: 0.78, g: 0.7, b: 1, a: 1}
+  watcherColor: {r: 0.62, g: 0.8, b: 1, a: 1}
+  recommendSkills: 1
+  recommendedCategory: 0
+  wizard:
+    chainCount: 4
+    chainRadius: 5
+    chainDamageMul: 0.6
+    chainColor: {r: 0.75, g: 0.85, b: 1, a: 1}
+    burnDuration: 1.2
+    burnTotalDamage: 5
+    burnTick: 0.3
+    burnColor: {r: 1, g: 0.6, b: 0.4, a: 1}
+    freezeChance: 0.2
+    freezeDuration: 1.5
+    freezeColor: {r: 0.65, g: 0.9, b: 1, a: 1}
+    curseChance: 0.25
+    curseDamageTaken: 1.1
+    curseColor: {r: 0.8, g: 0.6, b: 1, a: 1}
+    orbCount: 3
+    orbDelay: 1.2
+    orbSearchRadius: 9
+    orbDamageMul: 3
+    orbRadius: 2.5
+    orbSize: 1.4
+    orbSpeed: 14
+    orbColor: {r: 0.85, g: 0.7, b: 1, a: 1}

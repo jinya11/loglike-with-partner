@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -24,12 +24,29 @@ public static class CreatureRigBuilder
         [Tooltip("머리카락 분리: 정수리 색과 비슷한 색의 정점은 팔/다리에 붙이지 않음 (팔 위를 덮는 긴 머리용)")]
         public bool separateHair = true;
         [Tooltip("머리카락 색 판정 허용 오차 (RGB 거리)")] public float hairColorTolerance = 0.12f;
+        [Tooltip("머리카락 색을 읽을 높이 (0 = 정수리 자동). 머리 위 장식(꽃/고리)이 있는 모델용")] public float hairSampleY;
+        [Tooltip("결과 폴더 (비우면 OutRoot/id)")] public string outDir;
+
+        // ---- T자가 아닌 모델(팔이 내려간 A자 등) / 팔보다 넓은 장식(날개, 리본)이 있는 모델용 힌트 (최종 크기 기준 월드 단위, 0 = 자동) ----
+        [Tooltip("어깨 위치 (|x|, y)")] public Vector2 shoulderHint;
+        [Tooltip("손 끝 위치 (|x|, y)")] public Vector2 handHint;
+        [Tooltip("팔 굵기 반지름")] public float armRadiusHint;
+        [Tooltip("다리 판정 최대 |x| (옆으로 늘어진 리본 제외)")] public float legOuterMax;
+
+        // ---- 날개 (선택): 등 뒤·몸통 바깥 정점을 Wing_L/R 뼈(가슴 자식)에 붙임 ----
+        public bool wings;
+        [Tooltip("날개 뿌리 |x| (이보다 바깥이 날개)")] public float wingRootX = 0.13f;
+        [Tooltip("이보다 뒤(z)가 날개")] public float wingBackZ = -0.07f;
+        [Tooltip("이보다 위(y)가 날개")] public float wingMinY = 0.25f;
+        [Tooltip("날개 경계 혼합 폭")] public float wingBlend = 0.04f;
     }
 
-    // ---- 뼈 인덱스 ----
-    enum B { Hips, Spine, Chest, Head, EarL, EarR, UpperArmL, LowerArmL, HandL, UpperArmR, LowerArmR, HandR, UpperLegL, LowerLegL, FootL, UpperLegR, LowerLegR, FootR, Count }
-    static readonly int[] Parent = { -1, 0, 1, 2, 3, 3, 2, 6, 7, 2, 9, 10, 0, 12, 13, 0, 15, 16 };
-    static readonly string[] Names = { "Hips", "Spine", "Chest", "Head", "Ear_L", "Ear_R", "UpperArm_L", "LowerArm_L", "Hand_L", "UpperArm_R", "LowerArm_R", "Hand_R", "UpperLeg_L", "LowerLeg_L", "Foot_L", "UpperLeg_R", "LowerLeg_R", "Foot_R" };
+    // ---- 뼈 인덱스 (Wing_L/R은 날개 옵션일 때만 생성, 클립에는 넣지 않음: WingFlap이 움직임) ----
+    enum B { Hips, Spine, Chest, Head, EarL, EarR, UpperArmL, LowerArmL, HandL, UpperArmR, LowerArmR, HandR, UpperLegL, LowerLegL, FootL, UpperLegR, LowerLegR, FootR, WingL, WingR, Count }
+    static readonly int[] Parent = { -1, 0, 1, 2, 3, 3, 2, 6, 7, 2, 9, 10, 0, 12, 13, 0, 15, 16, 2, 2 };
+    static readonly string[] Names = { "Hips", "Spine", "Chest", "Head", "Ear_L", "Ear_R", "UpperArm_L", "LowerArm_L", "Hand_L", "UpperArm_R", "LowerArm_R", "Hand_R", "UpperLeg_L", "LowerLeg_L", "Foot_L", "UpperLeg_R", "LowerLeg_R", "Foot_R", "Wing_L", "Wing_R" };
+    const int BodyBones = (int)B.WingL;
+    static int BoneCount(Settings s) => s.wings ? (int)B.Count : BodyBones;
 
     /// <summary>분석된 체형 (모두 최종 크기 기준 월드 단위, 발바닥 y=0, 앞 = +Z).</summary>
     public struct Shape
@@ -37,6 +54,9 @@ public static class CreatureRigBuilder
         public float maxX, armY, armR, armZ, armRz, shoulderX;
         public float crotchY, legX, legZ, legOuter, legRz;
         public float earBaseY, earX, topY, bodyZ, neckY, eyeY;
+        /// <summary>팔 방향 (|x|, y) 단위벡터 · 어깨→손끝 길이. T자 = (1,0).</summary>
+        public Vector2 armDir; public float armLen;
+        public Vector3 wingRoot; // 날개 뿌리 (+x 쪽)
         public override string ToString() =>
             $"armY={armY:F3} armR={armR:F3} shoulderX={shoulderX:F3} maxX={maxX:F3} armZ={armZ:F3} crotchY={crotchY:F3} legX={legX:F3} legOuter={legOuter:F3} neckY={neckY:F3} earBaseY={earBaseY:F3} earX={earX:F3} top={topY:F3} bodyZ={bodyZ:F3}";
     }
@@ -57,7 +77,8 @@ public static class CreatureRigBuilder
     {
         var mf = source.GetComponentInChildren<MeshFilter>();
         var srcMesh = mf.sharedMesh;
-        string dir = $"{OutRoot}/{s.id}";
+        string dir = string.IsNullOrEmpty(s.outDir) ? $"{OutRoot}/{s.id}" : s.outDir;
+        int boneCount = BoneCount(s);
         EnsureFolder(dir);
 
         // 1) 월드 기준으로 굽고 (FBX의 회전/배율 제거), 발바닥 원점 + 목표 키로 정규화
@@ -74,17 +95,18 @@ public static class CreatureRigBuilder
         for (int i = 0; i < nrm.Length; i++) nrm[i] = m.MultiplyVector(nrm[i]).normalized;
         for (int i = 0; i < tan.Length; i++) { var t3 = m.MultiplyVector(tan[i]).normalized; tan[i] = new Vector4(t3.x, t3.y, t3.z, tan[i].w); }
 
-        // 2) 체형 분석
-        var sh = Analyze(v, srcMesh.triangles, s.height);
+        // 2) 체형 분석 (날개 옵션이면 등 뒤 날개 후보는 팔/다리 분석에서 제외)
+        bool[] wingZone = s.wings ? WingZone(v, s) : null;
+        var sh = Analyze(v, srcMesh.triangles, s.height, s, wingZone);
 
         // 3) 뼈 위치
-        var pos = BonePositions(sh);
+        var pos = BonePositions(sh, boneCount);
 
         // 4) 가중치 (머리카락 분리 옵션: 텍스처 색으로 머리카락 정점 판정)
         bool[] hair = s.separateHair ? HairMask(source, srcMesh.uv, v, sh, s) : null;
         var adj = Adjacency(v, srcMesh.triangles);
         if (hair != null) VoteMask(hair, adj, 2);
-        var weights = ComputeWeights(v, sh, pos, s.height, hair, adj);
+        var weights = ComputeWeights(v, sh, pos, s, hair, adj, boneCount);
 
         // 5) 메시 저장
         var mesh = new Mesh { name = s.id + "_Mesh" };
@@ -95,7 +117,7 @@ public static class CreatureRigBuilder
         mesh.subMeshCount = srcMesh.subMeshCount;
         for (int k = 0; k < srcMesh.subMeshCount; k++) mesh.SetTriangles(srcMesh.GetTriangles(k), k);
         mesh.boneWeights = weights;
-        var bind = new Matrix4x4[(int)B.Count];
+        var bind = new Matrix4x4[boneCount];
         for (int b = 0; b < bind.Length; b++) bind[b] = Matrix4x4.Translate(-pos[b]); // 뼈 회전 없음 (항등)
         mesh.bindposes = bind;
         mesh.RecalculateBounds();
@@ -112,7 +134,7 @@ public static class CreatureRigBuilder
 
         // 8) 프리팹
         var root = new GameObject(s.id);
-        var bones = new Transform[(int)B.Count];
+        var bones = new Transform[boneCount];
         for (int b = 0; b < bones.Length; b++)
         {
             bones[b] = new GameObject(Names[b]).transform;
@@ -134,6 +156,7 @@ public static class CreatureRigBuilder
         anim.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
         var vis = root.AddComponent<CreatureVisual>();
         vis.Setup(anim, eye, s.height, s.walkRefSpeed);
+        if (s.wings) root.AddComponent<WingFlap>().Setup(vis, bones[(int)B.WingL], bones[(int)B.WingR]);
         var prefab = PrefabUtility.SaveAsPrefabAsset(root, $"{dir}/{s.id}.prefab");
         Object.DestroyImmediate(root);
         AssetDatabase.SaveAssets();
@@ -145,12 +168,13 @@ public static class CreatureRigBuilder
     // =====================================================================
     // 체형 분석
     // =====================================================================
-    public static Shape Analyze(Vector3[] v, int[] tris, float H)
+    /// <param name="ignore">팔/다리 분석에서 뺄 정점 (날개 등). null 가능.</param>
+    public static Shape Analyze(Vector3[] v, int[] tris, float H, Settings s = null, bool[] ignore = null)
     {
         var sh = new Shape();
         int n = v.Length;
         float topY = 0f, maxX = 0f;
-        for (int i = 0; i < n; i++) { topY = Mathf.Max(topY, v[i].y); maxX = Mathf.Max(maxX, Mathf.Abs(v[i].x)); }
+        for (int i = 0; i < n; i++) { topY = Mathf.Max(topY, v[i].y); if (ignore == null || !ignore[i]) maxX = Mathf.Max(maxX, Mathf.Abs(v[i].x)); }
         sh.topY = topY; sh.maxX = maxX;
 
         // 팔 높이/앞뒤 중심: 가장 바깥 15% 정점 (손/소매 끝)
@@ -187,6 +211,8 @@ public static class CreatureRigBuilder
             }
             if (lo < sh.armY - sh.armR * 2.5f) { sh.shoulderX = x + step; break; }
         }
+        sh.armDir = Vector2.right; sh.armLen = maxX - sh.shoulderX;
+        if (s != null && s.handHint != Vector2.zero) ApplyArmHint(v, ref sh, s, ignore, H);
 
         // 가랑이: 몸통 중간에서 아래로 훑으며 가운데 평면(x=0)을 지나는 면이 처음 없어지는 높이
         // (정점이 아니라 삼각형으로 판정해야 성긴 메시에서도 정확)
@@ -195,8 +221,9 @@ public static class CreatureRigBuilder
             if (!CrossesCenter(v, tris, y, y + step * 0.5f, sh.armZ, 0.06f * H)) { sh.crotchY = y + step * 0.5f; break; }
         // 다리 중심/바깥 폭/앞뒤 범위 (가랑이 아래 70%)
         var ax2 = new List<float>(); float lz = 0f; c = 0; float lzMin = 9f, lzMax = -9f;
+        float legMax = s != null && s.legOuterMax > 0f ? s.legOuterMax : float.MaxValue;
         for (int i = 0; i < n; i++)
-            if (v[i].y < sh.crotchY * 0.7f) { ax2.Add(Mathf.Abs(v[i].x)); lz += v[i].z; c++; lzMin = Mathf.Min(lzMin, v[i].z); lzMax = Mathf.Max(lzMax, v[i].z); }
+            if (v[i].y < sh.crotchY * 0.7f && Mathf.Abs(v[i].x) < legMax) { ax2.Add(Mathf.Abs(v[i].x)); lz += v[i].z; c++; lzMin = Mathf.Min(lzMin, v[i].z); lzMax = Mathf.Max(lzMax, v[i].z); }
         ax2.Sort();
         sh.legX = ax2.Count > 0 ? ax2[ax2.Count / 2] : 0.06f * H;
         sh.legOuter = ax2.Count > 0 ? ax2[(int)(ax2.Count * 0.97f)] : 0.12f * H;
@@ -218,7 +245,64 @@ public static class CreatureRigBuilder
 
         sh.neckY = sh.armY + sh.armR * 0.9f;
         sh.eyeY = sh.neckY + (sh.earBaseY - sh.neckY) * 0.4f;
+        if (ignore != null) sh.wingRoot = WingRoot(v, ignore, s);
         return sh;
+    }
+
+    /// <summary>팔 위치 힌트 적용: 어깨→손끝 선을 팔 축으로, 앞뒤 중심/두께는 그 선 근처 정점으로.</summary>
+    static void ApplyArmHint(Vector3[] v, ref Shape sh, Settings s, bool[] ignore, float H)
+    {
+        var d = s.handHint - s.shoulderHint;
+        sh.armLen = d.magnitude; sh.armDir = d / sh.armLen;
+        sh.shoulderX = s.shoulderHint.x; sh.armY = s.shoulderHint.y; sh.maxX = s.handHint.x;
+        if (s.armRadiusHint > 0f) sh.armR = s.armRadiusHint;
+        var zs = new List<float>();
+        for (int i = 0; i < v.Length; i++)
+        {
+            if (ignore != null && ignore[i]) continue;
+            ArmCoord(sh, v[i], out float along, out float perp);
+            if (along > sh.armLen * 0.5f && along < sh.armLen && Mathf.Abs(perp) < sh.armR) zs.Add(v[i].z);
+        }
+        if (zs.Count < 8) return;
+        zs.Sort();
+        sh.armZ = zs[zs.Count / 2];
+        sh.armRz = Mathf.Max(0.02f * H, (zs[(int)(zs.Count * 0.9f)] - zs[(int)(zs.Count * 0.1f)]) * 0.5f);
+    }
+
+    /// <summary>팔 좌표: along = 어깨에서 팔 방향 거리, perp = 팔 축 위쪽(+)/아래쪽(-) 거리. (|x| 기준, 좌우 공통)</summary>
+    static void ArmCoord(in Shape sh, Vector3 q, out float along, out float perp)
+    {
+        float dx = Mathf.Abs(q.x) - sh.shoulderX, dy = q.y - sh.armY;
+        along = dx * sh.armDir.x + dy * sh.armDir.y;
+        perp = dy * sh.armDir.x - dx * sh.armDir.y;
+    }
+
+    /// <summary>날개 후보 (등 뒤 + 뿌리 바깥 + 최소 높이 위). 경계 혼합 전의 거친 판정.</summary>
+    static bool[] WingZone(Vector3[] v, Settings s)
+    {
+        var m = new bool[v.Length];
+        for (int i = 0; i < v.Length; i++) m[i] = WingWeight(v[i], s) > 0.5f;
+        return m;
+    }
+
+    static float WingWeight(Vector3 q, Settings s)
+    {
+        float b = s.wingBlend;
+        return Smooth(s.wingRootX - b, s.wingRootX + b, Mathf.Abs(q.x))
+               * (1f - Smooth(s.wingBackZ - b, s.wingBackZ + b, q.z))
+               * Smooth(s.wingMinY - b, s.wingMinY + b, q.y);
+    }
+
+    /// <summary>날개 뿌리: 날개 정점 중 안쪽 띠(뿌리 ~ 뿌리+혼합폭*2)의 평균 높이/앞뒤.</summary>
+    static Vector3 WingRoot(Vector3[] v, bool[] wing, Settings s)
+    {
+        Vector3 sum = Vector3.zero; int c = 0;
+        float x1 = s.wingRootX + s.wingBlend * 2f;
+        for (int i = 0; i < v.Length; i++)
+            if (wing[i] && Mathf.Abs(v[i].x) < x1) { sum += new Vector3(0f, v[i].y, v[i].z); c++; }
+        var r = c > 0 ? sum / c : new Vector3(0f, s.wingMinY, s.wingBackZ);
+        r.x = s.wingRootX;
+        return r;
     }
 
     /// <summary>y 구간 [y0,y1]에서 x=0 평면을 가로지르는 삼각형이 있는지 (z     /// <summary>y 구간 [y0,y1]에서 x=0 평면을 가로지르는 삼각형이 있는지 (앞뒤 범위 |z-zc|&lt;zw).</summary>gt; zc-zw 인 것만).</summary>
@@ -237,9 +321,14 @@ public static class CreatureRigBuilder
         return false;
     }
 
-    static Vector3[] BonePositions(Shape sh)
+    static Vector3[] BonePositions(Shape sh, int boneCount)
     {
-        var p = new Vector3[(int)B.Count];
+        var p = new Vector3[boneCount];
+        if (boneCount > (int)B.WingL)
+        {
+            p[(int)B.WingL] = sh.wingRoot;
+            p[(int)B.WingR] = new Vector3(-sh.wingRoot.x, sh.wingRoot.y, sh.wingRoot.z);
+        }
         float torso = sh.armY - sh.crotchY;
         p[(int)B.Hips] = new Vector3(0f, sh.crotchY + torso * 0.15f, sh.bodyZ);
         p[(int)B.Spine] = new Vector3(0f, sh.crotchY + torso * 0.5f, sh.bodyZ);
@@ -247,14 +336,16 @@ public static class CreatureRigBuilder
         p[(int)B.Head] = new Vector3(0f, sh.neckY, sh.bodyZ);
         p[(int)B.EarL] = new Vector3(sh.earX, sh.earBaseY, sh.bodyZ);
         p[(int)B.EarR] = new Vector3(-sh.earX, sh.earBaseY, sh.bodyZ);
-        float armLen = sh.maxX - sh.shoulderX;
+        float armLen = sh.armLen;
         for (int side = 0; side < 2; side++)
         {
             float sx = side == 0 ? 1f : -1f;
             int ua = side == 0 ? (int)B.UpperArmL : (int)B.UpperArmR;
-            p[ua] = new Vector3(sx * sh.shoulderX, sh.armY, sh.armZ);
-            p[ua + 1] = new Vector3(sx * (sh.shoulderX + armLen * 0.45f), sh.armY, sh.armZ);
-            p[ua + 2] = new Vector3(sx * (sh.shoulderX + armLen * 0.75f), sh.armY, sh.armZ);
+            for (int k = 0; k < 3; k++)
+            {
+                float a = armLen * (k == 0 ? 0f : k == 1 ? 0.45f : 0.75f);
+                p[ua + k] = new Vector3(sx * (sh.shoulderX + sh.armDir.x * a), sh.armY + sh.armDir.y * a, sh.armZ);
+            }
             int ul = side == 0 ? (int)B.UpperLegL : (int)B.UpperLegR;
             p[ul] = new Vector3(sx * sh.legX, sh.crotchY, sh.legZ);
             p[ul + 1] = new Vector3(sx * sh.legX, sh.crotchY * 0.5f, sh.legZ);
@@ -269,7 +360,7 @@ public static class CreatureRigBuilder
     /// <summary>정수리(귀 사이 머리 꼭대기) 색과 비슷한 정점 = 머리카락.</summary>
     static bool[] HairMask(GameObject source, Vector2[] uv, Vector3[] v, Shape sh, Settings s)
     {
-        var baseTex = FindTexture(source, "basecolor", "base_color", "albedo");
+        var baseTex = FindTexture(source, "basecolor", "base_color", "albedo", "_texture");
         if (!baseTex || uv == null || uv.Length != v.Length) return null;
         var img = new Texture2D(2, 2);
         img.LoadImage(System.IO.File.ReadAllBytes(AssetDatabase.GetAssetPath(baseTex)));
@@ -279,7 +370,12 @@ public static class CreatureRigBuilder
         Color hairCol = Color.black; int c = 0;
         float crownY = sh.earBaseY - 0.04f * s.height;
         for (int i = 0; i < n; i++)
-            if (v[i].y > crownY && v[i].y < sh.earBaseY + 0.01f * s.height && Mathf.Abs(v[i].x) < sh.earX * 0.5f) { hairCol += col[i]; c++; }
+        {
+            bool crown = s.hairSampleY > 0f
+                ? Mathf.Abs(v[i].y - s.hairSampleY) < 0.015f * s.height && Mathf.Abs(v[i].x) < 0.04f * s.height
+                : v[i].y > crownY && v[i].y < sh.earBaseY + 0.01f * s.height && Mathf.Abs(v[i].x) < sh.earX * 0.5f;
+            if (crown) { hairCol += col[i]; c++; }
+        }
         Object.DestroyImmediate(img);
         if (c == 0) return null;
         hairCol /= c;
@@ -317,23 +413,25 @@ public static class CreatureRigBuilder
         return null;
     }
 
-    static BoneWeight[] ComputeWeights(Vector3[] v, Shape sh, Vector3[] p, float H, bool[] hair, int[][] adj)
+    static BoneWeight[] ComputeWeights(Vector3[] v, Shape sh, Vector3[] p, Settings s, bool[] hair, int[][] adj, int boneCount)
     {
         int n = v.Length;
+        float H = s.height;
         var raw = new float[n][];
-        var w = new float[(int)B.Count];
+        var w = new float[boneCount];
         float bw = 0.03f * H;
-        float armLen = sh.maxX - sh.shoulderX;
+        float armLen = sh.armLen;
         for (int i = 0; i < n; i++)
         {
             System.Array.Clear(w, 0, w.Length);
             Vector3 q = v[i];
             float ax = Mathf.Abs(q.x);
             int side = q.x >= 0f ? 0 : 1;
+            ArmCoord(sh, q, out float along, out float perp);
 
-            // 팔 (팔 높이·앞뒤 범위 안 + 어깨 바깥)
-            float arm = Smooth(sh.shoulderX - bw, sh.shoulderX + bw, ax)
-                        * (1f - Smooth(sh.armR * 1.6f, sh.armR * 1.6f + bw, Mathf.Abs(q.y - sh.armY)))
+            // 팔 (팔 축 주변·앞뒤 범위 안 + 어깨 바깥). T자면 along = |x|-어깨, perp = y-팔높이
+            float arm = Smooth(-bw, bw, along)
+                        * (1f - Smooth(sh.armR * 1.6f, sh.armR * 1.6f + bw, Mathf.Abs(perp)))
                         * (1f - Smooth(sh.armRz * 1.6f, sh.armRz * 1.6f + bw, Mathf.Abs(q.z - sh.armZ)));
             // 다리 (가랑이 아래 + 다리 폭/앞뒤 범위 안)
             float leg = (1f - Smooth(sh.crotchY - bw, sh.crotchY + bw, q.y))
@@ -341,7 +439,7 @@ public static class CreatureRigBuilder
                         * (1f - Smooth(sh.legRz * 1.3f, sh.legRz * 1.3f + bw, Mathf.Abs(q.z - sh.legZ)));
             // 머리카락은 팔다리를 따라가지 않음. 단, 손/소매 끝(피부색이 머리색과 비슷할 수 있음)은 제외:
             // 팔 위쪽·뒤쪽에 있고 손 쪽 40% 구간이 아닌 정점만 머리카락으로 취급
-            if (hair != null && hair[i] && ax < sh.shoulderX + armLen * 0.6f && (q.y > sh.armY || q.z < sh.armZ - sh.armRz))
+            if (hair != null && hair[i] && along < armLen * 0.6f && (perp > 0f || q.z < sh.armZ - sh.armRz))
             { arm = 0f; leg = 0f; }
             // 머리 (목 위, 팔 제외)
             float head = Smooth(sh.neckY - bw, sh.neckY + bw, q.y) * (1f - arm);
@@ -350,7 +448,7 @@ public static class CreatureRigBuilder
 
             if (arm > 0f)
             {
-                float t = Mathf.Clamp01((ax - sh.shoulderX) / armLen);
+                float t = Mathf.Clamp01(along / armLen);
                 int ua = side == 0 ? (int)B.UpperArmL : (int)B.UpperArmR;
                 Chain3(w, ua, ua + 1, ua + 2, t, 0.45f, 0.75f, 0.08f, arm);
             }
@@ -375,6 +473,16 @@ public static class CreatureRigBuilder
                 else if (y <= h2) { float k = (y - h1) / (h2 - h1); w[(int)B.Spine] += torso * (1f - k); w[(int)B.Chest] += torso * k; }
                 else w[(int)B.Chest] += torso;
             }
+            // 날개: 등 뒤·뿌리 바깥 정점을 날개 뼈로 (머리카락 제외, 뿌리는 혼합 폭만큼 가슴과 섞임)
+            if (s.wings && !(hair != null && hair[i]))
+            {
+                float wing = WingWeight(q, s);
+                if (wing > 0f)
+                {
+                    for (int b = 0; b < BodyBones; b++) w[b] *= 1f - wing;
+                    w[side == 0 ? (int)B.WingL : (int)B.WingR] += wing;
+                }
+            }
             raw[i] = (float[])w.Clone();
         }
         // 이웃 정점과 가중치를 섞어 튀는 정점(가시)과 관절 꺾임을 부드럽게
@@ -385,7 +493,7 @@ public static class CreatureRigBuilder
     }
 
     /// <summary>정점 이웃 (UV 이음새로 갈라진 같은 위치의 정점은 하나로 묶음).</summary>
-    static int[][] Adjacency(Vector3[] v, int[] tris)
+    internal static int[][] Adjacency(Vector3[] v, int[] tris)
     {
         int n = v.Length;
         // 같은 위치 정점 묶기
@@ -440,7 +548,7 @@ public static class CreatureRigBuilder
         }
     }
 
-    static void SmoothWeights(float[][] w, int[][] adj, int iterations)
+    internal static void SmoothWeights(float[][] w, int[][] adj, int iterations)
     {
         int n = w.Length, bc = w[0].Length;
         var next = new float[n][];
@@ -503,16 +611,16 @@ public static class CreatureRigBuilder
         const int keys = 25;
         var rot = new Dictionary<int, Keyframe[][]>();
         var hipY = new Keyframe[keys];
-        for (int b = 0; b < (int)B.Count; b++) rot[b] = new[] { new Keyframe[keys], new Keyframe[keys], new Keyframe[keys], new Keyframe[keys] };
+        for (int b = 0; b < BodyBones; b++) rot[b] = new[] { new Keyframe[keys], new Keyframe[keys], new Keyframe[keys], new Keyframe[keys] };
 
         for (int k = 0; k < keys; k++)
         {
             float t = k / (float)(keys - 1);
             float time = t * len;
             float ph = t * Mathf.PI * 2f;
-            var e = new Vector3[(int)B.Count]; // 오일러 (도)
+            var e = new Vector3[BodyBones]; // 오일러 (도)
             float bob;
-            float down = s.armDown;
+            float down = s.armDown - Mathf.Atan2(-sh.armDir.y, sh.armDir.x) * Mathf.Rad2Deg; // 이미 내려간 팔(A자)은 그만큼 덜 내림
             if (walk)
             {
                 float sw = Mathf.Sin(ph);
@@ -554,7 +662,7 @@ public static class CreatureRigBuilder
                 e[(int)B.EarR] = new Vector3(-4f * flick, 0f, 3f);
                 bob = -0.006f * s.height * (0.5f + 0.5f * br);
             }
-            for (int b = 0; b < (int)B.Count; b++)
+            for (int b = 0; b < BodyBones; b++)
             {
                 var q = Quaternion.Euler(e[b]);
                 rot[b][0][k] = new Keyframe(time, q.x); rot[b][1][k] = new Keyframe(time, q.y);
@@ -563,7 +671,7 @@ public static class CreatureRigBuilder
             hipY[k] = new Keyframe(time, p[(int)B.Hips].y + bob);
         }
 
-        for (int b = 0; b < (int)B.Count; b++)
+        for (int b = 0; b < BodyBones; b++)
         {
             string bp = BonePath(b);
             string[] comp = { "localRotation.x", "localRotation.y", "localRotation.z", "localRotation.w" };
@@ -580,7 +688,7 @@ public static class CreatureRigBuilder
         return SaveAsset(clip, path);
     }
 
-    static AnimationCurve Smoothed(Keyframe[] k)
+    internal static AnimationCurve Smoothed(Keyframe[] k)
     {
         var c = new AnimationCurve(k);
         for (int i = 0; i < k.Length; i++) c.SmoothTangents(i, 0f);
@@ -618,7 +726,7 @@ public static class CreatureRigBuilder
         {
             string tp = AssetDatabase.GUIDToAssetPath(guid);
             string f = System.IO.Path.GetFileName(tp).ToLowerInvariant();
-            if (f.Contains("basecolor") || f.Contains("base_color") || f.Contains("albedo")) baseTex = AssetDatabase.LoadAssetAtPath<Texture2D>(tp);
+            if (f.Contains("basecolor") || f.Contains("base_color") || f.Contains("albedo") || (!baseTex && f.EndsWith("_texture.png"))) baseTex = AssetDatabase.LoadAssetAtPath<Texture2D>(tp);
             else if (f.Contains("normal")) normalTex = AssetDatabase.LoadAssetAtPath<Texture2D>(tp);
         }
         var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
@@ -667,7 +775,7 @@ public static class CreatureRigBuilder
         Object.DestroyImmediate(go); Object.DestroyImmediate(camGo); Object.DestroyImmediate(lightGo); rt.Release();
     }
 
-    static T SaveAsset<T>(T obj, string path) where T : Object
+    internal static T SaveAsset<T>(T obj, string path) where T : Object
     {
         var existing = AssetDatabase.LoadAssetAtPath<T>(path);
         if (existing)
@@ -680,7 +788,7 @@ public static class CreatureRigBuilder
         return obj;
     }
 
-    static void EnsureFolder(string path)
+    internal static void EnsureFolder(string path)
     {
         string[] parts = path.Split('/');
         string cur = parts[0];

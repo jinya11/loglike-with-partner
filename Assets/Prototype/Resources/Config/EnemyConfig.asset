@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1776d203790fb3a4f8b9da8f1a6a5ef5, type: 3}
   m_Name: EnemyConfig
   m_EditorClassIdentifier: Assembly-CSharp::EnemyConfig
-  enemyHp: 10
+  enemyHp: 20
   enemyHpPerStage: 6
+  enemyHpGrowthPerStage: 0.15
   enemySpeed: 2.6
   enemySpeedPerStage: 0.2
   enemyDamage: 8

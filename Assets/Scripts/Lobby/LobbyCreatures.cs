@@ -52,7 +52,9 @@ public class CreaturePick : Interactable
     CreatureDef Def => GameManager.I.Config.ward.creatures[index];
     public bool Selected => GameManager.I.CreatureIndexEffective == index;
 
-    public override string Prompt => Selected ? $"[F] {Def.name}  <color=#9fe8a0>(함께 출발)</color>" : $"[F] {Def.name}와 이야기하기";
+    public override string Prompt =>
+        !SaveData.IsCreatureUnlocked(Def) ? $"[F] {Def.name}  <color=#b0a8b8>(잠김)</color>"
+        : Selected ? $"[F] {Def.name}  <color=#9fe8a0>(함께 출발)</color>" : $"[F] {Def.name}와 이야기하기";
 
     public override void Interact() => CreatureSelectUI.Open(index);
 }

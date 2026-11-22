@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74cf91e9f2b3cc44f8f3b4fa70a1eb6a, type: 3}
+  m_Name: MainMenuConfig
+  m_EditorClassIdentifier: Assembly-CSharp::MainMenuConfig
+  mainMenuScene: MainMenu
+  fadeTime: 0.6
+  bgmVolume: 0.6
+  newGamePrompt: "\uC800\uC7A5\uB41C \uC9C4\uD589\uC744 \uC9C0\uC6B0\uACE0 \uC0C8\uB85C
+    \uC2DC\uC791\uD560\uAE4C\uC694?"
+  returnToBasePrompt: "\uAC70\uC810\uC73C\uB85C \uB3CC\uC544\uAC00\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?"
+  returnToTitlePrompt: "\uD0C0\uC774\uD2C0\uB85C \uB3CC\uC544\uAC00\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?"
+  confirmPrefab: {fileID: 1614817963073126086, guid: 0ac85249c8137bc4f94385b2c2b6d7cb, type: 3}
+  escInLobbyToTitle: 1

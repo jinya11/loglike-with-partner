@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 804449268e9fa1441acacf4f63574932, type: 3}
+  m_Name: Bird_Feather
+  m_EditorClassIdentifier: Assembly-CSharp::FeatherAttack
+  displayName: "\uAE43\uD138 \uB358\uC9C0\uAE30"
+  description: "\uC801 \uBC29\uD5A5\uC73C\uB85C \uC606\uC73C\uB85C \uD718\uBA70 \uB0A0\uC544\uAC00\uB294
+    \uAE43\uD138"
+  handHeight: 0.8
+  speedMul: 0.8
+  damageMul: 1
+  curve: 0.6

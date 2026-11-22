@@ -90,10 +90,10 @@ public class StageDirector : Singleton<StageDirector>
         gameObject.AddComponent<BombardSkill>();
         SkillSelectUI.HotkeyEnabled = false; // 인게임에서는 스킬 교체 불가 (보너스 스테이지 장착대만)
         gameObject.AddComponent<WatcherSkills>(); // 감시자 스킬 (장착 2칸, 키 1/2, 코스트)
-        new GameObject("SkillHud").AddComponent<SkillHud>().transform.SetParent(transform, false);
+        if (cfg.stage.skillHudPrefab) Instantiate(cfg.stage.skillHudPrefab, transform);
         if (gm.InBonus) SkillStation.Spawn(new Vector3(3f, 0f, 1.5f)); // 보너스 스테이지에서만 스킬 교체 가능
         gameObject.AddComponent<Vfx>();
-        new GameObject("CommandHud", typeof(RectTransform)).AddComponent<CommandHud>().transform.SetParent(transform, false);
+        if (cfg.stage.commandHudPrefab) Instantiate(cfg.stage.commandHudPrefab, transform);
         if (Hud.I == null && cfg.stage.hudPrefab) Instantiate(cfg.stage.hudPrefab); // 첫 스테이지에서 한 번만 (이후 유지)
         if (cfg.ward.wardPrefab) Instantiate(cfg.ward.wardPrefab, new Vector3(0f, 0f, -1.8f), Quaternion.identity);
 
@@ -365,7 +365,7 @@ public class StageDirector : Singleton<StageDirector>
             if (sq >= cfg.variant.portalSpacing * cfg.variant.portalSpacing) { at = p; bestSq = sq; break; }
             if (sq > bestSq) { bestSq = sq; at = p; }
         }
-        var go = Instantiate(cfg.stage.portalPrefab, at, Quaternion.identity, transform);
+        var go = Instantiate(cfg.stage.portalPrefab, at, Quaternion.identity, transform); SfxManager.Play(SfxManager.S.portalAppear, at);
         go.name = "VariantPortal_" + v.id;
         foreach (var sp in go.GetComponentsInChildren<StagePortal>()) DestroyImmediate(sp); // 일반 포털 동작 제거
         variantPortalComp = go.AddComponent<VariantPortal>();
@@ -709,7 +709,7 @@ public class StageDirector : Singleton<StageDirector>
         PortalOpen = true;
         Vector3 at = PortalSpot();
         portal = Instantiate(cfg.stage.portalPrefab, at, Quaternion.identity, transform).transform;
-        Vfx.Pillar(at, new Color(0.6f, 0.4f, 1f));
+        Vfx.Pillar(at, new Color(0.6f, 0.4f, 1f)); SfxManager.Play(SfxManager.S.portalAppear);
         // 남은 적은 플레이어에게서 도망 (Enemy.Routed, 공격하지 않음. 처치는 가능). 생명체가 포털에 도착하면 다음 스테이지 (Ward 참고)
         Enemy.Routed = true;
         Enemy.RoutSpeedMul = cfg.stage.routSpeedMul;
@@ -781,15 +781,15 @@ public class StageDirector : Singleton<StageDirector>
     }
 
     /// <summary>포물선으로 던지기 (생명체 공격). prefab이 없으면 기본 탄환으로 대신 쏨.</summary>
-    public void Throw(ThrownProjectile prefab, Vector3 from, Vector3 to, float time, float arc, float dmg, float radius, Color c)
+    public ThrownProjectile Throw(ThrownProjectile prefab, Vector3 from, Vector3 to, float time, float arc, float dmg, float radius, Color c)
     {
-        if (!prefab) { Vector3 d = to - from; d.y = 0f; FireProjectile(from, d.normalized, d.magnitude / Mathf.Max(0.05f, time), dmg); return; }
+        if (!prefab) { Vector3 d = to - from; d.y = 0f; FireProjectile(from, d.normalized, d.magnitude / Mathf.Max(0.05f, time), dmg); return null; }
         if (!thrownPools.TryGetValue(prefab, out var pool)) thrownPools[prefab] = pool = new Pool<ThrownProjectile>(prefab, transform, 16);
-        pool.Get(from, Quaternion.identity).Init(from, to, time, arc, dmg, radius, c);
+        var tp = pool.Get(from, Quaternion.identity); tp.Init(from, to, time, arc, dmg, radius, c); return tp;
     }
 
-    public void FireProjectile(Vector3 pos, Vector3 dir, float speed, float dmg)
-        => projectiles.Get(pos, Quaternion.LookRotation(dir)).Init(dir, speed, dmg);
+    public Projectile FireProjectile(Vector3 pos, Vector3 dir, float speed, float dmg)
+    { var p = projectiles.Get(pos, Quaternion.LookRotation(dir)); p.Init(dir, speed, dmg); return p; }
 
     public void SpawnFx(Vector3 pos, Vector3 fromScale, Vector3 toScale, float dur, Color c)
         => fx.Get(pos, Quaternion.identity).Play(fromScale, toScale, dur, c);

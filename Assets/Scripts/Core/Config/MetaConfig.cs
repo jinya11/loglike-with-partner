@@ -9,9 +9,21 @@ public class MetaConfig : ScriptableObject
     public ResourcePickup resourcePickupPrefab;
     public BaseUpgradeDef[] baseUpgrades;
 
+    [Header("교환소 (거점 재화 → 성장의 씨앗)")]
+    [Tooltip("재화 종류별 교환 비율: amount개 → 씨앗 1개")] public ExchangeRate[] exchangeRates;
+    [Tooltip("교환 창 프리팹 (로비 교환소에서 F)")] public ExchangeUI exchangePrefab;
+
     public ResourceDef Resource(ResourceType t)
     {
         if (resources != null) foreach (var r in resources) if (r.type == t) return r;
         return null;
     }
+}
+
+/// <summary>교환소 한 줄: 재화 amount개 → 성장의 씨앗 1개.</summary>
+[System.Serializable]
+public class ExchangeRate
+{
+    public ResourceType from;
+    [Min(1)] public int amount = 3;
 }

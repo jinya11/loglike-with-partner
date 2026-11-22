@@ -109,7 +109,7 @@ public class EnemyDef
 }
 
 /// <summary>스테이지(맵)마다 나오는 자원. 런이 끝나도 유지되며 거점 성장/감시자 해금에 사용.</summary>
-public enum ResourceType { None, AncientStone, FrostCrystal, RiverPebble, MagmaStone, SugarCrystal }
+public enum ResourceType { None, AncientStone, FrostCrystal, RiverPebble, MagmaStone, SugarCrystal, GrowthSeed /* 생명체 성장 재화 */ }
 
 [Serializable]
 public class ResourceDef

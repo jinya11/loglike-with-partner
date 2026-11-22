@@ -61,6 +61,7 @@ public static partial class PrototypeBuilder
         // 씬을 여러 번 열면서 설정 에셋이 언로드될 수 있어 다시 불러옴
         cfg = AssetDatabase.LoadAssetAtPath<GameConfig>(Root + "/Resources/GameConfig.asset");
         var st = cfg.stage;
+        foreach (var d in defs) d.mapArt = OldMapArt(st, d.scene); // 지역 그림은 유지
         st.centerRegion = defs[0];
         st.regionPool = defs.GetRange(1, defs.Count - 1).ToArray();
         st.stageScenes = System.Array.ConvertAll(st.regionPool, r => r.scene); // 지역을 고르지 않고 출발할 때의 대체 목록
@@ -422,60 +423,5 @@ public static partial class PrototypeBuilder
         m.SetColor("_EdgeColor", t.border * 1.6f);
         EditorUtility.SetDirty(m);
         return m;
-    }
-
-    // =====================================================================
-    // 로비 지역 지도 UI (3x3)
-    // =====================================================================
-    static GameObject BuildRegionSelectHud()
-    {
-        var canvas = NewCanvas("HUD_RegionSelect");
-        canvas.GetComponent<Canvas>().sortingOrder = 10;
-        var panel = Stretch("RegionPanel", canvas.transform); Img(panel, Panel);
-        var line = UI("TopLine", panel, TC, TC, new Vector2(0, -50), new Vector2(1500, 3)); Img(line, Gold);
-        Txt("Title", panel, "지역 지도", 62, TextAlignmentOptions.Center, Gold, TC, TC, new Vector2(0, -105), new Vector2(1200, 80));
-        Txt("Subtitle", panel, "텔레포트할 지역을 고르세요. 중앙은 하늘섬 바로 밑, 바깥 지역은 로비로 돌아올 때마다 바뀝니다.", 22, TextAlignmentOptions.Center, Soft, TC, TC, new Vector2(0, -160), new Vector2(1500, 40));
-
-        var grid = UI("Grid", panel, C, C, new Vector2(0, -10), new Vector2(900, 600));
-        int n = RegionSelectUI.GridNumbers.Length;
-        var cells = new Button[n]; var names = new TMP_Text[n]; var descs = new TMP_Text[n];
-        var bgs = new Image[n]; var borders = new Image[n];
-        for (int i = 0; i < n; i++)
-        {
-            int num = RegionSelectUI.GridNumbers[i];
-            var pos = new Vector2(((i % 3) - 1) * 300f, 195f - (i / 3) * 195f);
-            var cell = UI($"Cell_{num}", grid, C, C, pos, new Vector2(284, 180));
-            borders[i] = Img(cell, new Color(0.3f, 0.29f, 0.34f));
-            var bgRt = Stretch("Background", cell); bgRt.offsetMin = new Vector2(4, 4); bgRt.offsetMax = new Vector2(-4, -4);
-            bgs[i] = Img(bgRt, new Color(0.16f, 0.15f, 0.18f));
-            var shade = Stretch("Shade", bgRt); shade.offsetMax = new Vector2(0, -90); Img(shade, new Color(0, 0, 0, 0.55f)).raycastTarget = false;
-            names[i] = Txt("Name", cell, $"{num}. 지역", 30, TextAlignmentOptions.TopLeft, Color.white, TL, TL, new Vector2(18, -16), new Vector2(250, 44), TL);
-            descs[i] = Txt("Desc", cell, "", 19, TextAlignmentOptions.BottomLeft, Soft, Vector2.zero, Vector2.one, new Vector2(0, 0), new Vector2(-32, -24), null, false);
-            cells[i] = cell.gameObject.AddComponent<Button>(); cells[i].targetGraphic = bgs[i];
-            var cb = cells[i].colors; cb.highlightedColor = new Color(1.25f, 1.25f, 1.25f); cb.disabledColor = new Color(0.4f, 0.4f, 0.4f); cells[i].colors = cb;
-        }
-
-        var selected = Txt("SelectedText", panel, "지역을 고르세요", 28, TextAlignmentOptions.Center, Gold, BC, BC, new Vector2(0, 160), new Vector2(1000, 44));
-        var start = UI("StartButton", panel, BC, BC, new Vector2(-170, 80), new Vector2(300, 64));
-        var startBtn = start.gameObject.AddComponent<Button>(); startBtn.targetGraphic = Img(start, new Color(0.55f, 0.42f, 0.2f));
-        Txt("Label", start, "출발 (F / Enter)", 24, TextAlignmentOptions.Center, Color.white, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-        var close = UI("CloseButton", panel, BC, BC, new Vector2(170, 80), new Vector2(300, 64));
-        var closeBtn = close.gameObject.AddComponent<Button>(); closeBtn.targetGraphic = Img(close, new Color(0.25f, 0.23f, 0.28f));
-        Txt("Label", close, "닫기 (Esc)", 24, TextAlignmentOptions.Center, Color.white, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-        Txt("KeyHint", panel, "숫자 키 1~9로도 고를 수 있어요", 18, TextAlignmentOptions.Center, Soft, BC, BC, new Vector2(0, 30), new Vector2(800, 30), null, false);
-
-        var ui = canvas.AddComponent<RegionSelectUI>();
-        var so = new SerializedObject(ui);
-        so.FindProperty("panel").objectReferenceValue = panel.gameObject;
-        SetArray(so.FindProperty("cells"), cells);
-        SetArray(so.FindProperty("cellNames"), names);
-        SetArray(so.FindProperty("cellDescs"), descs);
-        SetArray(so.FindProperty("cellBackgrounds"), bgs);
-        SetArray(so.FindProperty("cellBorders"), borders);
-        so.FindProperty("selectedText").objectReferenceValue = selected;
-        so.FindProperty("startButton").objectReferenceValue = startBtn;
-        so.FindProperty("closeButton").objectReferenceValue = closeBtn;
-        so.ApplyModifiedPropertiesWithoutUndo();
-        return Save(canvas, "UI/HUD_RegionSelect");
     }
 }

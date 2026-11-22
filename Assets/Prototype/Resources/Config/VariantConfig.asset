@@ -240,7 +240,7 @@ MonoBehaviour:
     outerBand: 8
     bandJitter: 2
     randomVanish: 1
-    vanishRatio: 0.45
+    vanishRatio: 0.3
     edgeBias: 2
     vanishAt: 0
     highHold: 16

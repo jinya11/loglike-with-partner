@@ -1,14 +1,14 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 /// <summary>
-/// 감시자 스킬 장착 창 (화면 오른쪽). 로비에서 WatcherSkillConfig.menuKey(기본 U)로 열고 닫음. 보너스 스테이지(설탕 집)에서는 스킬 장착대(SkillStation, F)로 엶.
-/// 스킬 칸을 클릭하면 장착: 빈 칸이 있으면 거기에, 2칸이 다 찼으면 먼저 장착한 것을 빼고 새 것을. 장착한 스킬을 다시 클릭하면 해제.
-/// 해금된 스킬만 고를 수 있음 (해금 조건 로직은 아직 없음 — 표의 6개는 기본 해금). 설명은 한 줄.
+/// 감시자 스킬 장착 창. 로비에서 WatcherSkillConfig.menuKey(기본 U) 또는 오른쪽 위 책 버튼으로 열고 닫음. 보너스 스테이지(설탕 집)에서는 스킬 장착대(SkillStation, F)로 엶.
+/// 왼쪽: 분류(유도/폭격/방어)별 스킬 카드. 카드 클릭 = 선택(아래 설명 + 장착하기 버튼), 더블클릭 = 바로 장착/해제.
+/// 오른쪽: 장착 칸 2개. 칸 클릭 = 그 스킬 선택, 더블클릭 = 해제.
+/// 장착 규칙: 빈 칸이 있으면 거기에, 다 찼으면 1번 칸을 빼고 한 칸씩 당긴 뒤 마지막 칸에. 같은 분류는 함께 장착 불가.
+/// 프리팹 HUD_SkillSelect (StageConfig.skillSelectPrefab, 메뉴 Roguelike/Build Skill Window). 카드·분류 묶음은 템플릿 복제.
 /// </summary>
 public class SkillSelectUI : MonoBehaviour
 {
@@ -17,68 +17,103 @@ public class SkillSelectUI : MonoBehaviour
     public static bool HotkeyEnabled;
     public static bool IsOpen => inst && inst.panel && inst.panel.activeSelf;
 
-    GameObject panel;
-    class Row { public WatcherSkillDef def; public Image back; public TMP_Text badge; }
-    Row[] rows;
+    [SerializeField] GameObject panel;
+    [Tooltip("분류 묶음 원본 (꺼 둠): 자식 Header(TMP), Cards(카드가 들어갈 곳)")]
+    [SerializeField] RectTransform groupTemplate;
+    [Tooltip("스킬 카드 원본 (꺼 둠)")]
+    [SerializeField] SkillSelectRow cardTemplate;
+    [Tooltip("장착 칸 (칸 수만큼)")]
+    [SerializeField] SkillSelectRow[] slots;
+    [Tooltip("오른쪽 위 책 아이콘 버튼 (클릭 = 메뉴 키와 같음)")]
+    [SerializeField] Button bookButton;
+    [SerializeField] Button closeButton;
 
-    public static void Ensure() { if (!inst) inst = new GameObject("SkillSelectUI").AddComponent<SkillSelectUI>(); }
-    public static void Toggle() { Ensure(); inst.SetOpen(!IsOpen); }
+    [Header("설명")]
+    [SerializeField] GameObject descRoot;
+    [SerializeField] TMP_Text descName;
+    [Tooltip("서식: {0}=분류 {1}=코스트 {2}=재사용 대기(초)")]
+    [SerializeField] TMP_Text descInfo;
+    [SerializeField] TMP_Text descLine;
+    [SerializeField] Button equipButton;
+    [SerializeField] TMP_Text equipLabel;
+    [SerializeField] string equipText = "장착하기", unequipText = "해제하기", lockedText = "잠김", categoryText = "같은 분류 장착 중";
 
-    void Awake() => Build();
-    void OnDestroy() { if (inst == this) { inst = null; if (GameManager.I) GameManager.I.InputLocked = false; } }
+    [Header("색")]
+    [SerializeField] Color cardIdle = new Color(1f, 0.96f, 0.88f), cardEquipped = new Color(1f, 0.85f, 0.55f), cardLocked = new Color(0.72f, 0.68f, 0.64f), cardBlocked = new Color(0.86f, 0.82f, 0.76f);
+    [SerializeField] Color slotEmpty = new Color(0.9f, 0.84f, 0.74f), slotFilled = new Color(1f, 0.85f, 0.55f);
 
-    void Build()
+    SkillSelectRow[] cards;
+    string infoFmt;
+    int selected = -1; // 선택한 스킬 (WatcherSkillType), -1 = 없음
+
+    WatcherSkillConfig Cfg => GameManager.I.Config.skills;
+
+    public static void Ensure()
     {
-        var canvas = gameObject.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 21;
-        var cs = gameObject.AddComponent<CanvasScaler>();
-        cs.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; cs.referenceResolution = new Vector2(1920, 1080); cs.matchWidthOrHeight = 0.5f;
-        gameObject.AddComponent<GraphicRaycaster>();
-        if (EventSystem.current == null) new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+        if (inst) return;
+        var prefab = GameManager.I ? GameManager.I.Config.stage.skillSelectPrefab : null;
+        if (!prefab) { Debug.LogWarning("StageConfig.skillSelectPrefab 이 비어 있음"); return; }
+        Instantiate(prefab);
+    }
+    public static void Toggle() { Ensure(); if (inst) inst.SetOpen(!IsOpen); }
 
+    void Awake()
+    {
+        inst = this;
+        UiText.EnsureEventSystem();
         SaveData.EnsureSkillLoadout();
-        GameManager.I.Config.skills.SanitizeLoadout(); // 예전에 저장된 같은 분류 2개 정리
-        var cfg = GameManager.I.Config.skills;
-        int n = cfg.skills.Length;
-        float rowH = 74f, h = 70f + n * (rowH + 8f);
-        var p = UiKit.Rect("Panel", transform, new Vector2(1f, 0.5f), new Vector2(-24f, 0f), new Vector2(460f, h));
-        p.pivot = new Vector2(1f, 0.5f);
-        UiKit.Image(p, UiKit.Square, new Color(0.07f, 0.065f, 0.08f, 0.92f));
-        panel = p.gameObject;
-        UiKit.Text(p, "Title", 28, new Color(0.95f, 0.8f, 0.5f), new Vector2(0.5f, 1f), new Vector2(0f, -14f), new Vector2(420f, 40f)).text = "감시자 스킬";
-        rows = new Row[n];
-        for (int i = 0; i < n; i++)
+        Cfg.SanitizeLoadout(); // 예전에 저장된 같은 분류 2개 정리
+        infoFmt = descInfo ? descInfo.text : "";
+        BuildCards();
+        for (int i = 0; i < slots.Length; i++)
         {
-            var d = cfg.skills[i];
-            var r = UiKit.Rect("Skill_" + d.type, p, new Vector2(0.5f, 1f), new Vector2(0f, -64f - i * (rowH + 8f)), new Vector2(430f, rowH));
-            var back = UiKit.Image(r, UiKit.Square, new Color(0.16f, 0.15f, 0.19f));
-            back.raycastTarget = true;
-            var btn = r.gameObject.AddComponent<Button>();
-            var t = d.type; btn.onClick.AddListener(() => Pick(t));
-            var title = UiKit.Text(r, "Name", 24, Color.white, new Vector2(0f, 1f), new Vector2(14f, -6f), new Vector2(300f, 32f));
-            title.alignment = TextAlignmentOptions.Left;
-            title.text = $"{d.name}  <size=18><color=#B8B2C8>{d.category} · 코스트 {d.cost} · {d.cooldown:0.#}초</color></size>";
-            var line = UiKit.Text(r, "Line", 17, new Color(0.82f, 0.8f, 0.86f), new Vector2(0f, 0f), new Vector2(14f, 8f), new Vector2(360f, 26f));
-            line.alignment = TextAlignmentOptions.Left; line.fontStyle = FontStyles.Normal;
-            line.text = d.oneLine;
-            var badge = UiKit.Text(r, "Slot", 30, new Color(1f, 0.85f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-14f, 0f), new Vector2(48f, 48f));
-            badge.rectTransform.pivot = new Vector2(1f, 0.5f);
-            rows[i] = new Row { def = d, back = back, badge = badge };
+            int k = i;
+            slots[i].button.onClick.AddListener(() => { int s = SaveData.EquippedSkill(k); if (s >= 0) Select(s); });
+            slots[i].onDoubleClick = () => { int s = SaveData.EquippedSkill(k); if (s >= 0) Toggle((WatcherSkillType)s); };
         }
+        if (equipButton) equipButton.onClick.AddListener(() => { if (selected >= 0) Toggle((WatcherSkillType)selected); });
+        if (bookButton) bookButton.onClick.AddListener(() => SetOpen(!IsOpen));
+        if (closeButton) closeButton.onClick.AddListener(() => SetOpen(false));
         panel.SetActive(false);
         Refresh();
+    }
 
-        // 오른쪽 위 책 아이콘 버튼 (클릭 = 메뉴 키와 같음) + 아래 이름표
-        var icon = Resources.Load<Sprite>("UI/SkillBook");
-        var ib = UiKit.Rect("SkillBookButton", transform, new Vector2(1f, 1f), new Vector2(-28f, -24f), new Vector2(96f, 96f));
-        var bg = UiKit.Image(ib, UiKit.RoundedButton, Color.white); // 살구색 둥근 네모 + 진한 갈색 외곽선 (참고 UI 오른쪽 위 아이콘 버튼)
-        bg.raycastTarget = true;
-        var img = UiKit.Image(UiKit.Rect("Icon", ib, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(66f, 66f), true), icon, Color.white);
-        img.preserveAspect = true;
-        ib.gameObject.AddComponent<Button>().onClick.AddListener(() => SetOpen(!IsOpen));
-        var label = UiKit.Text(ib, "Label", 24, new Color(0.29f, 0.18f, 0.13f), new Vector2(0.5f, 0f), new Vector2(0f, -32f), new Vector2(120f, 30f));
-        label.text = "스킬";
-        label.outlineWidth = 0.2f; label.outlineColor = new Color(0.97f, 0.94f, 0.88f);
+    void OnDestroy() { if (inst == this) { inst = null; if (GameManager.I) GameManager.I.InputLocked = false; } }
+
+    /// <summary>분류마다 묶음을 복제하고 그 안에 스킬 카드를 복제.</summary>
+    void BuildCards()
+    {
+        var skills = Cfg.skills;
+        groupTemplate.gameObject.SetActive(false);
+        cardTemplate.gameObject.SetActive(false);
+        cards = new SkillSelectRow[skills.Length];
+        foreach (WatcherSkillCategory cat in System.Enum.GetValues(typeof(WatcherSkillCategory)))
+        {
+            RectTransform group = null;
+            for (int i = 0; i < skills.Length; i++)
+            {
+                var d = skills[i];
+                if (d == null || d.category != cat) continue;
+                if (!group)
+                {
+                    group = Instantiate(groupTemplate, groupTemplate.parent);
+                    group.name = "Group_" + cat;
+                    group.gameObject.SetActive(true);
+                    var h = group.Find("Header")?.GetComponent<TMP_Text>();
+                    if (h) h.text = cat.ToString();
+                }
+                var c = Instantiate(cardTemplate, group.Find("Cards"));
+                c.name = "Skill_" + d.type;
+                c.gameObject.SetActive(true);
+                c.def = d;
+                c.title.text = d.name;
+                if (c.line) c.line.text = UiText.Format(c.line.text, d.cost);
+                int t = (int)d.type;
+                c.button.onClick.AddListener(() => Select(t));
+                c.onDoubleClick = () => Toggle((WatcherSkillType)t);
+                cards[i] = c;
+            }
+        }
     }
 
     void SetOpen(bool on)
@@ -89,19 +124,26 @@ public class SkillSelectUI : MonoBehaviour
         if (on) Refresh();
     }
 
-    /// <summary>스킬 칸 클릭: 장착/해제/교체.</summary>
-    void Pick(WatcherSkillType t)
+    void Select(int t) { selected = t; Refresh(); }
+
+    int SlotOf(WatcherSkillType t)
     {
-        var cfg = GameManager.I.Config.skills;
-        var d = cfg.Get(t);
-        if (!SaveData.SkillUnlocked(d)) return;
+        for (int i = 0; i < Cfg.slotCount; i++) if (SaveData.EquippedSkill(i) == (int)t) return i;
+        return -1;
+    }
+
+    /// <summary>장착 / 해제 / 교체.</summary>
+    void Toggle(WatcherSkillType t)
+    {
+        var cfg = Cfg;
+        selected = (int)t;
+        if (!SaveData.SkillUnlocked(cfg.Get(t))) { Refresh(); return; }
         int n = cfg.slotCount;
-        for (int i = 0; i < n; i++)
-            if (SaveData.EquippedSkill(i) == (int)t) { SaveData.SetEquippedSkill(i, -1); Compact(n); Refresh(); return; } // 해제
-        if (cfg.CategoryTaken(t)) return; // 같은 분류는 함께 장착 불가
+        if (SlotOf(t) >= 0) { SaveData.SetEquippedSkill(SlotOf(t), -1); Compact(n); Refresh(); return; } // 해제
+        if (cfg.CategoryTaken(t)) { Refresh(); return; } // 같은 분류는 함께 장착 불가
         for (int i = 0; i < n; i++)
             if (SaveData.EquippedSkill(i) < 0) { SaveData.SetEquippedSkill(i, (int)t); Refresh(); return; } // 빈 칸에
-        // 다 찼으면 먼저 장착한 것(1번 칸)을 빼고 한 칸씩 당긴 뒤 마지막 칸에
+        // 다 찼으면 1번 칸을 빼고 한 칸씩 당긴 뒤 마지막 칸에
         for (int i = 0; i < n - 1; i++) SaveData.SetEquippedSkill(i, SaveData.EquippedSkill(i + 1));
         SaveData.SetEquippedSkill(n - 1, (int)t);
         Refresh();
@@ -116,16 +158,41 @@ public class SkillSelectUI : MonoBehaviour
 
     void Refresh()
     {
-        if (rows == null) return;
-        var cfg = GameManager.I.Config.skills;
-        foreach (var r in rows)
+        if (cards == null) return;
+        var cfg = Cfg;
+        var g = GameManager.I.Creature?.growth; // 선택한 생명체가 추천하는 스킬 분류
+        foreach (var c in cards)
         {
-            int slot = -1;
-            for (int i = 0; i < cfg.slotCount; i++) if (SaveData.EquippedSkill(i) == (int)r.def.type) slot = i;
-            bool unlocked = SaveData.SkillUnlocked(r.def) && (slot >= 0 || !cfg.CategoryTaken(r.def.type)); // 같은 분류가 장착돼 있으면 흐리게
-            r.badge.text = slot >= 0 && slot < cfg.slotKeys.Length ? UiKit.KeyName(cfg.slotKeys[slot]) : "";
-            r.back.color = !unlocked ? new Color(0.1f, 0.1f, 0.11f) : slot >= 0 ? new Color(0.3f, 0.25f, 0.14f) : new Color(0.16f, 0.15f, 0.19f);
+            if (!c) continue;
+            int slot = SlotOf(c.def.type);
+            bool unlocked = SaveData.SkillUnlocked(c.def);
+            bool blocked = slot < 0 && cfg.CategoryTaken(c.def.type);
+            c.background.color = !unlocked ? cardLocked : slot >= 0 ? cardEquipped : blocked ? cardBlocked : cardIdle;
+            if (c.badge) c.badge.text = slot >= 0 && slot < cfg.slotKeys.Length ? UiText.KeyName(cfg.slotKeys[slot]) : "";
+            if (c.lockMark) c.lockMark.SetActive(!unlocked);
+            if (c.selectedMark) c.selectedMark.SetActive((int)c.def.type == selected);
+            if (c.recommend) c.recommend.SetActive(g && g.recommendSkills && c.def.category == g.recommendedCategory);
         }
+        for (int i = 0; i < slots.Length; i++)
+        {
+            int s = i < cfg.slotCount ? SaveData.EquippedSkill(i) : -1;
+            var d = s >= 0 ? cfg.Get((WatcherSkillType)s) : null;
+            var v = slots[i];
+            v.background.color = d != null ? slotFilled : slotEmpty;
+            v.title.text = d != null ? d.name : "";
+            if (v.line) v.line.gameObject.SetActive(d == null);
+            if (v.badge) v.badge.text = i < cfg.slotKeys.Length ? UiText.KeyName(cfg.slotKeys[i]) : "";
+            if (v.selectedMark) v.selectedMark.SetActive(d != null && s == selected);
+        }
+        var sel = selected >= 0 ? cfg.Get((WatcherSkillType)selected) : null;
+        if (descRoot) descRoot.SetActive(sel != null);
+        if (sel == null) return;
+        descName.text = sel.name;
+        descInfo.text = UiText.Format(infoFmt, sel.category, sel.cost, cfg.Cooldown(sel.type));
+        descLine.text = sel.oneLine;
+        bool on = SaveData.SkillUnlocked(sel), eq = SlotOf(sel.type) >= 0, cat = !eq && cfg.CategoryTaken(sel.type);
+        equipButton.interactable = on && !cat;
+        equipLabel.text = !on ? lockedText : eq ? unequipText : cat ? categoryText : equipText;
     }
 
     void Update()
@@ -133,6 +200,6 @@ public class SkillSelectUI : MonoBehaviour
         var kb = Keyboard.current;
         if (kb == null || GameManager.I == null) return;
         if (IsOpen && kb.escapeKey.wasPressedThisFrame) { SetOpen(false); return; }
-        if (kb[GameManager.I.Config.skills.menuKey].wasPressedThisFrame && (HotkeyEnabled || IsOpen)) SetOpen(!IsOpen);
+        if (kb[Cfg.menuKey].wasPressedThisFrame && (HotkeyEnabled || IsOpen)) SetOpen(!IsOpen);
     }
 }

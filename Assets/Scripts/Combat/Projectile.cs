@@ -6,9 +6,12 @@ public class Projectile : Ticked<Projectile>
     Vector3 velocity;
     float damage, life, lift;
 
+    /// <summary>적에게 맞음 (피해 전: 적, 위치, 피해). 마법사 성장 효과용. Init마다 비워짐.</summary>
+    public System.Action<Enemy, Vector3, float> HitEnemy;
+
     public void Init(Vector3 dir, float speed, float damage)
     {
-        velocity = dir * speed; this.damage = damage; life = 1.2f;
+        velocity = dir * speed; this.damage = damage; life = 1.2f; HitEnemy = null;
         lift = transform.position.y - Ground.HeightAt(transform.position); // 지면에서의 높이 유지 (언덕을 따라 날아감)
     }
 
@@ -22,7 +25,8 @@ public class Projectile : Ticked<Projectile>
         {
             if (hits[i].TryGetComponent(out Enemy e) && e.isActiveAndEnabled)
             {
-                e.Hit(damage, pos - velocity);
+                HitEnemy?.Invoke(e, pos, damage);
+                if (e.isActiveAndEnabled) e.Hit(damage, pos - velocity);
                 Despawn();
                 return;
             }

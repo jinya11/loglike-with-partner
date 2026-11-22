@@ -69,6 +69,6 @@ public class WindCompanion : CompanionBase
         }
         stage.RadialForce(target, R * 1.2f, 40f, s.companionDamage * 2f); // 마지막 폭발
         stage.SpawnFx(target + Vector3.up * 0.05f, new Vector3(1f, 0.02f, 1f), new Vector3(D * 1.6f, 0.02f, D * 1.6f), 0.35f, Gust);
-        Vfx.Explosion(target, R, Gust);
+        Vfx.Explosion(target, R, Gust); SfxManager.Play(SfxManager.S.bombardImpact, target);
     }
 }

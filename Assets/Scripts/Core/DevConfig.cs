@@ -15,7 +15,19 @@ public class DevConfig : ScriptableObject
     [Header("감시자 잠금")]
     [Tooltip("모든 감시자를 잠금 해제된 것으로 취급 (저장 데이터는 건드리지 않음)")]
     public bool unlockAllCompanions = false;
-    [Tooltip("unlockAllCompanions를 켜고 끄는 키")] public UnityEngine.InputSystem.Key unlockAllKey = UnityEngine.InputSystem.Key.F2;
+    [Header("생명체 잠금")]
+    [Tooltip("잠긴 생명체를 모두 해금된 것으로 취급 (저장 데이터는 건드리지 않음)")]
+    public bool unlockAllCreatures = false;
+
+    /// <summary>개발자 모드에서 모든 생명체 잠금 해제 중인지.</summary>
+    public static bool UnlockAllCreatures => Enabled && I.unlockAllCreatures;
+    [Header("스킬 전체 해금 (F2)")]
+    [Tooltip("생명체 성장 노드 전부 + 감시자 스킬 전부를 해금된 것으로 취급 (저장 데이터는 건드리지 않음)")]
+    public bool unlockAllSkills = false;
+    [Tooltip("unlockAllSkills를 켜고 끄는 키")] public UnityEngine.InputSystem.Key unlockAllKey = UnityEngine.InputSystem.Key.F2;
+
+    /// <summary>개발자 모드에서 스킬 전체 해금 중인지.</summary>
+    public static bool UnlockAllSkills => Enabled && I.unlockAllSkills;
 
     /// <summary>개발자 모드에서 모든 감시자 잠금 해제 중인지.</summary>
     public static bool UnlockAll => Enabled && I.unlockAllCompanions;

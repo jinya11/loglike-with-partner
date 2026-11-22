@@ -598,6 +598,14 @@ public class Ward : Singleton<Ward>
 
     /// <summary>적이 생명체를 공격하려 할 때 (피해 전). true를 돌려주면 그 공격은 막힘 (감시자 스킬: 패링).</summary>
     public static System.Func<Enemy, float, bool> AttackIntercept;
+    /// <summary>생명체 성장용 피해 무시 (새 소녀 돌진). true면 피해 없음.</summary>
+    public static System.Func<Enemy, float, bool> DodgeIntercept;
+    /// <summary>생명체 성장용 받는 피해 배율 (새 소녀: 빠를수록 피해 감소).</summary>
+    public static System.Func<float, float> DamageScale;
+    /// <summary>실제로 체력이 깎임 (새 소녀 공속 스택 감소).</summary>
+    public static event System.Action<float> Hurt;
+    /// <summary>캐릭터 컨트롤러로 밀어 이동 (돌진 등).</summary>
+    public void Nudge(Vector3 delta) { if (cc && cc.enabled) cc.Move(delta); }
     /// <summary>적의 공격으로 생명체가 실제로 피해를 받음 (감시자 스킬: 가시 반사).</summary>
     public static event System.Action<Enemy, float> HitByEnemy;
 
@@ -606,6 +614,7 @@ public class Ward : Singleton<Ward>
     {
         if (iframe > 0f || !Alive || GameManager.I.State != GameState.Playing) return false;
         if (from != null && AttackIntercept != null && AttackIntercept(from, dmg)) return false;
+        if (from != null && DodgeIntercept != null && DodgeIntercept(from, dmg)) { iframe = HitIFrame; return false; } // 생명체 성장 (새 소녀 돌진)
         float before = stats.wardHp;
         TakeDamage(dmg);
         float taken = before - stats.wardHp;
@@ -619,10 +628,13 @@ public class Ward : Singleton<Ward>
         iframe = HitIFrame;
         if (Shielded) { Vfx.Hit(transform.position + Vector3.up * 0.5f, shieldColor); return; } // 막힘 표시
         if (ability) { dmg = ability.ModifyDamage(dmg); if (dmg <= 0f) return; }
+        if (DamageScale != null) dmg = DamageScale(dmg);
         stats.wardHp -= dmg;
         hurtFlash = 0.15f;
+        SfxManager.Play(SfxManager.Creature?.hurt, transform.position);
         Vfx.Hit(transform.position + Vector3.up * 0.5f, hurtColor);
         if (ability) ability.OnDamaged(dmg);
+        Hurt?.Invoke(dmg);
         if (stats.wardHp <= 0f) Die();
     }
 
@@ -771,6 +783,7 @@ public class Ward : Singleton<Ward>
         if (ability && ability.OnBeforeDeath() && stats.wardHp > 0f) return; // 능력이 사망을 막음 (체력을 되돌려 놔야 함)
         stats.wardHp = 0f;
         Vfx.Death(transform.position, normalColor);
+        SfxManager.Play(SfxManager.Creature?.die, transform.position);
         GameManager.I.GameOver(true);
     }
 

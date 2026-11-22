@@ -1,0 +1,152 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30ae395cb741ac54c88e1636aba9e662, type: 3}
+  m_Name: SfxConfig
+  m_EditorClassIdentifier: Assembly-CSharp::SfxConfig
+  masterVolume: 0.8
+  hearRange: 18
+  creatures:
+  - creature: "\uD1A0\uB07C"
+    attack:
+      clip: {fileID: 0}
+      volume: 0.3
+      cooldown: 0.08
+    impact:
+      clip: {fileID: 8300000, guid: 3a8fa253336386b40a05989d85196fec, type: 3}
+      volume: 0.45
+      cooldown: 0.06
+    skill:
+      clip: {fileID: 8300000, guid: 4d59d431e1408804b86c7866eb803a31, type: 3}
+      volume: 0.7
+      cooldown: 0.04
+    hurt:
+      clip: {fileID: 8300000, guid: aafa27271d83dbf4bb71d30c034bdd63, type: 3}
+      volume: 0.7
+      cooldown: 0.1
+    die:
+      clip: {fileID: 8300000, guid: 521d395e921feb14aaee0394ad6fcd02, type: 3}
+      volume: 0.8
+      cooldown: 0.04
+  - creature: "\uB9C8\uB140"
+    attack:
+      clip: {fileID: 8300000, guid: 7c3e424ada750a440973751891d1fe0d, type: 3}
+      volume: 0.3
+      cooldown: 0.08
+    impact:
+      clip: {fileID: 0}
+      volume: 0.45
+      cooldown: 0.06
+    skill:
+      clip: {fileID: 8300000, guid: 4d59d431e1408804b86c7866eb803a31, type: 3}
+      volume: 0.7
+      cooldown: 0.04
+    hurt:
+      clip: {fileID: 8300000, guid: aafa27271d83dbf4bb71d30c034bdd63, type: 3}
+      volume: 0.7
+      cooldown: 0.1
+    die:
+      clip: {fileID: 8300000, guid: 521d395e921feb14aaee0394ad6fcd02, type: 3}
+      volume: 0.8
+      cooldown: 0.04
+  - creature: "\uC0C8 \uC18C\uB140"
+    attack:
+      clip: {fileID: 8300000, guid: 54026515aa801a0409f2eb045a4a630a, type: 3}
+      volume: 0.3
+      cooldown: 0.08
+    impact:
+      clip: {fileID: 0}
+      volume: 0.45
+      cooldown: 0.06
+    skill:
+      clip: {fileID: 8300000, guid: 4d59d431e1408804b86c7866eb803a31, type: 3}
+      volume: 0.7
+      cooldown: 0.04
+    hurt:
+      clip: {fileID: 8300000, guid: aafa27271d83dbf4bb71d30c034bdd63, type: 3}
+      volume: 0.7
+      cooldown: 0.1
+    die:
+      clip: {fileID: 8300000, guid: 521d395e921feb14aaee0394ad6fcd02, type: 3}
+      volume: 0.8
+      cooldown: 0.04
+  watcherStrike:
+    clip: {fileID: 8300000, guid: b457d86a7b04cc746945a9fed5f65ac7, type: 3}
+    volume: 0.6
+    cooldown: 0.08
+  bombardImpact:
+    clip: {fileID: 8300000, guid: 5da6fab999d194f47b155f31a6cd9b02, type: 3}
+    volume: 0.6
+    cooldown: 0
+  playerHurt:
+    clip: {fileID: 8300000, guid: e110fb6eba58fa84c84acc3cbfe52fa6, type: 3}
+    volume: 0.7
+    cooldown: 0.1
+  enemyHit:
+    clip: {fileID: 8300000, guid: ec89b683ed332a44db4f4de5960a2cf8, type: 3}
+    volume: 0.35
+    cooldown: 0.06
+  enemyDie:
+    clip: {fileID: 8300000, guid: c5e7e38b71978a4498136252486c304f, type: 3}
+    volume: 0.5
+    cooldown: 0.05
+  wind:
+    clip: {fileID: 8300000, guid: 389d47163adf46f4498e0241802c3cb5, type: 3}
+    volume: 0.15
+    cooldown: 0
+  sandstorm:
+    clip: {fileID: 8300000, guid: 8b6fd41ad723c5c4e97e95fb3d5c30ac, type: 3}
+    volume: 0.8
+    cooldown: 0
+  portalAppear:
+    clip: {fileID: 8300000, guid: 60038183874163f43899b6fd82a9c7fc, type: 3}
+    volume: 0.8
+    cooldown: 0.3
+  groundCollapse:
+    clip: {fileID: 8300000, guid: 9e72a2e6f4eb1864a8878d234c69646d, type: 3}
+    volume: 0.7
+    cooldown: 0.5
+  iceCrack:
+    clip: {fileID: 8300000, guid: 31d4acb5b52f296479d9462686321ebb, type: 3}
+    volume: 0.6
+    cooldown: 0.15
+  iceBreak:
+    clip: {fileID: 8300000, guid: 92241ffcd98c6ed489cc97f2fd7c783b, type: 3}
+    volume: 0.7
+    cooldown: 0.1
+  xpPickup:
+    clip: {fileID: 8300000, guid: 1361519b883785a4eb3ca5ef93c7ea57, type: 3}
+    volume: 0.3
+    cooldown: 0.05
+  levelUp:
+    clip: {fileID: 8300000, guid: 0dbd8a7516770754490960c4c9cf08df, type: 3}
+    volume: 0.8
+    cooldown: 0.3
+  resourcePickup:
+    clip: {fileID: 8300000, guid: added8230e56bba47b6f38f05a78a70e, type: 3}
+    volume: 0.7
+    cooldown: 0.05
+  uiClick:
+    clip: {fileID: 8300000, guid: 01033b53a1b7e2b4d888306d0c7ac532, type: 3}
+    volume: 0.6
+    cooldown: 0.03
+  uiOpen:
+    clip: {fileID: 8300000, guid: 4e55f0f370aaed447a6c62fa111ece7e, type: 3}
+    volume: 0.6
+    cooldown: 0.1
+  gameOver:
+    clip: {fileID: 8300000, guid: a5a9ee68af53189469d1bd66f0157b3a, type: 3}
+    volume: 0.8
+    cooldown: 0.5
+  victory:
+    clip: {fileID: 8300000, guid: 27d696b8ee1964f4ca57373207c92eb6, type: 3}
+    volume: 0.8
+    cooldown: 0.5

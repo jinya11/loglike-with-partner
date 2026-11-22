@@ -1,0 +1,436 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8751ffa69ef29094ca1e886d442dea26, type: 3}
+  m_Name: RabbitGrowth
+  m_EditorClassIdentifier: Assembly-CSharp::RabbitGrowthConfig
+  creatureName: "\uD1A0\uB07C"
+  title: "\uD1A0\uB07C\uC758 \uC131\uC7A5"
+  displayName: "\uD1A0\uB07C"
+  nodes:
+  - id: s1
+    name: "\uB2E8\uB2E8\uD55C \uB2F9\uADFC"
+    desc: "\uACF5\uACA9\uB825 +0.3"
+    kind: 1
+    position: {x: 0.5, y: 0.6}
+    requires: []
+    cost: 1
+    requiredClears: 0
+    stat: 0
+    value: 0.3
+    effect: 0
+  - id: s2
+    name: "\uD1B5\uD1B5\uD55C \uBCFC"
+    desc: "\uCCB4\uB825 +4"
+    kind: 1
+    position: {x: 0.4, y: 0.6}
+    requires:
+    - s1
+    cost: 1
+    requiredClears: 0
+    stat: 13
+    value: 4
+    effect: 0
+  - id: s3
+    name: "\uAC00\uBCBC\uC6B4 \uBC1C"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.08"
+    kind: 1
+    position: {x: 0.3, y: 0.6}
+    requires:
+    - s2
+    cost: 1
+    requiredClears: 0
+    stat: 20
+    value: 0.08
+    effect: 0
+  - id: s4
+    name: "\uB2E8\uB2E8\uD55C \uB2F9\uADFC"
+    desc: "\uACF5\uACA9\uB825 +0.3"
+    kind: 1
+    position: {x: 0.3112161, y: 0.5214286}
+    requires:
+    - s3
+    cost: 2
+    requiredClears: 0
+    stat: 0
+    value: 0.3
+    effect: 0
+  - id: s5
+    name: "\uC7AC\uBE60\uB978 \uC190"
+    desc: "\uACF5\uACA9 \uC18D\uB3C4 +2%"
+    kind: 1
+    position: {x: 0.32586962, y: 0.44285715}
+    requires:
+    - s4
+    cost: 2
+    requiredClears: 0
+    stat: 2
+    value: 0.02
+    effect: 0
+  - id: main_pierce
+    name: "\uAD00\uD1B5 \uB2F9\uADFC"
+    desc: "\uD3C9\uD0C0\uAC00 \uACE7\uAC8C \uB0A0\uC544\uAC00\uB294 \uAD00\uD1B5
+      \uB2F9\uADFC\uC774 \uB429\uB2C8\uB2E4.\n\uCD5C\uB300 3\uBA85\uC744 \uAD00\uD1B5\uD558\uACE0,
+      \uAD00\uD1B5\uD560\uC218\uB85D \uD53C\uD574\uAC00 \uC904\uC5B4\uB4ED\uB2C8\uB2E4.\n\uD655\uB960\uC801\uC73C\uB85C
+      \uB2F9\uADFC\uC774 \uC801\uC5D0\uAC8C \uAF2C\uCE69\uB2C8\uB2E4. ('\uB2F9\uADFC
+      \uAF2C\uCE58'\uAC00 \uC788\uC73C\uBA74 \uAF2C\uCE58\uB294 \uC21C\uAC04 \uBC94\uC704
+      \uD3ED\uBC1C)"
+    kind: 0
+    position: {x: 0.34671718, y: 0.36428574}
+    requires:
+    - s5
+    cost: 5
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 1
+  - id: s6
+    name: "\uAE34 \uADC0"
+    desc: "\uC0AC\uAC70\uB9AC +0.4"
+    kind: 1
+    position: {x: 0.3752886, y: 0.28571427}
+    requires:
+    - main_pierce
+    cost: 3
+    requiredClears: 0
+    stat: 17
+    value: 0.4
+    effect: 0
+  - id: s7
+    name: "\uB2E8\uB2E8\uD55C \uB2F9\uADFC"
+    desc: "\uACF5\uACA9\uB825 +0.3"
+    kind: 1
+    position: {x: 0.4115839, y: 0.20714286}
+    requires:
+    - s6
+    cost: 3
+    requiredClears: 0
+    stat: 0
+    value: 0.3
+    effect: 0
+  - id: s8
+    name: "\uD1B5\uD1B5\uD55C \uBCFC"
+    desc: "\uCCB4\uB825 +4"
+    kind: 1
+    position: {x: 0.45407322, y: 0.12857142}
+    requires:
+    - s7
+    cost: 3
+    requiredClears: 0
+    stat: 13
+    value: 4
+    effect: 0
+  - id: s9
+    name: "\uD1B5\uD1B5\uD55C \uBCFC"
+    desc: "\uCCB4\uB825 +4"
+    kind: 1
+    position: {x: 0.6, y: 0.6}
+    requires:
+    - s1
+    cost: 1
+    requiredClears: 0
+    stat: 13
+    value: 4
+    effect: 0
+  - id: s10
+    name: "\uC7AC\uBE60\uB978 \uC190"
+    desc: "\uACF5\uACA9 \uC18D\uB3C4 +2%"
+    kind: 1
+    position: {x: 0.7, y: 0.6}
+    requires:
+    - s9
+    cost: 1
+    requiredClears: 0
+    stat: 2
+    value: 0.02
+    effect: 0
+  - id: s11
+    name: "\uB2E8\uB2E8\uD55C \uB2F9\uADFC"
+    desc: "\uACF5\uACA9\uB825 +0.3"
+    kind: 1
+    position: {x: 0.6887839, y: 0.5214286}
+    requires:
+    - s10
+    cost: 2
+    requiredClears: 0
+    stat: 0
+    value: 0.3
+    effect: 0
+  - id: s12
+    name: "\uAC00\uBCBC\uC6B4 \uBC1C"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.08"
+    kind: 1
+    position: {x: 0.6741304, y: 0.44285715}
+    requires:
+    - s11
+    cost: 2
+    requiredClears: 0
+    stat: 20
+    value: 0.08
+    effect: 0
+  - id: main_small
+    name: "\uC18C\uD615 \uB2F9\uADFC"
+    desc: "\uD3C9\uD0C0\uAC00 \uBD80\uCC44\uAF34\uB85C \uC791\uC740 \uB2F9\uADFC
+      3\uBC1C\uC774 \uB429\uB2C8\uB2E4.\n\uC801\uACFC \uAC00\uAE4C\uC6B8\uC218\uB85D
+      \uD53C\uD574\uAC00 \uCEE4\uC9D1\uB2C8\uB2E4.\n\uC801\uC911 \uC2DC \uD655\uB960\uC801\uC73C\uB85C
+      \uB2F9\uADFC\uC774 \uD295\uACA8 \uB2E4\uB978 \uC801\uC744 \uB9DE\uD799\uB2C8\uB2E4.
+      ('\uD305\uAE30\uB294 \uB2F9\uADFC'\uC774 \uC788\uC73C\uBA74 \uD655\uB960 \uC99D\uAC00)"
+    kind: 0
+    position: {x: 0.6532828, y: 0.36428574}
+    requires:
+    - s12
+    cost: 5
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 2
+  - id: s13
+    name: "\uD070 \uB2F9\uADFC"
+    desc: "\uACF5\uACA9 \uBC94\uC704 +3%"
+    kind: 1
+    position: {x: 0.6247114, y: 0.28571427}
+    requires:
+    - main_small
+    cost: 3
+    requiredClears: 0
+    stat: 8
+    value: 0.03
+    effect: 0
+  - id: s14
+    name: "\uB2E8\uB2E8\uD55C \uB2F9\uADFC"
+    desc: "\uACF5\uACA9\uB825 +0.3"
+    kind: 1
+    position: {x: 0.5884161, y: 0.20714286}
+    requires:
+    - s13
+    cost: 3
+    requiredClears: 0
+    stat: 0
+    value: 0.3
+    effect: 0
+  - id: s15
+    name: "\uD3EC\uADFC\uD55C \uD138"
+    desc: "\uCD08\uB2F9 \uD68C\uBCF5 +0.05"
+    kind: 1
+    position: {x: 0.5459268, y: 0.12857142}
+    requires:
+    - s14
+    cost: 3
+    requiredClears: 0
+    stat: 19
+    value: 0.05
+    effect: 0
+  - id: watcher_rain
+    name: "\uB2F9\uADFC \uD3ED\uACA9"
+    desc: "\uAC10\uC2DC\uC790\uC758 \uD3ED\uACA9 \uC2A4\uD0AC\uC774 \uBC1C\uB3D9\uD560
+      \uB54C\n\uB9F5 \uACF3\uACF3\uC5D0 \uB2F9\uADFC\uC774 \uD558\uB298\uC5D0\uC11C
+      \uB5A8\uC5B4\uC9D1\uB2C8\uB2E4."
+    kind: 3
+    position: {x: 0.5, y: 0.05}
+    requires:
+    - s8
+    - s15
+    cost: 6
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 6
+  - id: s16
+    name: "\uB2E8\uB2E8\uD55C \uB2F9\uADFC"
+    desc: "\uACF5\uACA9\uB825 +0.3"
+    kind: 1
+    position: {x: 0.44, y: 0.675}
+    requires:
+    - s1
+    cost: 1
+    requiredClears: 0
+    stat: 0
+    value: 0.3
+    effect: 0
+  - id: s17
+    name: "\uC7AC\uBE60\uB978 \uC190"
+    desc: "\uACF5\uACA9 \uC18D\uB3C4 +2%"
+    kind: 1
+    position: {x: 0.38, y: 0.75}
+    requires:
+    - s16
+    cost: 2
+    requiredClears: 0
+    stat: 2
+    value: 0.02
+    effect: 0
+  - id: s18
+    name: "\uD070 \uB2F9\uADFC"
+    desc: "\uACF5\uACA9 \uBC94\uC704 +3%"
+    kind: 1
+    position: {x: 0.32, y: 0.82500005}
+    requires:
+    - s17
+    cost: 3
+    requiredClears: 0
+    stat: 8
+    value: 0.03
+    effect: 0
+  - id: p_skewer
+    name: "\uB2F9\uADFC \uAF2C\uCE58"
+    desc: "\uC801\uC911 \uC2DC \uB0AE\uC740 \uD655\uB960\uB85C \uB2F9\uADFC\uC774
+      \uC801\uC5D0\uAC8C \uAF2C\uCE69\uB2C8\uB2E4.\n\uAF2C\uCE5C \uC801\uC740 \uBC14\uB85C
+      \uC8FD\uC9C0 \uC54A\uACE0, \uD3C9\uD0C0\uB97C \uD55C \uBC88 \uB354 \uB9DE\uC73C\uBA74
+      \uBC94\uC704 \uD3ED\uBC1C\uD558\uBA70 \uD130\uC9D1\uB2C8\uB2E4."
+    kind: 2
+    position: {x: 0.251, y: 0.91125005}
+    requires:
+    - s18
+    cost: 4
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 4
+  - id: s19
+    name: "\uD1B5\uD1B5\uD55C \uBCFC"
+    desc: "\uCCB4\uB825 +4"
+    kind: 1
+    position: {x: 0.5, y: 0.685}
+    requires:
+    - s1
+    cost: 1
+    requiredClears: 0
+    stat: 13
+    value: 4
+    effect: 0
+  - id: s20
+    name: "\uD3EC\uADFC\uD55C \uD138"
+    desc: "\uCD08\uB2F9 \uD68C\uBCF5 +0.05"
+    kind: 1
+    position: {x: 0.5, y: 0.77000004}
+    requires:
+    - s19
+    cost: 2
+    requiredClears: 0
+    stat: 19
+    value: 0.05
+    effect: 0
+  - id: s21
+    name: "\uD1B5\uD1B5\uD55C \uBCFC"
+    desc: "\uCCB4\uB825 +4"
+    kind: 1
+    position: {x: 0.5, y: 0.855}
+    requires:
+    - s20
+    cost: 3
+    requiredClears: 0
+    stat: 13
+    value: 4
+    effect: 0
+  - id: p_lifesteal
+    name: "\uB2F9\uADFC \uC601\uC591"
+    desc: "\uD3C9\uD0C0\uB85C \uC900 \uD53C\uD574\uC758 \uC77C\uBD80\uB9CC\uD07C
+      \uD1A0\uB07C\uAC00 \uD68C\uBCF5\uD569\uB2C8\uB2E4."
+    kind: 2
+    position: {x: 0.5, y: 0.95275}
+    requires:
+    - s21
+    cost: 4
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 5
+  - id: s22
+    name: "\uAC00\uBCBC\uC6B4 \uBC1C"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.08"
+    kind: 1
+    position: {x: 0.56, y: 0.675}
+    requires:
+    - s1
+    cost: 1
+    requiredClears: 0
+    stat: 20
+    value: 0.08
+    effect: 0
+  - id: s23
+    name: "\uAE34 \uADC0"
+    desc: "\uC0AC\uAC70\uB9AC +0.4"
+    kind: 1
+    position: {x: 0.62, y: 0.75}
+    requires:
+    - s22
+    cost: 2
+    requiredClears: 0
+    stat: 17
+    value: 0.4
+    effect: 0
+  - id: s24
+    name: "\uB2E8\uB2E8\uD55C \uB2F9\uADFC"
+    desc: "\uACF5\uACA9\uB825 +0.3"
+    kind: 1
+    position: {x: 0.68, y: 0.82500005}
+    requires:
+    - s23
+    cost: 3
+    requiredClears: 0
+    stat: 0
+    value: 0.3
+    effect: 0
+  - id: p_bounce
+    name: "\uD305\uAE30\uB294 \uB2F9\uADFC"
+    desc: "\uC801\uC911 \uC2DC \uB0AE\uC740 \uD655\uB960\uB85C \uB2F9\uADFC\uC774
+      \uD295\uACA8 \uB2E4\uB978 \uC801\uC744 \uB9DE\uD799\uB2C8\uB2E4."
+    kind: 2
+    position: {x: 0.749, y: 0.91125005}
+    requires:
+    - s24
+    cost: 4
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 3
+  boardSize: {x: 820, y: 960}
+  silhouette: {fileID: 21300000, guid: 049fd06a1a218cd4781eb14b56611a5d, type: 3}
+  lockedColor: {r: 0.86, g: 0.82, b: 0.86, a: 1}
+  availableColor: {r: 1, g: 0.8, b: 0.62, a: 1}
+  ownedColor: {r: 1, g: 0.6, b: 0.55, a: 1}
+  mainColor: {r: 1, g: 0.55, b: 0.6, a: 1}
+  statColor: {r: 1, g: 0.9, b: 0.7, a: 1}
+  passiveColor: {r: 0.78, g: 0.7, b: 1, a: 1}
+  watcherColor: {r: 0.62, g: 0.8, b: 1, a: 1}
+  recommendSkills: 1
+  recommendedCategory: 1
+  rabbit:
+    shotPrefab: {fileID: 5097915954087266841, guid: 4bef38ee615366f45b71aa46c59fc086, type: 3}
+    shotSpeedMul: 0.9
+    shotHitRadius: 0.55
+    pierceCount: 3
+    pierceDamageMul: 1.1
+    pierceFalloff: 0.7
+    pierceSkewerChance: 0.15
+    smallCount: 3
+    smallSpread: 14
+    smallFarMul: 0.45
+    smallNearMul: 1.1
+    smallBounceChance: 0.15
+    smallBounceBonus: 0.15
+    bounceChance: 0.1
+    bounceDamageMul: 0.6
+    bounceRadius: 6
+    skewerChance: 0.08
+    skewerDuration: 6
+    skewerRadius: 2.2
+    skewerDamageMul: 2
+    skewerColor: {r: 1, g: 0.62, b: 0.4, a: 1}
+    lifestealFrac: 0.04
+    rainCount: 6
+    rainHeight: 14
+    rainFallTime: 0.55
+    rainInterval: 0.12
+    rainDamageMul: 1.5
+    rainRadius: 1.8
+    rainArea: 0.8
+    rainColor: {r: 1, g: 0.7, b: 0.45, a: 1}

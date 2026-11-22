@@ -57,6 +57,7 @@ public abstract class CooldownCreatureAbility : CreatureAbility
         if (CooldownLeft > 0f) { CooldownLeft -= dt; return; }
         if (!ShouldActivate()) return;
         Activate();
+        SfxManager.Play(SfxManager.Creature?.skill, Ctx.Position);
         CooldownLeft = cooldown * Ctx.Stats.cooldownMul;
     }
 

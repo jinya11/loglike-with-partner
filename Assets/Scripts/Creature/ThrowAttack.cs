@@ -15,9 +15,14 @@ public class ThrowAttack : CreatureAttack
     [Tooltip("손 높이")] public float handHeight = 0.7f;
     public Color splashColor = new Color(1f, 0.55f, 0.15f);
 
+    CarrotGrowth growth; // 성장 노드 효과 (해금한 효과가 없으면 null)
+
+    protected override void OnBound() => growth = CarrotGrowth.Ensure(GrowthProgress.I.Loadout(Ctx.Def?.growth), projectile);
+
     protected override void Fire(Vector3 target, PlayerStats s)
     {
         Vector3 from = Ctx.Position + Vector3.up * handHeight;
+        if (growth && growth.FireMain(from, target, s)) return; // 메인 노드: 관통 당근 / 소형 당근
         Vector3 to = target; to.y = 0f;
         Vector3 d = to - Ctx.Position; d.y = 0f;
         float dist = Mathf.Max(1f, d.magnitude);
@@ -26,7 +31,8 @@ public class ThrowAttack : CreatureAttack
         for (int i = 0; i < s.projectileCount; i++)
         {
             Vector3 p = Ctx.Position + SpreadDir(dir, s, i) * dist; p.y = 0f;
-            Ctx.Stage.Throw(projectile, from, Arena.Clamp(p), time, arcHeight, s.damage * damageMul, splashRadius * s.areaMul, splashColor);
+            var tp = Ctx.Stage.Throw(projectile, from, Arena.Clamp(p), time, arcHeight, s.damage * damageMul, splashRadius * s.areaMul, splashColor);
+            if (growth && tp) tp.Landed = growth.ThrownLanded; // 패시브: 꼬치/튕김/피흡
         }
     }
 }

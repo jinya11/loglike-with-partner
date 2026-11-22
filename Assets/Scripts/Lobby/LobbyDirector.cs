@@ -34,6 +34,7 @@ public class LobbyDirector : Singleton<LobbyDirector>
     {
         SkillSelectUI.HotkeyEnabled = true; // 로비: U로 감시자 스킬 장착 창
         SkillSelectUI.Ensure();
+        GrowthTreeUI.Ensure(); // K: 생명체 성장 노드 화면
         var mods = GameManager.I.Config.stage.modifiers;
         foreach (var c in cards) c.gameObject.SetActive(c.Index < mods.Length);
         infoFmt = infoText.text; countFmt = activeCountText.text;

@@ -14,11 +14,14 @@ public class ThrownProjectile : Ticked<ThrownProjectile>
     Color color;
     Vector3 spinAxis;
 
+    /// <summary>착지 직후, 피해 전 (위치, 피해). 성장 노드 효과(꼬치/튕김/피흡)용. Init마다 비워짐.</summary>
+    public System.Action<Vector3, float> Landed;
+
     public void Init(Vector3 from, Vector3 to, float duration, float arc, float damage, float radius, Color color)
     {
         this.from = from; this.to = to; this.duration = Mathf.Max(0.05f, duration);
         this.arc = arc; this.damage = damage; this.radius = radius; this.color = color;
-        t = 0f;
+        t = 0f; Landed = null;
         Vector3 d = to - from; d.y = 0f;
         spinAxis = d.sqrMagnitude > 0.0001f ? Vector3.Cross(Vector3.up, d.normalized) : Vector3.right; // 앞으로 구르듯이
         if (!spinner) spinner = transform;
@@ -42,9 +45,11 @@ public class ThrownProjectile : Ticked<ThrownProjectile>
     void Land(StageDirector stage, Vector3 p)
     {
         p.y = Ground.HeightAt(p);
+        Landed?.Invoke(p, damage);
         stage.DamageArea(p, radius, damage);
         float d = radius * 2f;
         stage.SpawnFx(p + Vector3.up * 0.04f, new Vector3(0.3f, 0.02f, 0.3f), new Vector3(d, 0.02f, d), 0.25f, color);
+        SfxManager.Play(SfxManager.Creature?.impact, p);
         Despawn();
     }
 }

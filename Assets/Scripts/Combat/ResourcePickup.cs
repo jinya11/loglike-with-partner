@@ -33,7 +33,7 @@ public class ResourcePickup : Ticked<ResourcePickup>
         if (sq < 0.36f)
         {
             SaveData.Add(type, 1);
-            Vfx.Pickup(pos, color, 12);
+            Vfx.Pickup(pos, color, 12); SfxManager.Play(SfxManager.S.resourcePickup);
             var def = GameManager.I.Config.meta.Resource(type);
             if (Hud.I) Hud.I.ShowResource(def != null ? def.name : type.ToString());
             Despawn();

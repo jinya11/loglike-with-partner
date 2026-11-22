@@ -8,6 +8,7 @@ public class RegionDef
     [Tooltip("이 지역의 전투 씬 (Build Settings에 등록)")] public string scene;
     [TextArea] public string desc;
     [Tooltip("지도 칸 색")] public Color mapColor = new Color(0.3f, 0.3f, 0.35f);
+    [Tooltip("지도 칸 풍경 그림 (비면 지도 칸 색). 메뉴 Roguelike/Build Region Map UI가 비어 있는 지역에 임시 그림을 넣음")] public Sprite mapArt;
 }
 
 /// <summary>스테이지 진행 / 몬스터 스폰 / 난이도 디버프 설정.</summary>
@@ -94,4 +95,9 @@ public class StageConfig : ScriptableObject
     public GameObject portalPrefab;
     [Tooltip("도형 이펙트 (텔레그래프/광역)")] public Fx fxPrefab;
     [Tooltip("스테이지 HUD. 첫 스테이지에서 한 번만 생성되고 씬이 바뀌어도 유지 (싱글톤)")] public Hud hudPrefab;
+    [Header("UI 프리팹 (Prototype/Prefabs/UI)")]
+    [Tooltip("감시자 스킬 칸 HUD (전투 스테이지마다 생성)")] public SkillHud skillHudPrefab;
+    [Tooltip("생명체 명령 패널 (전투 스테이지마다 생성)")] public CommandHud commandHudPrefab;
+    [Tooltip("감시자 스킬 장착 창 (로비 U / 보너스 스테이지 장착대)")] public SkillSelectUI skillSelectPrefab;
+    [Tooltip("로비 생명체 데려가기 창")] public CreatureSelectUI creatureSelectPrefab;
 }

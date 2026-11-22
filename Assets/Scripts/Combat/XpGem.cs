@@ -19,7 +19,7 @@ public class XpGem : Ticked<XpGem>
         if (!magnet) return;
         if (sq < 0.36f)
         {
-            Vfx.Pickup(pos, XpColor, 2);
+            Vfx.Pickup(pos, XpColor, 2); SfxManager.Play(SfxManager.S.xpPickup);
             GameManager.I.AddXp(value);
             Despawn();
             return;

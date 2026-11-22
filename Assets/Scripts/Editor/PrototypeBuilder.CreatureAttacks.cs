@@ -13,7 +13,7 @@ public static partial class PrototypeBuilder
     public static void SetupCreatureAttacks()
     {
         var carrot = BuildCarrotPrefab();
-        string atkPath = "Assets/Prototype/Creatures/Rabbit/Rabbit_CarrotThrow.asset";
+        string atkPath = "Assets/Prototype/Resources/Config/Growth/Rabbit_CarrotThrow.asset";
         var atk = AssetDatabase.LoadAssetAtPath<ThrowAttack>(atkPath);
         if (!atk)
         {

@@ -9,7 +9,8 @@ public class WardConfig : ScriptableObject
     [Header("생명체 종류 (모델 + 고유 능력)")]
     public CreatureDef[] creatures;
     [Tooltip("기본으로 쓰는 생명체 (creatures 번호)")] public int defaultCreature;
-    [Tooltip("생명체 공격 증강 데이터 테이블 (공통 + 생명체 전용)")] public AttackAugmentTable attackAugments;
+    [Tooltip("성장 노드 화면 (로비에서 growthKey로 엶)")] public GrowthTreeUI growthTreePrefab;
+    public UnityEngine.InputSystem.Key growthKey = UnityEngine.InputSystem.Key.K;
 
     [Header("기본 능력치 (런 시작 시 PlayerStats로 복사, 강화로 성장)")]
     public float wardMaxHp = 60f, wardRegen = 0.4f, wardSpeed = 3.2f;

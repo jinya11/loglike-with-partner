@@ -25,15 +25,24 @@ public class GameManager : Singleton<GameManager>
     /// <summary>이번 런의 작은 생명체 종류 (선택 UI 추가 전까지는 WardConfig.defaultCreature).</summary>
     public int CreatureIndex { get; set; } = -1;
     /// <summary>실제로 쓰는 생명체 번호 (고르지 않았으면 WardConfig.defaultCreature).</summary>
-    public int CreatureIndexEffective => CreatureIndex >= 0 ? CreatureIndex : Config.ward.defaultCreature;
+    /// <summary>잠긴 생명체가 골라져 있으면 기본 생명체로.</summary>
+    public int CreatureIndexEffective
+    {
+        get
+        {
+            var list = Config.ward.creatures;
+            int i = CreatureIndex;
+            if (i < 0 || list == null || i >= list.Length || !SaveData.IsCreatureUnlocked(list[i])) i = Config.ward.defaultCreature;
+            return i;
+        }
+    }
     public CreatureDef Creature
     {
         get
         {
             var list = Config.ward.creatures;
             if (list == null || list.Length == 0) return null;
-            int i = CreatureIndex >= 0 ? CreatureIndex : Config.ward.defaultCreature;
-            return list[Mathf.Clamp(i, 0, list.Length - 1)];
+            return list[Mathf.Clamp(CreatureIndexEffective, 0, list.Length - 1)];
         }
     }
 
@@ -141,6 +150,7 @@ public class GameManager : Singleton<GameManager>
     /// <summary>거점 성장 레벨만큼 영구 강화 적용.</summary>
     void ApplyBaseUpgrades()
     {
+        GrowthProgress.I.ApplyStats(Creature?.growth, Stats); // 생명체 성장 노드 (Stat)
         if (Config.meta.baseUpgrades == null) return;
         foreach (var b in Config.meta.baseUpgrades)
         {
@@ -189,6 +199,7 @@ public class GameManager : Singleton<GameManager>
         if (pendingLevelUps > 0 && State == GameState.Playing)
         {
             if (PlayerController.I) Vfx.Pillar(PlayerController.I.Position, new Color(1f, 0.85f, 0.3f));
+            SfxManager.Play(SfxManager.S.levelUp);
             if (Config.player.levelUpChoices) OpenLevelUp();
             else GrantAutoRewards();
         }
@@ -338,6 +349,7 @@ public class GameManager : Singleton<GameManager>
         WardLost = wardLost;
         State = GameState.GameOver;
         Time.timeScale = 0f;
+        SfxManager.Play(SfxManager.S.gameOver);
     }
 
     // ---- 파생 스테이지 ----
@@ -385,7 +397,7 @@ public class GameManager : Singleton<GameManager>
             UsedVariants.Add(v);
             InBonus = false;
             StageIndex = Mathf.Max(0, StageIndex - Config.variant.stageDecrease);
-            if (StageIndex >= Config.stage.stageCount) { State = GameState.Victory; Time.timeScale = 0f; return; }
+            if (StageIndex >= Config.stage.stageCount) { State = GameState.Victory; GrowthProgress.I.RecordClear(Creature?.growth); Time.timeScale = 0f; SfxManager.Play(SfxManager.S.victory); return; }
             ActiveVariant = v;
             Load(v.scene);
             return;
@@ -399,7 +411,7 @@ public class GameManager : Singleton<GameManager>
         }
         InBonus = false;
         StageIndex++;
-        if (StageIndex >= Config.stage.stageCount) { State = GameState.Victory; Time.timeScale = 0f; return; }
+        if (StageIndex >= Config.stage.stageCount) { State = GameState.Victory; GrowthProgress.I.RecordClear(Creature?.growth); Time.timeScale = 0f; SfxManager.Play(SfxManager.S.victory); return; }
         LoadStage();
     }
 

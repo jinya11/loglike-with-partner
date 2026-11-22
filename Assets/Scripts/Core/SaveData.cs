@@ -15,9 +15,16 @@ public static class SaveData
         public List<string> upgradeIds = new List<string>();
         public List<int> upgradeLevels = new List<int>();
         public List<string> unlockedCompanions = new List<string>();
+        public List<string> unlockedCreatures = new List<string>(); // 해금한 생명체 (CreatureDef.lockedByDefault인 것만)
         public List<int> equippedSkills = new List<int>();     // 감시자 스킬 장착 칸 (WatcherSkillType, -1 = 빈 칸)
         public List<int> unlockedSkills = new List<int>();     // 기본 해금 외에 해금한 감시자 스킬
+        public List<string> growthNodes = new List<string>();  // 해금한 생명체 성장 노드 ("생명체/노드id")
+        public List<string> growthMains = new List<string>();  // 생명체별 선택한 메인 노드 ("생명체/노드id")
     }
+
+    // ---- 생명체 성장 노드 (GrowthProgress가 캐시해서 사용) ----
+    public static List<string> GrowthNodes => D.growthNodes ??= new List<string>();
+    public static List<string> GrowthMains => D.growthMains ??= new List<string>();
 
     static Data data;
     static string PathFile => Path.Combine(Application.persistentDataPath, "save.json");
@@ -40,6 +47,17 @@ public static class SaveData
     {
         try { File.WriteAllText(PathFile, JsonUtility.ToJson(D)); }
         catch (Exception e) { Debug.LogWarning("[SaveData] 저장 실패: " + e.Message); }
+    }
+
+    /// <summary>저장 파일이 있는지 (타이틀 '계속하기').</summary>
+    public static bool HasSave() => File.Exists(PathFile);
+
+    /// <summary>저장 파일 삭제 + 메모리 캐시 초기화 (타이틀 '새 게임').</summary>
+    public static void DeleteSave()
+    {
+        try { if (File.Exists(PathFile)) File.Delete(PathFile); }
+        catch (Exception e) { Debug.LogWarning("[SaveData] 삭제 실패: " + e.Message); }
+        data = null;
     }
 
     // ---- 자원 ----
@@ -97,6 +115,18 @@ public static class SaveData
         Save();
     }
 
+    // ---- 생명체 해금 ----
+    public static bool IsCreatureUnlocked(CreatureDef c) =>
+        c != null && (!c.lockedByDefault || DevConfig.UnlockAllCreatures || (D.unlockedCreatures ??= new List<string>()).Contains(c.name));
+
+    public static void UnlockCreature(CreatureDef c)
+    {
+        var list = D.unlockedCreatures ??= new List<string>();
+        if (c == null || list.Contains(c.name)) return;
+        list.Add(c.name);
+        Save();
+    }
+
     // ---- 감시자 스킬 ----
     /// <summary>장착 칸 i의 스킬 (-1 = 빈 칸).</summary>
     public static int EquippedSkill(int slot) => slot < D.equippedSkills.Count ? D.equippedSkills[slot] : -1;
@@ -117,7 +147,7 @@ public static class SaveData
         Save();
     }
 
-    public static bool SkillUnlocked(WatcherSkillDef d) => d != null && (d.unlockedByDefault || D.unlockedSkills.Contains((int)d.type));
+    public static bool SkillUnlocked(WatcherSkillDef d) => d != null && (d.unlockedByDefault || DevConfig.UnlockAllSkills || D.unlockedSkills.Contains((int)d.type));
     public static void UnlockSkill(WatcherSkillType t) { if (!D.unlockedSkills.Contains((int)t)) { D.unlockedSkills.Add((int)t); Save(); } }
 
     /// <summary>스킬 성장 레벨 (별도 성장 화면에서 올림 — 아직 미구현). 거점 성장 레벨 저장소를 같이 씀.</summary>

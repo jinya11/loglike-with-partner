@@ -1,0 +1,471 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc6933e1bd1de9a4ba247ee8f90567f8, type: 3}
+  m_Name: BirdGrowth
+  m_EditorClassIdentifier: Assembly-CSharp::BirdGrowthConfig
+  creatureName: "\uC0C8 \uC18C\uB140"
+  title: "\uC0C8 \uC18C\uB140\uC758 \uC131\uC7A5"
+  displayName: "\uC0C8 \uC18C\uB140"
+  nodes:
+  - id: b0
+    name: "\uAC00\uBCBC\uC6B4 \uAE43\uD138"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.08"
+    kind: 1
+    position: {x: 0.7554348, y: 0.06818182}
+    requires: []
+    cost: 1
+    requiredClears: 0
+    stat: 20
+    value: 0.08
+    effect: 0
+  - id: b1
+    name: "\uB0A0\uCE74\uB85C\uC6B4 \uBD80\uB9AC"
+    desc: "\uACF5\uACA9\uB825 +0.3"
+    kind: 1
+    position: {x: 0.6605685, y: 0.11116089}
+    requires:
+    - b0
+    - b2
+    cost: 1
+    requiredClears: 0
+    stat: 0
+    value: 0.3
+    effect: 0
+  - id: b2
+    name: "\uD3EC\uADFC\uD55C \uAE43\uD138"
+    desc: "\uCCB4\uB825 +4"
+    kind: 1
+    position: {x: 0.57076573, y: 0.16808684}
+    requires:
+    - b1
+    - b3
+    cost: 1
+    requiredClears: 0
+    stat: 13
+    value: 4
+    effect: 0
+  - id: b3
+    name: "\uC27C \uC5C6\uB294 \uB0A0\uAC2F\uC9D3"
+    desc: "\uACF5\uACA9\uBC1B\uC9C0 \uC54A\uC73C\uBA74 \uACF5\uACA9 \uC18D\uB3C4\uAC00
+      \uACC4\uC18D \uC62C\uB77C\uAC11\uB2C8\uB2E4.\n\uACF5\uACA9\uBC1B\uC73C\uBA74
+      \uC313\uC778 \uB2E8\uACC4\uAC00 1\uB9CC \uC904\uC5B4\uB4ED\uB2C8\uB2E4. (\uCE90\uB9AD\uD130
+      \uC606\uC5D0 \uD45C\uC2DC)"
+    kind: 2
+    position: {x: 0.4636305, y: 0.1590909}
+    requires:
+    - b2
+    - b4
+    cost: 4
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 16
+  - id: b4
+    name: "\uBE60\uB978 \uB0A0\uAC2F\uC9D3"
+    desc: "\uACF5\uACA9 \uC18D\uB3C4 +2%"
+    kind: 1
+    position: {x: 0.35318366, y: 0.15915549}
+    requires:
+    - b3
+    - b5
+    cost: 2
+    requiredClears: 0
+    stat: 2
+    value: 0.02
+    effect: 0
+  - id: b5
+    name: "\uBA3C \uC2DC\uC57C"
+    desc: "\uC0AC\uAC70\uB9AC +0.4"
+    kind: 1
+    position: {x: 0.2532538, y: 0.18818775}
+    requires:
+    - b4
+    - b6
+    cost: 2
+    requiredClears: 0
+    stat: 17
+    value: 0.4
+    effect: 0
+  - id: b6
+    name: "\uB530\uB73B\uD55C \uB465\uC9C0"
+    desc: "\uCD08\uB2F9 \uD68C\uBCF5 +0.05"
+    kind: 1
+    position: {x: 0.15862395, y: 0.23181818}
+    requires:
+    - b5
+    - b7
+    cost: 2
+    requiredClears: 0
+    stat: 19
+    value: 0.05
+    effect: 0
+  - id: b7
+    name: "\uB5A8\uC5B4\uC9C4 \uB0A0\uAC1C"
+    desc: "\uD3C9\uD0C0\uAC00 \uBA85\uC911\uD558\uBA74 \uD655\uB960\uC801\uC73C\uB85C
+      \uADF8 \uC790\uB9AC\uC5D0 \uB0A0\uAC1C\uAC00 \uB0A8\uC2B5\uB2C8\uB2E4.\n\uC0C8
+      \uC18C\uB140\uB098 \uAC10\uC2DC\uC790\uAC00 \uC8FC\uC6B0\uBA74 \uC7A0\uC2DC
+      \uC774\uB3D9 \uC18D\uB3C4\uC640 \uACF5\uACA9 \uC18D\uB3C4\uAC00 \uC624\uB985\uB2C8\uB2E4."
+    kind: 2
+    position: {x: 0.068584695, y: 0.2880928}
+    requires:
+    - b6
+    - b8
+    cost: 4
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 17
+  - id: b8
+    name: "\uB0A0\uAC1C\uC9D3"
+    desc: "\uD3C9\uD0C0\uC5D0 \uB9DE\uC740 \uC801\uC744 \uACF5\uC911\uC73C\uB85C
+      \uB744\uC6C1\uB2C8\uB2E4.\n\uB5A0 \uC788\uB294 \uC801\uC740 \uC6C0\uC9C1\uC774\uAC70\uB098
+      \uACF5\uACA9\uD558\uC9C0 \uBABB\uD569\uB2C8\uB2E4."
+    kind: 0
+    position: {x: 0.027173912, y: 0.3415245}
+    requires:
+    - b7
+    - b9
+    cost: 5
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 13
+  - id: b9
+    name: "\uAC00\uBCBC\uC6B4 \uAE43\uD138"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.08"
+    kind: 1
+    position: {x: 0.1167773, y: 0.36818182}
+    requires:
+    - b8
+    - b10
+    cost: 3
+    requiredClears: 0
+    stat: 20
+    value: 0.08
+    effect: 0
+  - id: b10
+    name: "\uB0A0\uCE74\uB85C\uC6B4 \uBD80\uB9AC"
+    desc: "\uACF5\uACA9\uB825 +0.3"
+    kind: 1
+    position: {x: 0.22064637, y: 0.36818182}
+    requires:
+    - b9
+    - b11
+    cost: 3
+    requiredClears: 0
+    stat: 0
+    value: 0.3
+    effect: 0
+  - id: b11
+    name: "\uD3EC\uADFC\uD55C \uAE43\uD138"
+    desc: "\uCCB4\uB825 +4"
+    kind: 1
+    position: {x: 0.25543478, y: 0.4612349}
+    requires:
+    - b10
+    - b12
+    cost: 3
+    requiredClears: 0
+    stat: 13
+    value: 4
+    effect: 0
+  - id: b12
+    name: "\uBE60\uB978 \uB0A0\uAC2F\uC9D3"
+    desc: "\uACF5\uACA9 \uC18D\uB3C4 +2%"
+    kind: 1
+    position: {x: 0.26630434, y: 0.566626}
+    requires:
+    - b11
+    - b13
+    cost: 4
+    requiredClears: 0
+    stat: 2
+    value: 0.02
+    effect: 0
+  - id: b13
+    name: "\uBA3C \uC2DC\uC57C"
+    desc: "\uC0AC\uAC70\uB9AC +0.4"
+    kind: 1
+    position: {x: 0.32893, y: 0.64783233}
+    requires:
+    - b12
+    - b14
+    cost: 4
+    requiredClears: 0
+    stat: 17
+    value: 0.4
+    effect: 0
+  - id: b14
+    name: "\uB530\uB73B\uD55C \uB465\uC9C0"
+    desc: "\uCD08\uB2F9 \uD68C\uBCF5 +0.05"
+    kind: 1
+    position: {x: 0.4066959, y: 0.7219639}
+    requires:
+    - b13
+    - b15
+    cost: 4
+    requiredClears: 0
+    stat: 19
+    value: 0.05
+    effect: 0
+  - id: b15
+    name: "\uD3ED\uD48D \uB0A0\uAC1C"
+    desc: "\uAC10\uC2DC\uC790\uC758 \uD3ED\uACA9 \uC2A4\uD0AC\uC774 \uBC1C\uB3D9\uD560
+      \uB54C \uC0C8 \uC18C\uB140\uAC00 \uD3ED\uACA9 \uBC94\uC704 \uC548\uC5D0 \uC788\uC73C\uBA74,\n\uBC14\uB77C\uBCF4\uB294
+      \uAC00\uB85C \uBC29\uD5A5\uC73C\uB85C \uB3CC\uD48D\uC774 \uBED7\uC5B4 \uB098\uAC00
+      \uC801\uC744 \uBA40\uB9AC \uB0A0\uB824 \uBCF4\uB0C5\uB2C8\uB2E4. (\uD53C\uD574
+      \uC5C6\uC74C)"
+    kind: 3
+    position: {x: 0.493967, y: 0.78586334}
+    requires:
+    - b14
+    - b16
+    cost: 6
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 19
+  - id: b16
+    name: "\uAC00\uBCBC\uC6B4 \uAE43\uD138"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.08"
+    kind: 1
+    position: {x: 0.5787064, y: 0.85673624}
+    requires:
+    - b15
+    - b17
+    cost: 4
+    requiredClears: 0
+    stat: 20
+    value: 0.08
+    effect: 0
+  - id: b17
+    name: "\uB3CC\uC9C4"
+    desc: "\uACF5\uACA9\uBC1B\uC744 \uB54C \uD655\uB960\uC801\uC73C\uB85C \uD53C\uD574\uB97C
+      \uBB34\uC2DC\uD558\uACE0\n\uBC14\uB78C\uACFC \uD568\uAED8 \uC55E\uC73C\uB85C
+      \uB3CC\uC9C4\uD574 \uACBD\uB85C\uC758 \uC801\uC5D0\uAC8C \uD53C\uD574\uB97C
+      \uC90D\uB2C8\uB2E4."
+    kind: 0
+    position: {x: 0.6685188, y: 0.9136364}
+    requires:
+    - b16
+    - b18
+    cost: 5
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 14
+  - id: b18
+    name: "\uB0A0\uCE74\uB85C\uC6B4 \uBD80\uB9AC"
+    desc: "\uACF5\uACA9\uB825 +0.3"
+    kind: 1
+    position: {x: 0.72324836, y: 0.86782867}
+    requires:
+    - b17
+    - b19
+    cost: 4
+    requiredClears: 0
+    stat: 0
+    value: 0.3
+    effect: 0
+  - id: b19
+    name: "\uD3EC\uADFC\uD55C \uAE43\uD138"
+    desc: "\uCCB4\uB825 +4"
+    kind: 1
+    position: {x: 0.70108694, y: 0.777478}
+    requires:
+    - b18
+    - b20
+    cost: 3
+    requiredClears: 0
+    stat: 13
+    value: 4
+    effect: 0
+  - id: b20
+    name: "\uBE60\uB978 \uB0A0\uAC2F\uC9D3"
+    desc: "\uACF5\uACA9 \uC18D\uB3C4 +2%"
+    kind: 1
+    position: {x: 0.6513725, y: 0.69023883}
+    requires:
+    - b19
+    - b21
+    cost: 3
+    requiredClears: 0
+    stat: 2
+    value: 0.02
+    effect: 0
+  - id: b21
+    name: "\uBA3C \uC2DC\uC57C"
+    desc: "\uC0AC\uAC70\uB9AC +0.4"
+    kind: 1
+    position: {x: 0.61413044, y: 0.5971714}
+    requires:
+    - b20
+    - b22
+    cost: 3
+    requiredClears: 0
+    stat: 17
+    value: 0.4
+    effect: 0
+  - id: b22
+    name: "\uAC70\uCE68\uC5C6\uB294 \uB0A0\uAC1C"
+    desc: "\uD3C9\uD0C0\uAC00 \uBA85\uC911\uD558\uBA74 \uBC14\uB2E5\uC5D0 \uB0A0\uAC1C\uAC00
+      \uD655\uC815\uC73C\uB85C \uB5A8\uC5B4\uC9D1\uB2C8\uB2E4.\n\uB0A0\uAC1C\uB97C
+      \uC8FC\uC6B0\uBA74 \uADF8 \uC790\uB9AC\uC5D0\uC11C \uB3D9\uC11C\uB0A8\uBD81\uC73C\uB85C
+      \uB0A0\uAC1C\uAC00 \uD3EC\uBB3C\uC120\uC744 \uADF8\uB9AC\uBA70 \uD37C\uC838
+      \uD53C\uD574\uB97C \uC90D\uB2C8\uB2E4."
+    kind: 0
+    position: {x: 0.58152175, y: 0.5019388}
+    requires:
+    - b21
+    - b23
+    cost: 5
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 15
+  - id: b23
+    name: "\uB530\uB73B\uD55C \uB465\uC9C0"
+    desc: "\uCD08\uB2F9 \uD68C\uBCF5 +0.05"
+    kind: 1
+    position: {x: 0.5597826, y: 0.40162697}
+    requires:
+    - b22
+    - b24
+    cost: 2
+    requiredClears: 0
+    stat: 19
+    value: 0.05
+    effect: 0
+  - id: b24
+    name: "\uAC00\uBCBC\uC6B4 \uAE43\uD138"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4 +0.08"
+    kind: 1
+    position: {x: 0.532729, y: 0.30899027}
+    requires:
+    - b23
+    - b25
+    cost: 2
+    requiredClears: 0
+    stat: 20
+    value: 0.08
+    effect: 0
+  - id: b25
+    name: "\uB0A0\uCE74\uB85C\uC6B4 \uBD80\uB9AC"
+    desc: "\uACF5\uACA9\uB825 +0.3"
+    kind: 1
+    position: {x: 0.6275953, y: 0.34307972}
+    requires:
+    - b24
+    - b26
+    cost: 2
+    requiredClears: 0
+    stat: 0
+    value: 0.3
+    effect: 0
+  - id: b26
+    name: "\uD3EC\uADFC\uD55C \uAE43\uD138"
+    desc: "\uCCB4\uB825 +4"
+    kind: 1
+    position: {x: 0.7224616, y: 0.36848667}
+    requires:
+    - b25
+    - b27
+    cost: 2
+    requiredClears: 0
+    stat: 13
+    value: 4
+    effect: 0
+  - id: b27
+    name: "\uBE60\uB978 \uB0A0\uAC2F\uC9D3"
+    desc: "\uACF5\uACA9 \uC18D\uB3C4 +2%"
+    kind: 1
+    position: {x: 0.80529064, y: 0.3083024}
+    requires:
+    - b26
+    - b28
+    cost: 1
+    requiredClears: 0
+    stat: 2
+    value: 0.02
+    effect: 0
+  - id: b28
+    name: "\uBC14\uB78C\uC758 \uAC00\uD638"
+    desc: "\uC774\uB3D9 \uC18D\uB3C4\uC640 \uACF5\uACA9 \uC18D\uB3C4\uAC00 \uBE60\uB97C\uC218\uB85D\n\uBC1B\uB294
+      \uD53C\uD574\uAC00 \uC904\uC5B4\uB4ED\uB2C8\uB2E4."
+    kind: 2
+    position: {x: 0.8532609, y: 0.22024819}
+    requires:
+    - b27
+    - b29
+    cost: 4
+    requiredClears: 0
+    stat: 0
+    value: 0
+    effect: 18
+  - id: b29
+    name: "\uBA3C \uC2DC\uC57C"
+    desc: "\uC0AC\uAC70\uB9AC +0.4"
+    kind: 1
+    position: {x: 0.8363543, y: 0.11767813}
+    requires:
+    - b28
+    - b0
+    cost: 1
+    requiredClears: 0
+    stat: 17
+    value: 0.4
+    effect: 0
+  boardSize: {x: 780, y: 932.60864}
+  silhouette: {fileID: 21300000, guid: 4077c03457804ef4d8c0313a091c3b26, type: 3}
+  lockedColor: {r: 0.86, g: 0.82, b: 0.86, a: 1}
+  availableColor: {r: 1, g: 0.8, b: 0.62, a: 1}
+  ownedColor: {r: 1, g: 0.6, b: 0.55, a: 1}
+  mainColor: {r: 0.62, g: 0.86, b: 1, a: 1}
+  statColor: {r: 1, g: 0.9, b: 0.7, a: 1}
+  passiveColor: {r: 0.78, g: 0.7, b: 1, a: 1}
+  watcherColor: {r: 0.62, g: 0.8, b: 1, a: 1}
+  recommendSkills: 1
+  recommendedCategory: 1
+  bird:
+    featherPrefab: {fileID: 5785890382053813999, guid: 9e2f40a6a1618594b816a38872c68854, type: 3}
+    stackHudPrefab: {fileID: 1451487552100937308, guid: c0da687381e0a2c4e8fd68cdbbf1ae3e, type: 3}
+    featherHitRadius: 0.7
+    liftDuration: 0.9
+    liftHeight: 1.6
+    dashChance: 0.3
+    dashDistance: 10
+    dashTime: 0.25
+    dashRadius: 1.4
+    dashDamageMul: 1.5
+    dashCooldown: 1.5
+    windColor: {r: 0.85, g: 0.95, b: 1, a: 1}
+    scatterDamageMul: 1.2
+    scatterRange: 9
+    scatterCurve: 1.5
+    scatterHeight: 0.2
+    stackInterval: 1.5
+    maxStacks: 15
+    stackAttackSpeed: 0.04
+    dropChance: 0.12
+    pickupLife: 8
+    pickupRadius: 1.3
+    maxPickups: 8
+    buffDuration: 4
+    buffMoveSpeed: 0.8
+    buffAttackSpeed: 0.2
+    guardPerMove: 0.3
+    guardPerAttack: 0.3
+    guardMax: 0.4
+    gustLength: 16
+    gustWidth: 2.4
+    gustPush: 30
+    gustStepTime: 0.04

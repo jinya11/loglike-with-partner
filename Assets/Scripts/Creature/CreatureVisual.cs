@@ -22,6 +22,8 @@ public class CreatureVisual : MonoBehaviour
     public bool Animated => animator;
     public float Height => height;
     public Renderer[] Renderers { get; private set; }
+    /// <summary>현재 대기(0) ~ 걷기(1) 정도 (날갯짓 등 부가 동작용).</summary>
+    public float MoveBlend => Mathf.Clamp01(shownSpeed / walkRefSpeed * 1.5f);
 
     public void Setup(Animator anim, Transform eye, float h, float refSpeed)
     {

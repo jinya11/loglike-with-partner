@@ -12,6 +12,11 @@ using UnityEngine.InputSystem;
 public class WatcherSkills : MonoBehaviour
 {
     public static WatcherSkills I { get; private set; }
+    /// <summary>폭격 분류 스킬이 발동됨 (생명체 성장: 토끼 당근 폭격 등).</summary>
+    public static event System.Action<WatcherSkillType> BombardCast;
+    public static void RaiseBombardCast(WatcherSkillType t) => BombardCast?.Invoke(t);
+    /// <summary>스킬이 발동됨 (종류, 분류). 생명체 성장: 마법사는 유도(디코이) 분류와 연계.</summary>
+    public static event System.Action<WatcherSkillType, WatcherSkillCategory> Cast;
 
     GameManager gm;
     WatcherSkillConfig cfg;
@@ -130,6 +135,9 @@ public class WatcherSkills : MonoBehaviour
             case WatcherSkillType.Bombard: if (BombardSkill.I) BombardSkill.I.Trigger(); break;
             case WatcherSkillType.Thorns: StartThorns(); break;
         }
+        var cat = cfg.Get(t)?.category;
+        if (cat.HasValue) Cast?.Invoke(t, cat.Value);
+        if (cat == WatcherSkillCategory.폭격) RaiseBombardCast(t);
     }
 
     static Vector3 WatcherPos => PlayerController.I ? Ground.Snap(Arena.Clamp(PlayerController.I.Position)) : Vector3.zero;
@@ -300,7 +308,7 @@ public class WatcherSkills : MonoBehaviour
         var mark = SkillProps.Ring(p, r, new Color(1f, 0.55f, 0.3f));
         yield return new WaitForSeconds(delay);
         if (mark) Destroy(mark);
-        Vfx.Explosion(p, r, new Color(1f, 0.6f, 0.3f));
+        Vfx.Explosion(p, r, new Color(1f, 0.6f, 0.3f)); SfxManager.Play(SfxManager.S.bombardImpact, p);
         stage.DamageArea(p, r, dmg);
     }
 

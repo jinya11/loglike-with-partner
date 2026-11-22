@@ -137,7 +137,7 @@ public class FrozenLakeVariant : MonoBehaviour
         }
     }
 
-    void StartBreak(IceTile t) { t.Set(IceTile.State.Breaking); }
+    void StartBreak(IceTile t) { t.Set(IceTile.State.Breaking); SfxManager.Play(SfxManager.S.iceCrack, t.transform.position); }
 
     void TickTiles(float dt)
     {
@@ -151,7 +151,7 @@ public class FrozenLakeVariant : MonoBehaviour
                     if (t.timer >= s.breakDelay)
                     {
                         float tm = 0f;
-                        t.Set(IceTile.State.Hole); t.timer = tm;
+                        t.Set(IceTile.State.Hole); t.timer = tm; SfxManager.Play(SfxManager.S.iceBreak, t.transform.position);
                         Splash(t.transform.position, 18);
                         Vfx.Death(t.transform.position + Vector3.up * 0.1f, s.iceColor); // 얼음 조각
                     }

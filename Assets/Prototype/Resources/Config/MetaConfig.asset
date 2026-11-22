@@ -28,6 +28,9 @@ MonoBehaviour:
   - type: 5
     name: "\uC124\uD0D5 \uACB0\uC815"
     color: {r: 1, g: 0.6, b: 0.85, a: 1}
+  - type: 6
+    name: "\uC131\uC7A5\uC758 \uC528\uC557"
+    color: {r: 1, g: 0.82, b: 0.5, a: 1}
   resourceDropChance: 0.06
   resourcePickupPrefab: {fileID: 2489645673102143564, guid: 7d6c8663524539d42ba856a6a91f71e9, type: 3}
   baseUpgrades:
@@ -81,3 +84,15 @@ MonoBehaviour:
       type: 5
       amount: 2
     costGrowth: 2
+  exchangeRates:
+  - from: 1
+    amount: 3
+  - from: 2
+    amount: 3
+  - from: 3
+    amount: 3
+  - from: 4
+    amount: 4
+  - from: 5
+    amount: 2
+  exchangePrefab: {fileID: 8374841898011629885, guid: 81f878368dd3016489447f7682dc1380, type: 3}

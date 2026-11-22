@@ -20,3 +20,4 @@ MonoBehaviour:
   meta: {fileID: 11400000, guid: a61cc9267ac8ae2429de4049e849d4e7, type: 2}
   variant: {fileID: 11400000, guid: da8daa9b7e757794eb4de6c5d74cc475, type: 2}
   skills: {fileID: 11400000, guid: da7a705c872be834b9e4bfdd951e7a15, type: 2}
+  sfx: {fileID: 11400000, guid: f7640a19edacb8c4f9b4c0b710df0944, type: 2}

@@ -22,6 +22,7 @@ public class BaseUpgradeStation : Interactable
 
     void Awake()
     {
+        if (!panel) { Debug.LogWarning("[BaseUpgradeStation] panel 참조가 비어 있어 비활성화됨", this); enabled = false; return; } // 빈 참조 가드 (상호작용 목록에서 빠짐)
         rows = panel.GetComponentsInChildren<BaseUpgradeRow>(true);
         labels = panel.GetComponentsInChildren<ResourceLabel>(true);
         foreach (var r in rows) r.Bought += RefreshAll;

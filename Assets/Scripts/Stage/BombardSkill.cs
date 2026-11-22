@@ -181,6 +181,7 @@ public class BombardSkill : Singleton<BombardSkill>
         var def = gm.Companion;
         if (WatcherSkills.I == null || !WatcherSkills.I.Consume(WatcherSkillType.Bombard)) return; // 자동 폭격도 스킬 코스트/대기 소모
         comp.BeginBombard(Arena.Clamp(target));
+        WatcherSkills.RaiseBombardCast(WatcherSkillType.Bombard);
     }
 
     void BeginAim(CompanionBase comp)

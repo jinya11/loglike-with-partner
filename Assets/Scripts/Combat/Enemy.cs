@@ -30,6 +30,7 @@ public class Enemy : Ticked<Enemy>
     Color bodyColor = Color.white;
     bool elite, treasure, splitling;
     Renderer[] renderers;
+    EnemyAnimator anim; // 모델 Animator 파라미터 전달 (없으면 null)
 
     public EnemyDef Def => def;
     public bool Elite => elite;
@@ -47,6 +48,7 @@ public class Enemy : Ticked<Enemy>
         var r = visual.GetComponentInChildren<Renderer>();
         if (r && r.sharedMaterial && r.sharedMaterial.HasColor("_BaseColor")) bodyColor = r.sharedMaterial.GetColor("_BaseColor");
         renderers = visual.GetComponentsInChildren<Renderer>(true);
+        anim = visual.GetComponentInChildren<EnemyAnimator>(true);
     }
 
     public void Init(float hp, float speed, float damage, EnemyDef def = null)
@@ -61,8 +63,10 @@ public class Enemy : Ticked<Enemy>
         if (renderers != null) foreach (var rr in renderers) rr.SetPropertyBlock(null); // 보물 색 초기화 (풀 재사용)
         visual.localScale = visualScale;
         emergeLeft = 0f; visual.localPosition = visualBase; noHealUntil = 0f;
+        frozenUntil = 0f; DamageTakenMul = 1f; launchDur = 0f; // 마법사 빙결/저주, 새 소녀 띄우기 초기화 (풀 재사용)
         abilityReadyAt = Time.time + Random.Range(0.5f, 2f); // 동시에 몰려서 쓰지 않도록
         rb.linearVelocity = Vector3.zero;
+        if (anim != null) anim.ResetState();
     }
 
     /// <summary>엘리트 (스테이지 특징): 체력/피해 증가, 크게.</summary>
@@ -205,9 +209,19 @@ public class Enemy : Ticked<Enemy>
 
     public override void Tick(float dt)
     {
+        TickBody(dt);
+        if (anim == null || !isActiveAndEnabled) return;
+        Vector3 v = rb.linearVelocity; v.y = 0f;
+        anim.SetMove(v.magnitude, dt);
+        anim.SetCharging(chargeLeft > 0f);
+    }
+
+    void TickBody(float dt)
+    {
         if (RegenFrac > 0f && hp < maxHp && Time.time >= noHealUntil) hp = Mathf.Min(maxHp, hp + maxHp * RegenFrac * dt); // 재생 변이 (회복 불가 중엔 안 됨)
         if (emergeLeft > 0f) { TickEmerge(dt); return; }
-        if (Frozen) { TickFrozen(dt); return; }
+        if (launchDur > 0f) TickLaunch();
+        if (Frozen || Time.time < frozenUntil) { TickFrozen(dt); return; } // 전체 정지(모래폭풍) 또는 개별 빙결(마법사)/띄우기(새 소녀)
         if (treasure) { TickTreasure(dt); return; }
         if (Routed) { TickRouted(dt); return; }
         if (GoalOverride != null) { var g = GoalOverride(this); if (g.HasValue) { TickToward(g.Value, dt); return; } }
@@ -288,6 +302,7 @@ public class Enemy : Ticked<Enemy>
                 {
                     abilityReadyAt = Time.time + def.abilityCooldown;
                     ward.Fear(def.abilityDuration);
+                    if (anim != null) anim.PlayAbility();
                     float d = def.abilityRange * 2f;
                     StageDirector.I.SpawnFx(rb.position + Vector3.up * 0.05f, new Vector3(0.5f, 0.02f, 0.5f), new Vector3(d, 0.02f, d), 0.3f, new Color(0.6f, 0.3f, 0.9f));
                 }
@@ -313,7 +328,7 @@ public class Enemy : Ticked<Enemy>
     /// <summary>환경사 (구멍/용암 등에 빠짐): 죽음 연출과 보상은 그대로, 처치 수에는 기본적으로 안 침 (StageVariantDef.environmentKillsCount).</summary>
     public void EnvironmentKill()
     {
-        Vfx.Death(rb.position, bodyColor);
+        Vfx.Death(rb.position, bodyColor); SfxManager.Play(SfxManager.S.enemyDie, rb.position);
         StageDirector.I.OnEnemyKilled(this, true);
         Despawn();
     }
@@ -347,7 +362,7 @@ public class Enemy : Ticked<Enemy>
         if (dmg <= 0f || !isActiveAndEnabled) return;
         hp -= dmg;
         if (hp <= 0f) EnvironmentKill();
-        else Vfx.Hit(HitPoint, bodyColor);
+        else { Vfx.Hit(HitPoint, bodyColor); SfxManager.Play(SfxManager.S.enemyHit, rb.position); }
     }
 
     // ---- 땅에서 솟아오름 (깨어난 묘지 무덤에서 일어나는 적) ----
@@ -384,8 +399,30 @@ public class Enemy : Ticked<Enemy>
     /// <summary>맞았을 때 (어떤 공격이든). 파생 규칙이 구독 (발광 균사 동굴: 잠든 적이 맞으면 깨어남).</summary>
     public static event System.Action<Enemy> Damaged;
 
+    /// <summary>개별 빙결 (마법사 성장): 이 시간 동안 움직이지 않음.</summary>
+    public void Freeze(float seconds) => frozenUntil = Mathf.Max(frozenUntil, Time.time + seconds);
+    float frozenUntil;
+
+    /// <summary>공중으로 띄움 (새 소녀 날개짓): 그동안 행동·공격 불가, 모델이 포물선으로 떴다 내려옴.</summary>
+    public void Launch(float seconds, float height)
+    {
+        Freeze(seconds);
+        launchStart = Time.time; launchDur = Mathf.Max(0.05f, seconds); launchHeight = height;
+    }
+    float launchStart, launchDur, launchHeight;
+
+    void TickLaunch()
+    {
+        float k = (Time.time - launchStart) / launchDur;
+        if (k >= 1f) { launchDur = 0f; visual.localPosition = visualBase; return; }
+        visual.localPosition = visualBase + Vector3.up * (launchHeight * 4f * k * (1f - k));
+    }
+    /// <summary>받는 피해 배율 (마법사 저주, 처치 전까지).</summary>
+    public float DamageTakenMul { get; set; } = 1f;
+
     public void Hit(float dmg, Vector3 from)
     {
+        dmg *= DamageTakenMul;
         hp -= dmg;
         Damaged?.Invoke(this);
         Vector3 k = rb.position - from; k.y = 0f;
@@ -393,10 +430,10 @@ public class Enemy : Ticked<Enemy>
         punch = 0.12f;
         if (hp <= 0f)
         {
-            Vfx.Death(rb.position, bodyColor);
+            Vfx.Death(rb.position, bodyColor); SfxManager.Play(SfxManager.S.enemyDie, rb.position);
             StageDirector.I.OnEnemyKilled(this);
             Despawn();
         }
-        else Vfx.Hit(HitPoint, bodyColor);
+        else { Vfx.Hit(HitPoint, bodyColor); SfxManager.Play(SfxManager.S.enemyHit, rb.position); }
     }
 }

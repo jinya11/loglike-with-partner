@@ -99,25 +99,59 @@ public class CameraFollow : MonoBehaviour
     }
 
     // ---- 듀얼 카메라: 고리를 풀고 생명체와 멀어지면 화면을 둘로 나눔 (왼쪽 감시자 / 오른쪽 생명체) ----
+    // 설정(GameSettings): 화면 분할 끄기 / 2등분 / 작은 화면(오른쪽 아래, ScreenSplitConfig, 대상 감시자·생명체)
     Camera wardCam;
-    bool split;
-    /// <summary>화면이 둘로 나뉘어 있는지 (왼쪽: 감시자, 오른쪽: 생명체).</summary>
-    public bool Split => split;
+    bool split, pipLayout;
+    int layoutVersion = -1, layoutW, layoutH;
+    Rect pipViewport;
+    /// <summary>화면이 2등분되어 있는지 (왼쪽: 감시자, 오른쪽: 생명체).</summary>
+    public bool Split => split && !pipLayout;
+    /// <summary>작은 화면(오른쪽 아래)이 떠 있는지.</summary>
+    public bool PipActive => split && pipLayout;
+    /// <summary>작은 화면 viewport (정규화).</summary>
+    public Rect PipViewport => pipViewport;
+
+    /// <summary>화면 배치(분할/작은 화면/크기)가 바뀔 때마다 증가 — HUD가 int 비교로 변화만 감지.</summary>
+    public int LayoutVersion { get; private set; }
+
+    void ApplyLayout()
+    {
+        LayoutVersion++;
+        layoutVersion = GameSettings.Version; layoutW = Screen.width; layoutH = Screen.height;
+        pipLayout = split && GameSettings.Mode == SplitMode.Pip;
+        var full = new Rect(0f, 0f, 1f, 1f);
+        if (!split) { cam.rect = full; return; }
+        if (!pipLayout)
+        {
+            cam.rect = new Rect(0f, 0f, 0.5f, 1f);
+            wardCam.rect = new Rect(0.5f, 0f, 0.5f, 1f);
+            wardCam.depth = cam.depth + 1;
+            return;
+        }
+        pipViewport = ScreenSplitConfig.I.PipRect(layoutH > 0 ? (float)layoutW / layoutH : 16f / 9f);
+        bool creatureSmall = GameSettings.Pip == PipTarget.Creature;
+        cam.rect = creatureSmall ? full : pipViewport;
+        wardCam.rect = creatureSmall ? pipViewport : full;
+        wardCam.depth = cam.depth + (creatureSmall ? 1 : -1); // 작은 화면이 위에 그려지게
+    }
 
     void UpdateSplit()
     {
         var ward = Ward.I;
         var gm = GameManager.I;
         bool want = false;
-        if (!overview && ward != null && gm != null && gm.State == GameState.Playing && ward.Order != Ward.Command.Linked && PlayerController.I.Formless)
+        if (GameSettings.SplitEnabled && !overview && ward != null && gm != null && gm.State == GameState.Playing && ward.Order != Ward.Command.Linked && PlayerController.I.Formless)
         {
             Vector3 d = ward.Position - PlayerController.I.Position; d.y = 0f;
             float dist = gm.Config.ward.splitDistance;
             want = d.magnitude > (split ? dist * 0.8f : dist); // 경계에서 깜빡이지 않게
         }
-        if (want == split) return;
+        if (want == split)
+        {
+            if (split && (layoutVersion != GameSettings.Version || layoutW != Screen.width || layoutH != Screen.height)) ApplyLayout();
+            return;
+        }
         split = want;
-        cam.rect = split ? new Rect(0f, 0f, 0.5f, 1f) : new Rect(0f, 0f, 1f, 1f);
         if (split)
         {
             if (!wardCam)
@@ -128,11 +162,11 @@ public class CameraFollow : MonoBehaviour
                 var src = cam.GetComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
                 if (src) wardCam.gameObject.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>().renderPostProcessing = src.renderPostProcessing;
             }
-            wardCam.rect = new Rect(0.5f, 0f, 0.5f, 1f);
             wardCam.fieldOfView = cam.fieldOfView;
             ComputeAt(ward.Position, out var wp, out var wr);
             wardCam.transform.SetPositionAndRotation(wp, wr);
         }
+        ApplyLayout();
         if (wardCam) wardCam.gameObject.SetActive(split);
     }
 

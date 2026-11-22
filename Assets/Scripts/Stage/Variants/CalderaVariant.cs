@@ -20,6 +20,7 @@ public class CalderaVariant : MonoBehaviour
     StageDirector stage;
     CalderaSettings s;
     readonly Dictionary<Vector2Int, CalderaPlatform> grid = new Dictionary<Vector2Int, CalderaPlatform>(1024);
+    bool wasSolid = true;
     float cycleTime;
     int lastPhase = -1;
     bool navDirty = true;
@@ -197,6 +198,8 @@ public class CalderaVariant : MonoBehaviour
         }
         else if (phase == downPhase) { offset = down; solid = false; }
         else if (phase == RisePhase) { offset = Mathf.Lerp(down, 0f, Mathf.SmoothStep(0f, 1f, e / tr)); solid = false; }
+        if (wasSolid && !solid && phase == SinkPhase) SfxManager.Play(SfxManager.S.groundCollapse);
+        wasSolid = solid;
 
         // 경고 중에만 화면이 미세하게 흔들림 (가라앉기 시작하면 멈춤)
         if (warning && s.warningShake > 0f && CameraFollow.I) CameraFollow.I.Shake(s.warningShake * (0.4f + 0.6f * shake));

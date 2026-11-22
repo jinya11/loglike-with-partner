@@ -82,11 +82,11 @@ public class DesertSandstormVariant : MonoBehaviour
                 break;
             case Phase.Warning:
                 Enemy.Frozen = timer <= Mathf.Min(s.freezeLead, s.warning); // 폭풍 몇 초 전부터 적 정지
-                if (timer <= 0f) { phase = Phase.Storm; timer = s.duration; Enemy.Frozen = true; dmgTick = 1f; }
+                if (timer <= 0f) { phase = Phase.Storm; timer = s.duration; Enemy.Frozen = true; dmgTick = 1f; SfxManager.StartLoop(SfxManager.S.sandstorm); }
                 break;
             case Phase.Storm:
                 Blow(dt);
-                if (timer <= 0f) { phase = Phase.Calm; timer = s.calm; Enemy.Frozen = false; RevealRelics(); }
+                if (timer <= 0f) { phase = Phase.Calm; timer = s.calm; Enemy.Frozen = false; RevealRelics(); SfxManager.RestoreWind(); }
                 break;
         }
         UpdateLook(dt);

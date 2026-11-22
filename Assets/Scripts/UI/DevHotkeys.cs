@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// 개발자 모드 단축키 (DevConfig). 개발자 모드가 아니면 생성되지 않음.
-/// - unlockAllKey(F2): 모든 감시자 잠금 해제 on/off (저장 데이터는 그대로)
+/// - unlockAllKey(F2): 스킬 전체 해금 on/off — 생명체 성장 노드 전부 + 감시자 스킬 전부 (저장 데이터는 그대로)
 /// </summary>
 public class DevHotkeys : MonoBehaviour
 {
@@ -33,9 +33,10 @@ public class DevHotkeys : MonoBehaviour
         bool pressed = down && !wasDown;
         wasDown = down;
         if (!pressed) return;
-        cfg.unlockAllCompanions = !cfg.unlockAllCompanions;
-        LobbyInteractable.RefreshAll();
-        Show(cfg.unlockAllCompanions ? "[개발자] 감시자 전체 해금: 켜짐" : "[개발자] 감시자 전체 해금: 꺼짐");
+        cfg.unlockAllSkills = !cfg.unlockAllSkills;
+        if (LobbyDirector.I && GameManager.I) GameManager.I.ResetRun(); // 로비: 성장 스탯 즉시 반영 (전투 중엔 다음 런부터)
+        GrowthProgress.I.NotifyChanged();
+        Show(cfg.unlockAllSkills ? "[개발자] 스킬 전체 해금: 켜짐" : "[개발자] 스킬 전체 해금: 꺼짐");
     }
 
     void Show(string msg) { toast = msg; toastLeft = 2f; }

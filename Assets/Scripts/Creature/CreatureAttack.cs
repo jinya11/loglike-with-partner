@@ -13,7 +13,13 @@ public abstract class CreatureAttack : ScriptableObject
     protected CreatureContext Ctx { get; private set; }
     float timer;
 
-    public void Bind(CreatureContext ctx) => Ctx = ctx;
+    public void Bind(CreatureContext ctx) { Ctx = ctx; OnBound(); }
+
+    /// <summary>Bind 직후 (런 시작 시 한 번). 성장 노드 효과 준비 등.</summary>
+    protected virtual void OnBound() { }
+
+    /// <summary>공격 간격 배율 (성장 효과: 새 소녀 공속 스택 등). 기본 1.</summary>
+    protected virtual float IntervalMul => 1f;
 
     /// <summary>매 프레임 (게임 진행 중, 살아 있을 때만). 사거리 안에 적(또는 부술 수 있는 오브젝트)이 있으면 간격마다 Fire.</summary>
     public void Tick(float dt)
@@ -22,8 +28,9 @@ public abstract class CreatureAttack : ScriptableObject
         var s = Ctx.Stats;
         // 가장 가까운 적, 또는 부술 수 있는 오브젝트(무덤 등)
         if (!Ctx.Stage.NearestTarget(Ctx.Position, s.attackRange, out var target)) return;
-        timer = s.attackInterval;
+        timer = s.attackInterval * IntervalMul;
         Fire(target, s);
+        SfxManager.Play(SfxManager.Creature?.attack, Ctx.Position);
     }
 
     /// <summary>target = 겨눈 위치 (적 또는 부술 수 있는 오브젝트).</summary>
